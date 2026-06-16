@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Make Your Mark PT</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --red: #c8102e; --red-dark: #a00d24; --black: #000000; --off-black: #0d0d0d; --dark: #111111; --mid: #1a1a1a; --white: #ffffff; --gray: #888888; --light-gray: #cccccc; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Barlow', sans-serif; background: var(--black); color: var(--white); overflow-x: hidden; }
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 70px; background: rgba(0,0,0,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .logo-mark { width: 42px; height: 42px; background: var(--red); display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 20px; color: white; clip-path: polygon(10% 0%, 90% 0%, 100% 10%, 100% 90%, 90% 100%, 10% 100%, 0% 90%, 0% 10%); }
+  .logo-text { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 16px; line-height: 1.1; color: white; text-transform: uppercase; letter-spacing: 0.02em; }
+  .logo-text span { color: var(--red); }
+  .nav-links { display: flex; align-items: center; gap: 36px; list-style: none; }
+  .nav-links a { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--white); text-decoration: none; transition: color 0.2s; position: relative; }
+  .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 2px; background: var(--red); transform: scaleX(0); transition: transform 0.2s; }
+  .nav-links a:hover { color: var(--red); }
+  .nav-links a:hover::after { transform: scaleX(1); }
+  .nav-links a.active::after { transform: scaleX(1); }
+  .nav-cta { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; background: var(--red); color: white; border: none; padding: 10px 24px; cursor: pointer; transition: background 0.2s; text-decoration: none; }
+  .nav-cta:hover { background: var(--red-dark); }
+  #home { position: relative; min-height: 100vh; display: flex; align-items: center; overflow: hidden; }
+  .hero-bg { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.92) 45%, rgba(0,0,0,0.5) 100%), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1600&q=80') center/cover no-repeat; }
+  .hero-content { position: relative; z-index: 2; padding: 120px 40px 80px; max-width: 900px; }
+  .hero-eyebrow { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--red); margin-bottom: 16px; }
+  .hero-headline { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; line-height: 0.88; text-transform: uppercase; margin-bottom: 28px; }
+  .hero-headline .line-red { font-size: clamp(72px, 10vw, 130px); color: var(--red); display: block; }
+  .hero-headline .line-white { font-size: clamp(72px, 10vw, 130px); color: var(--white); display: block; }
+  .hero-sub { font-size: 18px; font-weight: 400; line-height: 1.6; color: rgba(255,255,255,0.75); max-width: 520px; margin-bottom: 40px; }
+  .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
+  .btn-primary { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; background: var(--red); color: white; border: 2px solid var(--red); padding: 16px 36px; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; }
+  .btn-primary:hover { background: var(--red-dark); border-color: var(--red-dark); }
+  .btn-secondary { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; background: transparent; color: white; border: 2px solid white; padding: 16px 36px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+  .btn-secondary:hover { background: white; color: black; }
+  .hero-scroll { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; color: rgba(255,255,255,0.4); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; }
+  .scroll-line { width: 1px; height: 40px; background: linear-gradient(to bottom, rgba(200,16,46,0.8), transparent); animation: scrollPulse 2s ease-in-out infinite; }
+  @keyframes scrollPulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+  #programmes { padding: 100px 40px; background: var(--off-black); }
+  .section-label { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--red); margin-bottom: 12px; }
+  .section-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: clamp(42px, 5vw, 64px); text-transform: uppercase; line-height: 0.95; margin-bottom: 16px; }
+  .section-sub { font-size: 16px; color: rgba(255,255,255,0.55); max-width: 480px; line-height: 1.6; margin-bottom: 56px; }
+  .programmes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2px; }
+  .programme-card { position: relative; padding: 44px 36px; background: var(--dark); border-top: 3px solid transparent; transition: all 0.3s; overflow: hidden; cursor: pointer; }
+  .programme-card::before { content: ''; position: absolute; inset: 0; background: var(--red); transform: scaleY(0); transform-origin: bottom; transition: transform 0.4s cubic-bezier(0.4,0,0.2,1); z-index: 0; }
+  .programme-card:hover::before { transform: scaleY(1); }
+  .programme-card:hover { border-top-color: var(--red); }
+  .programme-card > * { position: relative; z-index: 1; }
+  .prog-number { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 64px; color: rgba(255,255,255,0.06); line-height: 1; margin-bottom: -10px; transition: color 0.3s; }
+  .programme-card:hover .prog-number { color: rgba(255,255,255,0.15); }
+  .prog-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 26px; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.02em; line-height: 1.05; }
+  .prog-tag { display: inline-block; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--red); border: 1px solid var(--red); padding: 3px 10px; margin-bottom: 16px; transition: all 0.3s; }
+  .programme-card:hover .prog-tag { background: rgba(255,255,255,0.2); color: white; border-color: white; }
+  .prog-who { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 8px; transition: color 0.3s; }
+  .programme-card:hover .prog-who { color: rgba(255,255,255,0.7); }
+  .prog-desc { font-size: 14px; line-height: 1.65; color: rgba(255,255,255,0.6); margin-bottom: 24px; transition: color 0.3s; }
+  .programme-card:hover .prog-desc { color: rgba(255,255,255,0.85); }
+  .prog-features { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; }
+  .prog-features li { font-size: 13px; color: rgba(255,255,255,0.5); display: flex; align-items: center; gap: 8px; transition: color 0.3s; }
+  .programme-card:hover .prog-features li { color: rgba(255,255,255,0.8); }
+  .prog-features li::before { content: ''; width: 16px; height: 2px; background: var(--red); flex-shrink: 0; transition: background 0.3s; }
+  .programme-card:hover .prog-features li::before { background: white; }
+  .prog-cta { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; color: white; display: flex; align-items: center; gap: 8px; cursor: pointer; background: none; border: none; padding: 0; }
+  .prog-cta::after { content: '→'; transition: transform 0.2s; }
+  .programme-card:hover .prog-cta::after { transform: translateX(4px); }
+  #about { padding: 100px 40px; background: var(--black); }
+  .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 40px; margin-top: 56px; }
+  .step { position: relative; }
+  .step-num { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 80px; color: rgba(200,16,46,0.12); line-height: 1; margin-bottom: -20px; }
+  .step-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 22px; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; }
+  .step-desc { font-size: 14px; line-height: 1.65; color: rgba(255,255,255,0.5); }
+  .step-line { width: 32px; height: 3px; background: var(--red); margin-bottom: 16px; }
+  #contact { padding: 100px 40px; background: var(--dark); }
+  .contact-inner { max-width: 560px; }
+  .contact-form { display: flex; flex-direction: column; gap: 16px; margin-top: 40px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; font-family: 'Barlow', sans-serif; font-size: 14px; padding: 14px 16px; outline: none; transition: border-color 0.2s; width: 100%; }
+  .form-input:focus { border-color: var(--red); }
+  .form-input::placeholder { color: rgba(255,255,255,0.3); }
+  textarea.form-input { resize: vertical; min-height: 120px; }
+  .form-submit { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; background: var(--red); color: white; border: none; padding: 16px 36px; cursor: pointer; transition: background 0.2s; align-self: flex-start; }
+  .form-submit:hover { background: var(--red-dark); }
+  .form-disclaimer { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: -4px; font-style: italic; }
+  footer { padding: 32px 40px; background: var(--black); border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .footer-brand { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 15px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.3); }
+  .footer-brand span { color: var(--red); }
+  .footer-copy { font-size: 13px; color: rgba(255,255,255,0.25); }
+  .footer-red-bar { height: 4px; background: var(--red); width: 100%; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+  .modal-overlay.active { opacity: 1; pointer-events: all; }
+  .modal { background: var(--dark); width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; border-top: 3px solid var(--red); position: relative; transform: translateY(20px); transition: transform 0.3s; }
+  .modal-overlay.active .modal { transform: translateY(0); }
+  .modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: rgba(255,255,255,0.4); font-size: 24px; cursor: pointer; line-height: 1; transition: color 0.2s; z-index: 10; }
+  .modal-close:hover { color: white; }
+  .quiz-progress-bar { height: 3px; background: rgba(255,255,255,0.08); width: 100%; }
+  .quiz-progress-fill { height: 100%; background: var(--red); transition: width 0.4s cubic-bezier(0.4,0,0.2,1); }
+  .quiz-inner { padding: 40px; }
+  .quiz-step-label { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--red); margin-bottom: 8px; }
+  .quiz-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 26px; text-transform: uppercase; line-height: 1.1; margin-bottom: 8px; }
+  .quiz-sub { font-size: 14px; color: rgba(255,255,255,0.45); margin-bottom: 28px; line-height: 1.5; }
+  .quiz-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+  .quiz-option { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 16px 20px; cursor: pointer; text-align: left; font-family: 'Barlow', sans-serif; font-size: 15px; font-weight: 500; display: flex; align-items: flex-start; gap: 14px; transition: all 0.15s; position: relative; overflow: hidden; line-height: 1.4; }
+  .quiz-option::before { content: ''; width: 18px; height: 18px; border: 1.5px solid rgba(255,255,255,0.25); border-radius: 50%; flex-shrink: 0; transition: all 0.2s; margin-top: 2px; }
+  .quiz-option:hover { border-color: rgba(200,16,46,0.5); background: rgba(200,16,46,0.07); }
+  .quiz-option.selected { border-color: var(--red); background: rgba(200,16,46,0.12); }
+  .quiz-option.selected::before { background: var(--red); border-color: var(--red); box-shadow: inset 0 0 0 3px #0d0d0d; }
+  .quiz-form { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
+  .qf-group { display: flex; flex-direction: column; gap: 5px; }
+  .qf-label { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
+  .qf-input { color: white; font-family: 'Barlow', sans-serif; font-size: 15px; font-weight: 500; padding: 10px 0; outline: none; transition: border-color 0.2s; width: 100%; background: transparent; border: none; border-bottom: 2px solid rgba(255,255,255,0.15); }
+  .qf-input:focus { border-bottom-color: var(--red); }
+  .qf-input::placeholder { color: rgba(255,255,255,0.2); }
+  .qf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .qf-select { background: transparent; border: none; border-bottom: 2px solid rgba(255,255,255,0.15); color: white; font-family: 'Barlow', sans-serif; font-size: 15px; font-weight: 500; padding: 10px 0; outline: none; cursor: pointer; width: 100%; appearance: none; }
+  .qf-select option { background: #1a1a1a; }
+  .qf-select:focus { border-bottom-color: var(--red); }
+  .quiz-nav { display: flex; align-items: center; justify-content: space-between; }
+  .quiz-back { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.35); background: none; border: none; cursor: pointer; transition: color 0.2s; padding: 0; }
+  .quiz-back:hover { color: white; }
+  .quiz-back:disabled { opacity: 0; pointer-events: none; }
+  .quiz-next { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; background: var(--red); color: white; border: none; padding: 14px 32px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 10px; }
+  .quiz-next:hover { background: var(--red-dark); }
+  .quiz-next:disabled { opacity: 0.35; cursor: not-allowed; }
+  .result-badge { display: inline-block; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; background: var(--red); color: white; padding: 6px 14px; margin-bottom: 16px; }
+  .result-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 38px; text-transform: uppercase; line-height: 0.95; margin-bottom: 16px; }
+  .result-sub { font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.65; margin-bottom: 28px; }
+  .result-perks { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; padding: 24px; background: rgba(200,16,46,0.07); border-left: 3px solid var(--red); }
+  .result-perks li { font-size: 14px; color: rgba(255,255,255,0.75); display: flex; align-items: flex-start; gap: 10px; }
+  .result-perks li::before { content: '✓'; color: var(--red); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .result-delivery { margin-bottom: 32px; }
+  .delivery-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 14px; }
+  .delivery-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .delivery-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 18px 16px; cursor: pointer; transition: all 0.15s; text-align: center; }
+  .delivery-card:hover, .delivery-card.active { border-color: var(--red); background: rgba(200,16,46,0.08); }
+  .delivery-icon { font-size: 22px; margin-bottom: 6px; }
+  .delivery-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; text-transform: uppercase; margin-bottom: 2px; }
+  .delivery-hint { font-size: 12px; color: rgba(255,255,255,0.35); }
+  .result-cta { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; letter-spacing: 0.12em; text-transform: uppercase; background: var(--red); color: white; border: none; padding: 18px 40px; cursor: pointer; transition: background 0.2s; width: 100%; }
+  .result-cta:hover:not(:disabled) { background: var(--red-dark); }
+  .result-cta:disabled { opacity: 0.6; cursor: wait; }
+  .result-restart { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.25); background: none; border: none; cursor: pointer; margin-top: 14px; display: block; width: 100%; text-align: center; transition: color 0.2s; }
+  .result-restart:hover { color: rgba(255,255,255,0.6); }
+  .quiz-step { display: none; }
+  .quiz-step.active { display: block; }
+  .modal::-webkit-scrollbar { width: 4px; }
+  .modal::-webkit-scrollbar-track { background: transparent; }
+  .modal::-webkit-scrollbar-thumb { background: var(--red); }
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .nav-links { display: none; }
+    .hero-content { padding: 100px 20px 60px; }
+    #programmes, #about, #contact { padding: 70px 20px; }
+    footer { padding: 24px 20px; }
+    .qf-row { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .delivery-options { grid-template-columns: 1fr; }
+    .quiz-inner { padding: 30px 24px; }
+  }
+</style>
+</head>
+<body>
+<nav>
+  <a href="#home" class="nav-logo">
+    <div class="logo-mark">M</div>
+    <div class="logo-text">Make Your<br><span>Mark</span></div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#home" class="active">Home</a></li>
+    <li><a href="#programmes">Programmes</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="#" class="nav-cta" onclick="openQuiz(); return false;">Start Now</a>
+</nav>
+
+<section id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Personal Training · Sydney</div>
+    <h1 class="hero-headline">
+      <span class="line-red">MAKE YOUR</span>
+      <span class="line-white">MARK.</span>
+    </h1>
+    <p class="hero-sub">This is your moment. Stop settling for average results and start training with a programme built entirely around you.</p>
+    <div class="hero-buttons">
+      <a href="#" class="btn-primary" onclick="openQuiz(); return false;">Start Your Journey →</a>
+      <a href="#programmes" class="btn-secondary">View Programmes</a>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<section id="programmes">
+  <div class="section-label">What we offer</div>
+  <h2 class="section-title">Train With<br>A Purpose</h2>
+  <p class="section-sub">Three programmes, each built around a distinct outcome. Take the quiz to find out which one is right for you.</p>
+  <div class="programmes-grid">
+    <div class="programme-card" onclick="openQuiz()">
+      <div class="prog-number">01</div>
+      <div class="prog-name">Body Recomposition</div>
+      <div class="prog-tag">Recomp</div>
+      <div class="prog-who">For everyday people</div>
+      <p class="prog-desc">Lose fat, build muscle, and create habits that stick. Whether you're getting back into it after years off or starting from scratch, we'll build something around your life.</p>
+      <ul class="prog-features">
+        <li>Sustainable nutrition guidance</li>
+        <li>Strength + conditioning balance</li>
+        <li>Habit-building support</li>
+        <li>Look better, feel better, move better</li>
+      </ul>
+      <button class="prog-cta">Find Out If This Is You</button>
+    </div>
+    <div class="programme-card" onclick="openQuiz()">
+      <div class="prog-number">02</div>
+      <div class="prog-name">Athletic Performance</div>
+      <div class="prog-tag">Perform</div>
+      <div class="prog-who">For athletes &amp; sport</div>
+      <p class="prog-desc">Speed, power, conditioning, and sport-specific preparation. Periodised around your season so you peak when it matters most.</p>
+      <ul class="prog-features">
+        <li>Sport-specific programming</li>
+        <li>Speed, power &amp; conditioning</li>
+        <li>Season periodisation</li>
+        <li>Injury prevention protocols</li>
+      </ul>
+      <button class="prog-cta">Find Out If This Is You</button>
+    </div>
+    <div class="programme-card" onclick="openQuiz()">
+      <div class="prog-number">03</div>
+      <div class="prog-name">Strength &amp; Hypertrophy</div>
+      <div class="prog-tag">Build</div>
+      <div class="prog-who">For confident lifters</div>
+      <p class="prog-desc">For people already training who want serious structure. Progressive overload, periodised volume, and the discipline to get genuinely bigger and stronger.</p>
+      <ul class="prog-features">
+        <li>Progressive overload programming</li>
+        <li>Volume &amp; intensity periodisation</li>
+        <li>Strength milestones tracked</li>
+        <li>Built for size &amp; strength gains</li>
+      </ul>
+      <button class="prog-cta">Find Out If This Is You</button>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="section-label">The Process</div>
+  <h2 class="section-title">How It<br>Works</h2>
+  <div class="steps-grid">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-line"></div>
+      <div class="step-title">Take the Quiz</div>
+      <p class="step-desc">Answer a few quick questions about your goals, training background, and lifestyle. Takes less than 2 minutes.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-line"></div>
+      <div class="step-title">Get Matched</div>
+      <p class="step-desc">We analyse your responses and match you to the programme that aligns with your goals and starting point.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-line"></div>
+      <div class="step-title">Your Plan Arrives</div>
+      <p class="step-desc">Receive your fully personalised programme — training, nutrition, and check-in schedule — ready to start.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-line"></div>
+      <div class="step-title">Make Your Mark</div>
+      <p class="step-desc">Train with a programme built entirely around you, with ongoing support as you progress.</p>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="contact-inner">
+    <div class="section-label">Get in touch</div>
+    <h2 class="section-title">Ready to<br>Start?</h2>
+    <p class="section-sub" style="margin-bottom:0;">Have a question before committing? Send a message and we'll get back to you within 24 hours.</p>
+    <form class="contact-form" onsubmit="handleContact(event)">
+      <div class="form-row">
+        <input type="text" class="form-input" placeholder="First name" required>
+        <input type="text" class="form-input" placeholder="Last name" required>
+      </div>
+      <input type="email" class="form-input" placeholder="Email address" required>
+      <textarea class="form-input" placeholder="Your message" rows="4" required></textarea>
+      <button type="submit" class="form-submit">Send Message →</button>
+      <p class="form-disclaimer">No commitment. Just a conversation.</p>
+    </form>
+  </div>
+</section>
+
+<div class="footer-red-bar"></div>
+<footer>
+  <div class="footer-brand">Make Your <span>Mark</span> PT</div>
+  <div class="footer-copy">© 2026 makeyourmarkpt.com · Sydney, Australia</div>
+</footer>
+
+<div class="modal-overlay" id="quizModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeQuiz()">✕</button>
+    <div class="quiz-progress-bar">
+      <div class="quiz-progress-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+    <div class="quiz-inner">
+      <div class="quiz-step active" data-step="1">
+        <div class="quiz-step-label">Question 1 of 6</div>
+        <div class="quiz-title">What's your main goal right now?</div>
+        <p class="quiz-sub">Pick the one that's most true for you today.</p>
+        <div class="quiz-options">
+          <button class="quiz-option" onclick="selectOption(this, 'q1', 'A')">Lose fat and build muscle / just want to look and feel better</button>
+          <button class="quiz-option" onclick="selectOption(this, 'q1', 'B')">Improve my speed, power, or performance for a sport</button>
+          <button class="quiz-option" onclick="selectOption(this, 'q1', 'C')">Get bigger and stronger — I want serious size and strength gains</button>
+          <button class="quiz-option" onclick="selectOption(this, 'q1', 'D')">I'm not sure yet — help me figure it out</button>
+        </div>
+        <div class="quiz-nav">
+          <button class="quiz-back" disabled>← Back</button>
+          <button class="quiz-next" id="next1" disabled onclick="goToStep(2)">Continue →</button>
+        </div>
+      </div>
+      <div class="quiz-step" data-step="2">
+        <div class="quiz-step-label">Question 2 of 6</div>
+        <div class="quiz-title">How would you describe your training background?</div>
+        <p class="quiz-sub">Be honest — we programme for every level.</p>
+        <div class="quiz-options">
+          <button class="quiz-option" onclick="selectOption(this, 'q2', 'A')">New to the gym or just getting back into it</button>
+          <button class="quiz-option" onclick="selectOption(this, 'q2', 'B')">I play sport and train around it but want more structure</button>
+          <button class="quiz-option" onclick="selectOption(this, 'q2', 'C')">I've been lifting consistently for a while and know what I'm doing</button>
+          <button class="quiz-option" onclick="selectOption(this, 'q2', 'D')">I've trained on and off but never had a proper programme</button>
+        </div>
+        <div class="quiz-nav">
+          <button class="quiz-back" onclick="goToStep(1)">← Back</button>
+          <button class="quiz-next" id="next2" disabled onclick="goToStep(3)">Continue →</button>
+        </div>
+      </div>
+      <div class="quiz-step" data-step="3">
+        <div class="quiz-step-label">Question 3 of 6</div>
+        <div class="quiz-title">What does your week look like?</div>
+        <p class="quiz-sub">Consistency beats intensity. We'll build around your real schedule.</p>
+        <div class="quiz-options">
+          <button class="quiz-option" onclick="selectOption(this, 'q3', 'A')">Pretty busy — I can commit to 3 days max</button>
+          <button class="quiz-option" onclick="selectOption(this, 'q3', 'B')">I have a sport or competition schedule I train around</button>
+          <button class="quiz-option" onclick="selectOption(this, 'q3', 'C')">I can train 4–5 days, that's the priority for me</button>
+          <button class="quiz-option" onclick="selectOption(this, 'q3', 'D')">It varies, I need something flexible</button>
+        </div>
+        <div class="quiz-nav">
+          <button class="quiz-back" onclick="goToStep(2)">← Back</button>
+          <button class="quiz-next" id="next3" disabled onclick="goToStep(4)">Continue →</button>
+        </div>
+      </div>
+      <div class="quiz-step" data-step="4">
+        <div class="quiz-step-label">Question 4 of 6</div>
+        <div class="quiz-title">What would success look like in 12 weeks?</div>
+        <p class="quiz-sub">Imagine you're at the end of a strong block — what's true?</p>
+        <div class="quiz-options">
+          <button class="quiz-option" onclick="selectOption(this, 'q4', 'A')">I look better, feel better, and have built a routine I can stick to</button>
+          <button class="quiz-option" onclick="selectOption(this, 'q4', 'B')">I'm faster, fitter, and performing better in my sport</button>
+          <button class="quiz-option" onclick="selectOption(this, 'q4', 'C')">I've put on noticeable size and my lifts have gone up</button>
+          <button class="quiz-option" onclick="selectOption(this, 'q4', 'D')">I just feel healthier and more in control of my body</button>
+        </div>
+        <div class="quiz-nav">
+          <button class="quiz-back" onclick="goToStep(3)">← Back</button>
+          <button class="quiz-next" id="next4" disabled onclick="goToStep(5)">Continue →</button>
+        </div>
+      </div>
+      <div class="quiz-step" data-step="5">
+        <div class="quiz-step-label">Question 5 of 6</div>
+        <div class="quiz-title">What's held you back before?</div>
+        <p class="quiz-sub">Knowing the obstacle helps us design around it.</p>
+        <div class="quiz-options">
+          <button class="quiz-option" onclick="selectOption(this, 'q5', 'A')">Not knowing where to start or what to do</button>
+          <button class="quiz-option" onclick="selectOption(this, 'q5', 'B')">No structure around my training — just winging it</button>
+          <button class="quiz-option" onclick="selectOption(this, 'q5', 'C')">Hitting a plateau — I've stopped progressing</button>
+          <button class="quiz-option" onclick="selectOption(this, 'q5', 'D')">Inconsistency — life gets in the way</button>
+        </div>
+        <div class="quiz-nav">
+          <button class="quiz-back" onclick="goToStep(4)">← Back</button>
+          <button class="quiz-next" id="next5" disabled onclick="goToStep(6)">Continue →</button>
+        </div>
+      </div>
+      <div class="quiz-step" data-step="6">
+        <div class="quiz-step-label">Almost done</div>
+        <div class="quiz-title">Tell us a bit about yourself</div>
+        <p class="quiz-sub">This helps us personalise your recommendation and send it across.</p>
+        <div class="quiz-form">
+          <div class="qf-row">
+            <div class="qf-group">
+              <label class="qf-label">First Name</label>
+              <input type="text" class="qf-input" id="qfName" placeholder="e.g. Alex" oninput="checkProfileStep()">
+            </div>
+            <div class="qf-group">
+              <label class="qf-label">Email</label>
+              <input type="email" class="qf-input" id="qfEmail" placeholder="you@email.com" oninput="checkProfileStep()">
+            </div>
+          </div>
+          <div class="qf-group">
+            <label class="qf-label">Phone Number</label>
+            <input type="tel" class="qf-input" id="qfPhone" placeholder="04XX XXX XXX" oninput="checkProfileStep()">
+          </div>
+          <div class="qf-row">
+            <div class="qf-group">
+              <label class="qf-label">Gender</label>
+              <select class="qf-select" id="qfGender" onchange="checkProfileStep()">
+                <option value="" disabled selected>Select</option>
+                <option>Male</option>
+                <option>Female</option>
+                <option>Non-binary</option>
+                <option>Prefer not to say</option>
+              </select>
+            </div>
+            <div class="qf-group">
+              <label class="qf-label">Age</label>
+              <input type="number" class="qf-input" id="qfAge" placeholder="e.g. 28" min="16" max="80" oninput="checkProfileStep()">
+            </div>
+          </div>
+          <div class="qf-group">
+            <label class="qf-label">Current Weight (kg)</label>
+            <input type="number" class="qf-input" id="qfWeight" placeholder="e.g. 78" min="40" max="250" oninput="checkProfileStep()">
+          </div>
+        </div>
+        <div class="quiz-nav">
+          <button class="quiz-back" onclick="goToStep(5)">← Back</button>
+          <button class="quiz-next" id="next6" disabled onclick="goToStep(7)">See My Programme →</button>
+        </div>
+      </div>
+      <div class="quiz-step" data-step="7">
+        <div id="resultContent"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ⚠️ REPLACE THIS WITH YOUR APPS SCRIPT WEB APP URL (see setup instructions)
+  const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+
+  const answers = {};
+  const totalSteps = 7;
+
+  function openQuiz() {
+    document.getElementById('quizModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeQuiz() {
+    document.getElementById('quizModal').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('quizModal').addEventListener('click', function(e) {
+    if (e.target === this) closeQuiz();
+  });
+
+  function selectOption(el, key, value) {
+    const parent = el.closest('.quiz-options');
+    parent.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    answers[key] = value;
+    const step = el.closest('.quiz-step').dataset.step;
+    const nextBtn = document.getElementById('next' + step);
+    if (nextBtn) nextBtn.disabled = false;
+  }
+
+  function checkProfileStep() {
+    const name = document.getElementById('qfName').value.trim();
+    const email = document.getElementById('qfEmail').value.trim();
+    const phone = document.getElementById('qfPhone').value.trim();
+    const gender = document.getElementById('qfGender').value;
+    const age = document.getElementById('qfAge').value;
+    const weight = document.getElementById('qfWeight').value;
+    const valid = name && email && email.includes('@') && phone && gender && age && weight;
+    document.getElementById('next6').disabled = !valid;
+  }
+
+  function goToStep(step) {
+    document.querySelectorAll('.quiz-step').forEach(s => s.classList.remove('active'));
+    document.querySelector('[data-step="' + step + '"]').classList.add('active');
+    const pct = ((step - 1) / (totalSteps - 1)) * 100;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.querySelector('.modal').scrollTop = 0;
+    if (step === 7) showResult();
+  }
+
+  // Routing: Mostly A/D → Recomp, Mostly B → Performance, Mostly C → Strength
+  function calculateProgramme() {
+    const counts = { A: 0, B: 0, C: 0, D: 0 };
+    ['q1','q2','q3','q4','q5'].forEach(q => { if (answers[q]) counts[answers[q]]++; });
+    const adCount = counts.A + counts.D;
+    if (counts.B > counts.C && counts.B >= adCount) return 'performance';
+    if (counts.C > counts.B && counts.C >= adCount) return 'strength';
+    return 'recomp';
+  }
+
+  function showResult() {
+    document.getElementById('progressFill').style.width = '100%';
+    const programme = calculateProgramme();
+    const name = document.getElementById('qfName').value.trim();
+    let prog, desc, perks, badge;
+    if (programme === 'performance') {
+      prog = 'Athletic Performance';
+      badge = 'Perform Programme';
+      desc = `Based on your answers, ${name}, an athletic performance programme is the right fit. We'll periodise speed, power, and conditioning work around your sport so you peak when it matters.`;
+      perks = ['Sport-specific programming built around your schedule','Speed, power & conditioning blocks','Periodised around your competition calendar','Injury prevention & mobility protocols','Performance tracking & benchmarking'];
+    } else if (programme === 'strength') {
+      prog = 'Strength & Hypertrophy';
+      badge = 'Build Programme';
+      desc = `Based on your answers, ${name}, a strength and hypertrophy programme will deliver the size and strength gains you're after. Progressive overload, smart periodisation, and proper structure.`;
+      perks = ['Progressive overload training structure','Periodised volume & intensity blocks','Muscle-group optimised splits','Performance nutrition protocols','Strength milestones tracked weekly'];
+    } else {
+      prog = 'Body Recomposition';
+      badge = 'Recomp Programme';
+      desc = `Based on your answers, ${name}, body recomposition is the right starting point. We'll help you lose fat, build muscle, and create habits that actually stick — built around your real life.`;
+      perks = ['Sustainable nutrition guidance — no extremes','Balanced strength & conditioning training','Habit-building support that fits your lifestyle','Weekly check-ins & progress tracking','Built for long-term results, not quick fixes'];
+    }
+    answers.programme = prog;
+    answers.delivery = 'In-Person';
+    document.getElementById('resultContent').innerHTML = `
+      <div class="result-badge">${badge}</div>
+      <div class="result-title">Your Programme:<br>${prog}</div>
+      <p class="result-sub">${desc}</p>
+      <ul class="result-perks">${perks.map(p => `<li>${p}</li>`).join('')}</ul>
+      <div class="result-delivery">
+        <div class="delivery-title">How do you want to train?</div>
+        <div class="delivery-options">
+          <div class="delivery-card active" onclick="setDelivery(this, 'In-Person')">
+            <div class="delivery-icon">🏋️</div>
+            <div class="delivery-name">In-Person</div>
+            <div class="delivery-hint">Sydney based sessions</div>
+          </div>
+          <div class="delivery-card" onclick="setDelivery(this, 'Online')">
+            <div class="delivery-icon">📱</div>
+            <div class="delivery-name">Online</div>
+            <div class="delivery-hint">Train anywhere, anytime</div>
+          </div>
+        </div>
+      </div>
+      <button class="result-cta" id="claimBtn" onclick="submitResult()">Claim My ${prog} Programme →</button>
+      <button class="result-restart" onclick="restartQuiz()">← Start over</button>
+    `;
+  }
+
+  function setDelivery(el, value) {
+    el.closest('.delivery-options').querySelectorAll('.delivery-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    answers.delivery = value;
+  }
+
+  async function submitResult() {
+    const btn = document.getElementById('claimBtn');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    const name = document.getElementById('qfName').value.trim();
+    const payload = {
+      timestamp: new Date().toISOString(),
+      name: name,
+      email: document.getElementById('qfEmail').value.trim(),
+      phone: document.getElementById('qfPhone').value.trim(),
+      gender: document.getElementById('qfGender').value,
+      age: document.getElementById('qfAge').value,
+      weight: document.getElementById('qfWeight').value,
+      q1: answers.q1, q2: answers.q2, q3: answers.q3, q4: answers.q4, q5: answers.q5,
+      programme: answers.programme,
+      delivery: answers.delivery,
+      status: 'New Lead',
+      source: 'Website Quiz'
+    };
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      document.getElementById('resultContent').innerHTML = `
+        <div style="text-align:center; padding: 20px 0;">
+          <div style="width:56px;height:56px;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 20px;color:white;font-weight:700;">✓</div>
+          <div class="quiz-title" style="font-size:32px;margin-bottom:12px;">You're In,<br>${name}.</div>
+          <p class="quiz-sub" style="margin-bottom:28px;">Your personalised programme details are on the way. Check your inbox — Harry will be in touch within 24 hours to get everything set up.</p>
+          <button class="result-cta" onclick="closeQuiz()">Back to Site</button>
+        </div>
+      `;
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Try again';
+      alert('Something went wrong. Please try again or contact us directly.');
+    }
+  }
+
+  function restartQuiz() {
+    Object.keys(answers).forEach(k => delete answers[k]);
+    document.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+    document.querySelectorAll('.quiz-next').forEach(b => b.disabled = true);
+    ['qfName','qfEmail','qfPhone','qfAge','qfWeight'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('qfGender').value = '';
+    goToStep(1);
+  }
+
+  function handleContact(e) {
+    e.preventDefault();
+    e.target.innerHTML = '<p style="color: var(--red); font-family: \'Barlow Condensed\', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.05em; text-transform: uppercase;">Message sent. We\'ll be in touch shortly.</p>';
+  }
+
+  const sections = document.querySelectorAll('section[id]');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+    document.querySelectorAll('.nav-links a').forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  });
+</script>
+</body>
+</html>
