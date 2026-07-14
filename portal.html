@@ -213,7 +213,7 @@
   <header><div class="wrap bar">
     <div class="logo top">MAKE YOUR MARK<span class="dot">.</span></div>
     <nav id="nav"></nav>
-    <div class="who"><span id="whoName"></span><button class="logout" data-act="logout">Log out</button></div>
+    <div class="who"><span id="whoName"></span><a id="coachLink" class="logout" href="coach.html" hidden>Coach</a><button class="logout" data-act="logout">Log out</button></div>
   </div></header>
   <main><div class="wrap" id="view"></div></main>
 </div>
@@ -271,6 +271,7 @@ async function loadData(){
   const res = await api({ action:'data', session: SESSION });
   if(!res || !res.ok) return false;
   S.name = res.name || '';
+  S.admin = !!res.admin;
   S.workoutHtml = res.workoutHtml || '';
   S.recipes = res.recipes || [];
   const sel = res.selections || {};
@@ -329,6 +330,7 @@ function showApp(){
   document.getElementById('login').hidden = true;
   document.getElementById('app').hidden = false;
   document.getElementById('whoName').textContent = S.name ? ('Hi, ' + S.name) : '';
+  document.getElementById('coachLink').hidden = !S.admin;
   render();
 }
 
