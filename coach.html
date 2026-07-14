@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Make Your Mark — Coach</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --panel:#f6f6f4; --panel2:#eeeeec; --raise:#ffffff;
+    --ink:#111111; --muted:#6b6b6b; --faint:#9a9a9a;
+    --line:#e4e4e1; --line2:#d4d4d0;
+    --red:#c8102e; --red-d:#a50d26; --black:#000000;
+    --display:'Barlow Condensed',system-ui,sans-serif;
+    --body:'Barlow',system-ui,sans-serif;
+    --mono:ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  [hidden]{display:none !important}
+  body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input,select,textarea{font-family:inherit;font-size:14px}
+  ::selection{background:var(--red);color:#fff}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+  h1,h2,h3,.logo{font-family:var(--display)}
+
+  .btn{background:var(--red);color:#fff;font-family:var(--display);font-weight:700;font-size:15px;
+    letter-spacing:.02em;text-transform:uppercase;padding:10px 18px;border-radius:8px;transition:.15s}
+  .btn:hover{background:var(--red-d)}
+  .btn:disabled{opacity:.5;cursor:default}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line2)}
+  .btn.ghost:hover{background:var(--panel2);border-color:var(--ink)}
+  .btn.sm{font-size:12px;padding:7px 12px}
+
+  #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .loginbox{width:100%;max-width:400px;text-align:center}
+  .loginbox .logo{font-size:36px;font-weight:800;text-transform:uppercase;line-height:.95}
+  .loginbox .logo .dot{color:var(--red)}
+  .loginbox .tag{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);margin:10px 0 26px}
+  .loginform{display:flex;flex-direction:column;gap:12px}
+  .loginform input{background:var(--panel);border:1px solid var(--line2);border-radius:8px;padding:13px 16px;font-size:16px}
+  .loginform input:focus{outline:none;border-color:var(--red)}
+  .msg{margin-top:16px;font-size:14px;padding:12px 14px;border-radius:8px}
+  .msg.ok{background:#f0f7f0;color:#2e6b2e;border:1px solid #cfe6cf}
+  .msg.err{background:#fbeeef;color:var(--red-d);border:1px solid #f0d2d6}
+  .booting{min-height:100vh;display:flex;align-items:center;justify-content:center;color:var(--muted);font-family:var(--mono);font-size:13px}
+
+  header{position:sticky;top:0;z-index:30;background:var(--black);color:#fff}
+  .bar{display:flex;align-items:center;gap:16px;padding:11px 0;flex-wrap:wrap}
+  .logo.top{font-size:21px;font-weight:800;text-transform:uppercase;color:#fff;margin-right:auto}
+  .logo.top .dot{color:var(--red)}
+  .logo.top .coach{font-size:12px;color:rgba(255,255,255,.5);letter-spacing:.14em;margin-left:10px}
+  nav{display:flex;gap:2px;background:rgba(255,255,255,.08);border-radius:999px;padding:4px}
+  .tab{font-family:var(--display);font-weight:600;font-size:14px;letter-spacing:.04em;text-transform:uppercase;
+    color:rgba(255,255,255,.7);padding:7px 16px;border-radius:999px;white-space:nowrap}
+  .tab:hover{color:#fff}
+  .tab.on{background:var(--red);color:#fff}
+  .logout{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.55)}
+  .logout:hover{color:#fff}
+
+  main{padding:26px 0 90px}
+  .head{margin-bottom:18px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-bottom:4px}
+  h1{font-weight:800;font-size:clamp(26px,4vw,36px);text-transform:uppercase;line-height:1}
+  .sub{color:var(--muted);margin-top:6px;max-width:64ch}
+
+  /* library */
+  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+  .search{flex:1;min-width:220px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:10px 14px}
+  .search:focus{outline:none;border-color:var(--red)}
+  .toolbar select{background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:10px 12px;color:var(--ink)}
+  .count{font-family:var(--mono);font-size:11px;color:var(--faint)}
+  .exlist{display:flex;flex-direction:column;gap:8px}
+  .exrow{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+  .exrow:hover{border-color:var(--line2)}
+  .exthumb{width:64px;height:44px;border-radius:8px;object-fit:cover;background:var(--panel2);flex:none}
+  .exmain{flex:1;min-width:0;cursor:pointer}
+  .exname{font-family:var(--display);font-weight:700;font-size:17px;text-transform:uppercase;line-height:1.05}
+  .exmeta{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:2px;text-transform:capitalize}
+  .vbadge{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 9px;flex:none}
+  .vbadge.has{color:#2e6b2e;background:#f0f7f0;border:1px solid #cfe6cf}
+  .vbadge.none{color:var(--faint);background:var(--panel2);border:1px solid var(--line)}
+  .custombadge{font-family:var(--mono);font-size:9.5px;color:var(--red-d);background:#fdf3f4;border:1px solid #eccdd2;border-radius:999px;padding:3px 9px;flex:none}
+  .loadmore{margin:16px auto 0;display:block}
+
+  /* clients + builder */
+  .layout{display:grid;grid-template-columns:250px 1fr;gap:20px}
+  @media(max-width:820px){.layout{grid-template-columns:1fr}}
+  .clist{display:flex;flex-direction:column;gap:6px}
+  .crow{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 14px}
+  .crow:hover{border-color:var(--line2)}
+  .crow.on{border-color:var(--red);box-shadow:0 0 0 1px var(--red) inset}
+  .crow .cn{font-weight:600}
+  .crow .cs{font-family:var(--mono);font-size:10px;color:var(--faint)}
+  .crow .num{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .sesslist{display:flex;flex-direction:column;gap:10px}
+  .sess{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .sess.past{opacity:.6}
+  .sesshead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .sessdate{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--red);text-transform:uppercase}
+  .sesstitle{font-family:var(--display);font-weight:700;font-size:18px;text-transform:uppercase;margin-right:auto}
+  .sessx{display:flex;gap:6px}
+  .exline{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line)}
+  .exline:first-of-type{margin-top:10px}
+  .exline .en{flex:1;font-weight:600;font-size:14px}
+  .exline .rx{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .exline .del{color:var(--faint);font-size:15px}
+  .exline .del:hover{color:var(--red)}
+  .empty{text-align:center;padding:44px 16px;color:var(--muted);background:var(--panel);border:1px dashed var(--line2);border-radius:12px}
+  .savestate{font-family:var(--mono);font-size:11px;color:var(--faint)}
+
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+  @media(min-width:640px){.overlay{align-items:center}}
+  .sheet{background:var(--bg);width:100%;max-width:600px;max-height:92vh;border-radius:16px 16px 0 0;overflow-y:auto}
+  @media(min-width:640px){.sheet{border-radius:16px}}
+  .sh{padding:22px 24px 16px;border-bottom:1px solid var(--line);position:relative}
+  .close{position:absolute;top:14px;right:16px;font-size:26px;line-height:1;color:var(--faint)}
+  .close:hover{color:var(--ink)}
+  .sh h2{font-size:24px;font-weight:800;text-transform:uppercase;padding-right:30px;line-height:1}
+  .sh .m{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:6px;text-transform:capitalize}
+  .sb{padding:18px 24px 24px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+  .field input,.field select,.field textarea{width:100%;background:var(--panel);border:1px solid var(--line2);border-radius:9px;padding:10px 12px}
+  .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--red)}
+  .field textarea{min-height:84px;resize:vertical}
+  .fieldrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .vid{margin:12px 0;aspect-ratio:16/9;width:100%;border:none;border-radius:10px;background:var(--panel2)}
+  .exphotos{display:flex;gap:10px;margin:12px 0}
+  .exphotos img{width:calc(50% - 5px);border-radius:10px;border:1px solid var(--line)}
+  .cuebox{font-size:14px;color:var(--muted);background:var(--panel);border-radius:10px;padding:12px 14px;margin:12px 0}
+  .sheetacts{display:flex;gap:10px;flex-wrap:wrap;padding:16px 24px;border-top:1px solid var(--line);position:sticky;bottom:0;background:var(--bg)}
+  .picker .search{width:100%;margin-bottom:10px}
+  .pickrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 12px;border:1px solid var(--line2);border-radius:10px;margin-bottom:6px}
+  .pickrow:hover{border-color:var(--red)}
+  .pickrow .pn{font-weight:600;flex:1}
+  .pickrow .pm{font-family:var(--mono);font-size:10px;color:var(--faint);text-transform:capitalize}
+  .rxgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:6px}
+</style>
+</head>
+<body>
+
+<div id="boot" class="booting">Signing you in…</div>
+<div id="login" hidden></div>
+
+<div id="app" hidden>
+  <header><div class="wrap bar">
+    <div class="logo top">MAKE YOUR MARK<span class="dot">.</span><span class="coach">COACH</span></div>
+    <nav id="nav"></nav>
+    <button class="logout" data-act="logout">Log out</button>
+  </div></header>
+  <main><div class="wrap" id="view"></div></main>
+</div>
+
+<div id="modal"></div>
+
+<script>
+/* ============ CONFIG ============ */
+const API = 'https://script.google.com/macros/s/AKfycbyD8fPljDiT_HGMfxRGbPK7lQTyM82iWnu6s2hmu7CzmGgFfopLZ6DCwOn4Nf5ylKAEkg/exec';
+const PAGE = 60;
+
+/* ============ STATE ============ */
+let SESSION = null;
+let S = { name:'', clients:[], exercises:[] };
+let UI = { view:'clients', q:'', muscle:'', equip:'', shown:PAGE, client:null,
+           openEx:null, editEx:false, addEx:false, addSess:null, pickFor:null, pickQ:'', rxFor:null, saving:'' };
+let saveTimer = null;
+
+async function api(p){ const r = await fetch(API,{method:'POST',body:JSON.stringify(p)}); return await r.json(); }
+
+/* ============ BOOT / AUTH ============ */
+(async function boot(){
+  const params = new URLSearchParams(location.search);
+  const token = params.get('token');
+  if(token){
+    history.replaceState({}, '', location.pathname);
+    try{
+      const res = await api({ action:'validate', token });
+      if(res.ok && res.admin){
+        SESSION = res.session;
+        try{ localStorage.setItem('mym_coach_session', SESSION); }catch(e){}
+        if(await loadData()){ showApp(); return; }
+      } else if(res.ok){
+        showLogin('That account doesn\u2019t have coach access.'); return;
+      }
+    }catch(e){}
+    showLogin('That link has expired or already been used. Enter your email for a fresh one.');
+    return;
+  }
+  try{ SESSION = localStorage.getItem('mym_coach_session'); }catch(e){}
+  if(SESSION){
+    try{ if(await loadData()){ showApp(); return; } }catch(e){}
+    try{ localStorage.removeItem('mym_coach_session'); }catch(e){}
+    SESSION = null;
+  }
+  showLogin();
+})();
+
+async function loadData(){
+  const res = await api({ action:'admin_data', session: SESSION });
+  if(!res || !res.ok) return false;
+  S.name = res.name||''; S.clients = res.clients||[]; S.exercises = res.exercises||[];
+  S.clients.forEach(c=>{ if(!Array.isArray(c.sessions)) c.sessions=[]; });
+  return true;
+}
+
+function showLogin(msg){
+  $('boot').hidden = true; $('app').hidden = true;
+  const el = $('login'); el.hidden = false;
+  el.innerHTML = `<div class="loginbox">
+    <div class="logo">MAKE YOUR MARK<span class="dot">.</span></div>
+    <div class="tag">Coach Login</div>
+    <div class="loginform">
+      <input id="emailIn" type="email" placeholder="you@email.com" autocomplete="email">
+      <button class="btn" data-act="sendlink">Send my login link</button>
+    </div>
+    <div id="loginMsg">${msg?`<div class="msg err">${esc(msg)}</div>`:''}</div>
+  </div>`;
+  const inp = $('emailIn');
+  if(inp){ inp.focus(); inp.addEventListener('keydown',e=>{ if(e.key==='Enter') sendLink(); }); }
+}
+async function sendLink(){
+  const email = ($('emailIn')?$('emailIn').value:'').trim();
+  const box = $('loginMsg');
+  if(!email || email.indexOf('@')<0){ box.innerHTML='<div class="msg err">Enter a valid email.</div>'; return; }
+  box.innerHTML = '<div class="msg">Sending…</div>';
+  try{ await api({ action:'request', email }); }catch(e){}
+  box.innerHTML = '<div class="msg ok">If that email has access, a login link is on its way. The link opens the client portal \u2014 come back to this page after clicking it, or change the link\u2019s /portal.html to /coach.html.</div>';
+}
+function showApp(){ $('boot').hidden=true; $('login').hidden=true; $('app').hidden=false; render(); }
+function logout(){ try{ localStorage.removeItem('mym_coach_session'); }catch(e){} SESSION=null; showLogin(); }
+
+/* ============ HELPERS ============ */
+const $ = id => document.getElementById(id);
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const exById = id => S.exercises.find(x=>x.id===id);
+function ytId(url){ const m=(url||'').match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/); return m?m[1]:null; }
+function driveId(url){ const m=(url||'').match(/drive\.google\.com\/file\/d\/([\w-]+)/); return m?m[1]:null; }
+function embedFor(url){
+  const y=ytId(url); if(y) return 'https://www.youtube.com/embed/'+y;
+  const d=driveId(url); if(d) return 'https://drive.google.com/file/d/'+d+'/preview';
+  return null;
+}
+function fmtDate(iso){ if(!iso)return''; const d=new Date(iso+'T12:00:00');
+  return d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'}); }
+function isPast(iso){ const t=new Date(); t.setHours(0,0,0,0); return new Date(iso+'T12:00:00') < t; }
+function todayISO(){ const d=new Date(); return d.toISOString().slice(0,10); }
+function client(){ return S.clients.find(c=>c.email===UI.client); }
+
+function markSaving(){ UI.saving='Saving…'; const el=$('saveState'); if(el)el.textContent=UI.saving; }
+function markSaved(){ UI.saving='Saved'; const el=$('saveState'); if(el)el.textContent=UI.saving; }
+function saveProgramme(){
+  const c = client(); if(!c) return;
+  markSaving();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async ()=>{
+    try{ await api({ action:'admin_saveprogramme', session:SESSION, email:c.email, sessions:c.sessions }); markSaved(); }
+    catch(e){ UI.saving='Save failed — retrying'; const el=$('saveState'); if(el)el.textContent=UI.saving; saveProgramme(); }
+  }, 700);
+}
+
+/* ============ RENDER ============ */
+function render(){
+  $('nav').innerHTML = [['clients','Clients'],['library','Library']].map(([k,l])=>
+    `<button class="tab ${UI.view===k?'on':''}" data-act="nav" data-k="${k}">${l}</button>`).join('');
+  $('view').innerHTML = UI.view==='library' ? viewLibrary() : viewClients();
+  renderModal();
+  const s=$('libSearch'); if(s){ s.value=UI.q; s.oninput=e=>{UI.q=e.target.value;UI.shown=PAGE;$('exList').innerHTML=exRows();$('exCount').textContent=countText();}; }
+}
+
+/* ---- library ---- */
+function filteredEx(){
+  const q=UI.q.trim().toLowerCase();
+  return S.exercises.filter(x=>{
+    if(UI.muscle && !(x.muscles||[]).includes(UI.muscle)) return false;
+    if(UI.equip && x.equipment!==UI.equip) return false;
+    if(q && !((x.name+' '+(x.muscles||[]).join(' ')+' '+(x.equipment||'')).toLowerCase().includes(q))) return false;
+    return true;
+  });
+}
+function countText(){ return filteredEx().length+' exercises'; }
+function viewLibrary(){
+  const muscles=[...new Set(S.exercises.flatMap(x=>x.muscles||[]))].sort();
+  const equips=[...new Set(S.exercises.map(x=>x.equipment).filter(Boolean))].sort();
+  return `<div class="head"><div class="eyebrow">Coach</div><h1>Exercise library</h1>
+    <p class="sub">Search the bank, open an exercise to attach a demo video, or add your own.</p></div>
+    <div class="toolbar">
+      <input class="search" id="libSearch" placeholder="Search exercises\u2026">
+      <select data-act="fmuscle">
+        <option value="">All muscles</option>
+        ${muscles.map(m=>`<option ${UI.muscle===m?'selected':''}>${esc(m)}</option>`).join('')}
+      </select>
+      <select data-act="fequip">
+        <option value="">All equipment</option>
+        ${equips.map(m=>`<option ${UI.equip===m?'selected':''}>${esc(m)}</option>`).join('')}
+      </select>
+      <button class="btn" data-act="addex">+ New exercise</button>
+    </div>
+    <div class="count" id="exCount" style="margin-bottom:10px">${countText()}</div>
+    <div class="exlist" id="exList">${exRows()}</div>`;
+}
+function exRows(){
+  const list=filteredEx();
+  const rows=list.slice(0,UI.shown).map(x=>`
+    <div class="exrow">
+      ${x.images&&x.images[0]?`<img class="exthumb" loading="lazy" src="${esc(x.images[0])}">`:`<div class="exthumb"></div>`}
+      <div class="exmain" data-act="openex" data-id="${esc(x.id)}">
+        <div class="exname">${esc(x.name)}</div>
+        <div class="exmeta">${esc((x.muscles||[]).join(', '))}${x.equipment?' \u00b7 '+esc(x.equipment):''}${x.level?' \u00b7 '+esc(x.level):''}</div>
+      </div>
+      ${x.custom?`<span class="custombadge">Custom</span>`:''}
+      <span class="vbadge ${x.video?'has':'none'}">${x.video?'\u25b6 video':'no video'}</span>
+    </div>`).join('');
+  const more = list.length>UI.shown ? `<button class="btn ghost loadmore" data-act="more">Show more (${list.length-UI.shown})</button>` : '';
+  return (rows||`<div class="empty">No exercises match that.</div>`)+more;
+}
+
+/* ---- clients & builder ---- */
+function viewClients(){
+  const rows=S.clients.map(c=>`
+    <button class="crow ${UI.client===c.email?'on':''}" data-act="pickclient" data-e="${esc(c.email)}">
+      <span><span class="cn">${esc(c.name||c.email)}</span><br><span class="cs">${esc(c.status)}</span></span>
+      <span class="num">${c.sessions.length} sess.</span>
+    </button>`).join('');
+  return `<div class="head"><div class="eyebrow">Coach</div><h1>Programmes</h1>
+    <p class="sub">Pick a client, then build their sessions day by day. Changes save automatically and appear in their portal immediately.</p></div>
+    <div class="layout">
+      <div class="clist">${rows||'<div class="empty">No clients yet.</div>'}</div>
+      <div>${UI.client?builder():'<div class="empty">Select a client to build their programme.</div>'}</div>
+    </div>`;
+}
+function builder(){
+  const c=client(); if(!c) return '';
+  const sorted=[...c.sessions].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const list=sorted.map(s=>{
+    const i=c.sessions.indexOf(s);
+    const lines=(s.exercises||[]).map((e,j)=>{
+      const x=exById(e.exerciseId);
+      return `<div class="exline">
+        <span class="en">${esc(x?x.name:'(missing exercise)')}</span>
+        <button class="rx" data-act="editrx" data-i="${i}" data-j="${j}">${esc(rxText(e))}</button>
+        <button class="del" data-act="delex" data-i="${i}" data-j="${j}">\u00d7</button>
+      </div>`;}).join('');
+    return `<div class="sess ${isPast(s.date)?'past':''}">
+      <div class="sesshead">
+        <span class="sessdate">${fmtDate(s.date)}</span>
+        <span class="sesstitle">${esc(s.title||'Session')}</span>
+        <span class="sessx">
+          <button class="btn ghost sm" data-act="addexto" data-i="${i}">+ exercise</button>
+          <button class="btn ghost sm" data-act="dupsess" data-i="${i}">Duplicate</button>
+          <button class="btn ghost sm" data-act="delsess" data-i="${i}">Delete</button>
+        </span>
+      </div>${lines}</div>`;}).join('');
+  return `<div class="toolbar">
+      <button class="btn" data-act="addsess">+ New session</button>
+      <span class="savestate" id="saveState">${esc(UI.saving)}</span>
+    </div>
+    <div class="sesslist">${list||'<div class="empty">No sessions yet \u2014 add the first one.</div>'}</div>`;
+}
+function rxText(e){
+  const bits=[];
+  if(e.sets&&e.reps) bits.push(e.sets+'\u00d7'+e.reps); else if(e.sets) bits.push(e.sets+' sets'); else if(e.reps) bits.push(e.reps+' reps');
+  if(e.rest) bits.push(e.rest+'s rest');
+  return bits.join(' \u00b7 ')||'set rx';
+}
+
+/* ---- modals ---- */
+function renderModal(){
+  const m=$('modal');
+  if(UI.addSess) m.innerHTML=addSessModal();
+  else if(UI.pickFor!=null) m.innerHTML=pickModal();
+  else if(UI.rxFor) m.innerHTML=rxModal();
+  else if(UI.addEx) m.innerHTML=exFormModal(null);
+  else if(UI.openEx && UI.editEx) m.innerHTML=exFormModal(exById(UI.openEx));
+  else if(UI.openEx) m.innerHTML=exDetailModal();
+  else m.innerHTML='';
+  const ps=$('pickSearch');
+  if(ps){ ps.value=UI.pickQ; ps.focus(); ps.oninput=e=>{UI.pickQ=e.target.value;$('pickList').innerHTML=pickRows();}; }
+}
+function exDetailModal(){
+  const x=exById(UI.openEx); if(!x)return'';
+  const emb=embedFor(x.video);
+  return `<div class="overlay" data-act="closemodal"><div class="sheet">
+    <div class="sh"><button class="close" data-act="closemodal">\u00d7</button>
+      <h2>${esc(x.name)}</h2>
+      <div class="m">${esc((x.muscles||[]).join(', '))}${x.equipment?' \u00b7 '+esc(x.equipment):''}${x.level?' \u00b7 '+esc(x.level):''}${x.custom?' \u00b7 custom':''}</div></div>
+    <div class="sb">
+      ${emb?`<iframe class="vid" src="${esc(emb)}" allowfullscreen></iframe>`
+        :(x.images&&x.images.length?`<div class="exphotos">${x.images.map(i=>`<img src="${esc(i)}">`).join('')}</div>`:'')}
+      ${x.cues?`<div class="cuebox">${esc(x.cues)}</div>`:''}
+    </div>
+    <div class="sheetacts">
+      <button class="btn" data-act="editex">${x.video?'Edit exercise / video':'Attach video'}</button>
+    </div></div></div>`;
+}
+function exFormModal(x){
+  const isNew=!x; x=x||{};
+  return `<div class="overlay" data-act="closemodal"><div class="sheet">
+    <div class="sh"><button class="close" data-act="closemodal">\u00d7</button>
+      <h2>${isNew?'New exercise':'Edit exercise'}</h2></div>
+    <div class="sb">
+      <div class="field"><label>Name</label><input id="f_name" value="${esc(x.name||'')}" placeholder="e.g. Bulgarian Split Squat"></div>
+      <div class="field"><label>Video link (YouTube or Drive)</label><input id="f_video" value="${esc(x.video||'')}" placeholder="https://youtu.be/\u2026 (unlisted is fine)"></div>
+      <div class="fieldrow">
+        <div class="field"><label>Primary muscles (comma-separated)</label><input id="f_muscles" value="${esc((x.muscles||[]).join(', '))}" placeholder="quadriceps, glutes"></div>
+        <div class="field"><label>Equipment</label><input id="f_equip" value="${esc(x.equipment||'')}" placeholder="dumbbell"></div>
+      </div>
+      <div class="fieldrow">
+        <div class="field"><label>Level</label>
+          <select id="f_level">${['','beginner','intermediate','expert'].map(l=>`<option ${x.level===l?'selected':''}>${l}</option>`).join('')}</select></div>
+        <div class="field"><label>Category</label><input id="f_cat" value="${esc(x.category||'')}" placeholder="strength"></div>
+      </div>
+      <div class="field"><label>Coaching cues</label><textarea id="f_cues" placeholder="Setup, execution, common faults\u2026">${esc(x.cues||'')}</textarea></div>
+    </div>
+    <div class="sheetacts">
+      <button class="btn" data-act="${isNew?'saveaddex':'saveeditex'}" ${isNew?'':`data-id="${esc(x.id)}"`}>${isNew?'Add to library':'Save changes'}</button>
+      <button class="btn ghost" data-act="closemodal">Cancel</button>
+    </div></div></div>`;
+}
+function addSessModal(){
+  return `<div class="overlay" data-act="closemodal"><div class="sheet" style="max-width:420px">
+    <div class="sh"><button class="close" data-act="closemodal">\u00d7</button><h2>New session</h2></div>
+    <div class="sb">
+      <div class="field"><label>Date</label><input id="s_date" type="date" value="${todayISO()}"></div>
+      <div class="field"><label>Title</label><input id="s_title" placeholder="e.g. Lower Body \u2014 Strength"></div>
+    </div>
+    <div class="sheetacts"><button class="btn" data-act="confirmsess">Create session</button></div>
+  </div></div>`;
+}
+function pickModal(){
+  return `<div class="overlay" data-act="closemodal"><div class="sheet picker" style="max-width:480px">
+    <div class="sh"><button class="close" data-act="closemodal">\u00d7</button><h2>Add exercise</h2></div>
+    <div class="sb">
+      <input class="search" id="pickSearch" placeholder="Search the library\u2026">
+      <div id="pickList">${pickRows()}</div>
+    </div></div></div>`;
+}
+function pickRows(){
+  const q=UI.pickQ.trim().toLowerCase();
+  let list=S.exercises;
+  if(q) list=list.filter(x=>(x.name+' '+(x.muscles||[]).join(' ')).toLowerCase().includes(q));
+  return list.slice(0,30).map(x=>`
+    <button class="pickrow" data-act="confirmpick" data-id="${esc(x.id)}">
+      <span class="pn">${esc(x.name)}</span>
+      <span class="pm">${esc((x.muscles||[])[0]||'')}${x.video?' \u00b7 \u25b6':''}</span>
+    </button>`).join('')||'<div class="empty">No matches.</div>';
+}
+function rxModal(){
+  const c=client(); const {i,j}=UI.rxFor;
+  const e=c.sessions[i].exercises[j]; const x=exById(e.exerciseId);
+  return `<div class="overlay" data-act="closemodal"><div class="sheet" style="max-width:420px">
+    <div class="sh"><button class="close" data-act="closemodal">\u00d7</button>
+      <h2 style="font-size:20px">${esc(x?x.name:'Exercise')}</h2></div>
+    <div class="sb"><div class="rxgrid">
+      <div class="field"><label>Sets</label><input id="rx_sets" type="number" min="1" value="${esc(e.sets||'')}"></div>
+      <div class="field"><label>Reps</label><input id="rx_reps" value="${esc(e.reps||'')}" placeholder="8-12"></div>
+      <div class="field"><label>Rest (s)</label><input id="rx_rest" type="number" min="0" step="15" value="${esc(e.rest||'')}"></div>
+    </div>
+    <div class="field"><label>Note (optional)</label><input id="rx_note" value="${esc(e.note||'')}" placeholder="e.g. leave 2 reps in reserve"></div></div>
+    <div class="sheetacts"><button class="btn" data-act="confirmrx">Save</button></div>
+  </div></div>`;
+}
+
+/* ============ EVENTS ============ */
+document.addEventListener('change', e=>{
+  const t=e.target.closest('[data-act]'); if(!t)return;
+  if(t.dataset.act==='fmuscle'){ UI.muscle=t.value; UI.shown=PAGE; render(); }
+  if(t.dataset.act==='fequip'){ UI.equip=t.value; UI.shown=PAGE; render(); }
+});
+document.addEventListener('click', async e=>{
+  if(e.target.classList.contains('overlay')||e.target.classList.contains('close')){
+    UI.openEx=null;UI.editEx=false;UI.addEx=false;UI.addSess=null;UI.pickFor=null;UI.pickQ='';UI.rxFor=null;renderModal();return;}
+  const t=e.target.closest('[data-act]'); if(!t)return;
+  const act=t.dataset.act;
+  const c=client();
+  switch(act){
+    case 'sendlink': sendLink(); break;
+    case 'logout': logout(); break;
+    case 'nav': UI.view=t.dataset.k; render(); window.scrollTo(0,0); break;
+    case 'more': UI.shown+=PAGE; $('exList').innerHTML=exRows(); break;
+    case 'openex': UI.openEx=t.dataset.id; UI.editEx=false; renderModal(); break;
+    case 'editex': UI.editEx=true; renderModal(); break;
+    case 'addex': UI.addEx=true; renderModal(); break;
+    case 'saveaddex': {
+      const ex=readExForm(); if(!ex.name)return;
+      t.disabled=true; t.textContent='Adding\u2026';
+      const res=await api({action:'admin_addexercise',session:SESSION,exercise:ex});
+      if(res.ok){ S.exercises.push(res.exercise); UI.addEx=false; render(); }
+      else { t.disabled=false; t.textContent='Add to library'; }
+      break; }
+    case 'saveeditex': {
+      const ex=readExForm(); ex.id=t.dataset.id;
+      t.disabled=true; t.textContent='Saving\u2026';
+      const res=await api({action:'admin_updateexercise',session:SESSION,exercise:ex});
+      if(res.ok){ const i=S.exercises.findIndex(x=>x.id===ex.id); if(i>=0)S.exercises[i]=res.exercise;
+        UI.editEx=false; render(); }
+      else { t.disabled=false; t.textContent='Save changes'; }
+      break; }
+    case 'pickclient': UI.client=t.dataset.e; UI.saving=''; render(); break;
+    case 'addsess': UI.addSess=true; renderModal(); break;
+    case 'confirmsess': {
+      const date=$('s_date').value||todayISO(); const title=$('s_title').value.trim()||'Session';
+      c.sessions.push({date,title,exercises:[]}); UI.addSess=null; saveProgramme(); render(); break; }
+    case 'dupsess': {
+      const src=c.sessions[+t.dataset.i];
+      const copy=JSON.parse(JSON.stringify(src));
+      const d=new Date(copy.date+'T12:00:00'); d.setDate(d.getDate()+7);
+      copy.date=d.toISOString().slice(0,10);
+      c.sessions.push(copy); saveProgramme(); render(); break; }
+    case 'delsess': c.sessions.splice(+t.dataset.i,1); saveProgramme(); render(); break;
+    case 'addexto': UI.pickFor=+t.dataset.i; UI.pickQ=''; renderModal(); break;
+    case 'confirmpick': {
+      c.sessions[UI.pickFor].exercises.push({exerciseId:t.dataset.id,sets:3,reps:'10',rest:60,note:''});
+      const i=UI.pickFor; UI.pickFor=null; UI.pickQ=''; saveProgramme(); render();
+      break; }
+    case 'delex': c.sessions[+t.dataset.i].exercises.splice(+t.dataset.j,1); saveProgramme(); render(); break;
+    case 'editrx': UI.rxFor={i:+t.dataset.i,j:+t.dataset.j}; renderModal(); break;
+    case 'confirmrx': {
+      const {i,j}=UI.rxFor; const ex=c.sessions[i].exercises[j];
+      ex.sets=+$('rx_sets').value||''; ex.reps=$('rx_reps').value.trim();
+      ex.rest=+$('rx_rest').value||''; ex.note=$('rx_note').value.trim();
+      UI.rxFor=null; saveProgramme(); render(); break; }
+  }
+});
+function readExForm(){
+  return {
+    name: $('f_name').value.trim(),
+    video: $('f_video').value.trim(),
+    muscles: $('f_muscles').value.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean),
+    equipment: $('f_equip').value.trim().toLowerCase(),
+    level: $('f_level').value,
+    category: $('f_cat').value.trim().toLowerCase(),
+    cues: $('f_cues').value.trim()
+  };
+}
+</script>
+</body>
+</html>
