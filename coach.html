@@ -170,6 +170,9 @@ let UI = { view:'clients', q:'', muscle:'', equip:'', shown:PAGE, client:null,
            openEx:null, editEx:false, addEx:false, addSess:null, pickFor:null, pickQ:'', rxFor:null, saving:'' };
 let saveTimer = null;
 
+const $ = id => document.getElementById(id);
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
 async function api(p){ const r = await fetch(API,{method:'POST',body:JSON.stringify(p)}); return await r.json(); }
 
 /* ============ BOOT / AUTH ============ */
@@ -191,7 +194,7 @@ async function api(p){ const r = await fetch(API,{method:'POST',body:JSON.string
     showLogin('That link has expired or already been used. Enter your email for a fresh one.');
     return;
   }
-  try{ SESSION = localStorage.getItem('mym_coach_session'); }catch(e){}
+  try{ SESSION = localStorage.getItem('mym_coach_session') || localStorage.getItem('mym_session'); }catch(e){}
   if(SESSION){
     try{ if(await loadData()){ showApp(); return; } }catch(e){}
     try{ localStorage.removeItem('mym_coach_session'); }catch(e){}
@@ -235,8 +238,6 @@ function showApp(){ $('boot').hidden=true; $('login').hidden=true; $('app').hidd
 function logout(){ try{ localStorage.removeItem('mym_coach_session'); }catch(e){} SESSION=null; showLogin(); }
 
 /* ============ HELPERS ============ */
-const $ = id => document.getElementById(id);
-const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const exById = id => S.exercises.find(x=>x.id===id);
 function ytId(url){ const m=(url||'').match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/); return m?m[1]:null; }
 function driveId(url){ const m=(url||'').match(/drive\.google\.com\/file\/d\/([\w-]+)/); return m?m[1]:null; }
