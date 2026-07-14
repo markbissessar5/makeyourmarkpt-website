@@ -74,6 +74,23 @@
 
   /* workout */
   .workout{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px 30px;max-width:760px}
+  .wsesslist{display:flex;flex-direction:column;gap:12px;max-width:760px}
+  .wsess{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 20px}
+  .wsess.today{border-color:var(--red);box-shadow:0 0 0 1px var(--red) inset}
+  .wsess.past{opacity:.65}
+  .wsesshead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+  .wsessdate{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--red)}
+  .wsesstitle{font-family:var(--display);font-weight:800;font-size:22px;text-transform:uppercase;line-height:1}
+  .wxline{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+  .wxline:hover .wxname{color:var(--red)}
+  .wxname{font-weight:600;font-size:15px}
+  .wxplay{color:var(--red);font-size:11px}
+  .wxrx{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap}
+  .wxnote{font-size:13px;color:var(--faint);padding:2px 0 8px}
+  .pastlabel{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:26px 0 10px}
+  .wvid{width:100%;aspect-ratio:16/9;border:none;border-radius:10px;background:var(--panel2)}
+  .wimgs{display:flex;gap:10px}
+  .wimgs img{width:calc(50% - 5px);border-radius:10px;border:1px solid var(--line)}
   .workout p{margin:0 0 12px}
   .workout h1,.workout h2,.workout h3{text-transform:none;letter-spacing:0;margin:18px 0 8px}
   .workout table{border-collapse:collapse;margin:14px 0;width:100%}
@@ -229,7 +246,7 @@ const FILTER_ORDER = ['keto','high-protein','low-carb','quick'];
 
 /* ============ STATE ============ */
 let SESSION = null;
-let S = { name:'', workoutHtml:'', recipes:[], week:{}, checked:{} };
+let S = { name:'', workoutHtml:'', sessions:[], exlib:[], recipes:[], week:{}, checked:{} };
 let UI = { view:'workouts', search:'', filter:'', openId:null, detServings:null, pickDay:null, addRecipe:null };
 let COOK = null;
 let audioCtx = null;
@@ -273,6 +290,8 @@ async function loadData(){
   S.name = res.name || '';
   S.admin = !!res.admin;
   S.workoutHtml = res.workoutHtml || '';
+  S.sessions = res.sessions || [];
+  S.exlib = res.exercises || [];
   S.recipes = res.recipes || [];
   const sel = res.selections || {};
   S.week = sel.week || {};
@@ -343,6 +362,24 @@ function fmtAmt(ing,scale){ const a=fmtNum((ing.amount||0)*(scale||1)); return (
 function clock(s){ s=Math.max(0,Math.round(s)); const m=Math.floor(s/60),ss=s%60; return m+':'+(ss<10?'0':'')+ss; }
 function dayCals(day){ return (S.week[day]||[]).reduce((t,id)=>{const r=byId(id);return t+(r&&r.nutrition?r.nutrition.calories||0:0);},0); }
 function todayName(){ return DAYS[(new Date().getDay()+6)%7]; }
+const wxById = id => S.exlib.find(x=>x.id===id);
+function ytId(url){ const m=(url||'').match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/); return m?m[1]:null; }
+function driveId(url){ const m=(url||'').match(/drive\.google\.com\/file\/d\/([\w-]+)/); return m?m[1]:null; }
+function embedFor(url){
+  const y=ytId(url); if(y) return 'https://www.youtube.com/embed/'+y;
+  const d=driveId(url); if(d) return 'https://drive.google.com/file/d/'+d+'/preview';
+  return null;
+}
+function fmtDate(iso){ if(!iso)return''; const d=new Date(iso+'T12:00:00');
+  return d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'}); }
+function isPastDay(iso){ const t=new Date(); t.setHours(0,0,0,0); return new Date(iso+'T12:00:00') < t; }
+function isToday(iso){ return iso===new Date().toISOString().slice(0,10); }
+function rxText(e){
+  const bits=[];
+  if(e.sets&&e.reps) bits.push(e.sets+'\u00d7'+e.reps); else if(e.sets) bits.push(e.sets+' sets'); else if(e.reps) bits.push(e.reps+' reps');
+  if(e.rest) bits.push(e.rest+'s rest');
+  return bits.join(' \u00b7 ');
+}
 
 /* ============ RENDER ROUTER ============ */
 function render(){
@@ -367,9 +404,32 @@ function renderNav(){
 
 /* ============ WORKOUTS ============ */
 function viewWorkouts(){
+  let body;
+  if(S.sessions.length){
+    const sorted=[...S.sessions].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    const upcoming=sorted.filter(s=>!isPastDay(s.date));
+    const past=sorted.filter(s=>isPastDay(s.date)).reverse();
+    const card=s=>{
+      const lines=(s.exercises||[]).map(e=>{const x=wxById(e.exerciseId);if(!x)return'';
+        return `<div class="wxline" data-act="openwx" data-id="${esc(x.id)}" data-rx="${esc(JSON.stringify(e))}">
+          <span class="wxname">${esc(x.name)}${x.video?' <span class="wxplay">\u25b6</span>':''}</span>
+          <span class="wxrx">${esc(rxText(e))}</span>
+        </div>${e.note?`<div class="wxnote">${esc(e.note)}</div>`:''}`;}).join('');
+      return `<div class="wsess ${isPastDay(s.date)?'past':''} ${isToday(s.date)?'today':''}">
+        <div class="wsesshead">
+          <span class="wsessdate">${isToday(s.date)?'Today':fmtDate(s.date)}</span>
+          <span class="wsesstitle">${esc(s.title||'Session')}</span>
+        </div>${lines||'<div class="wxnote">Rest / details to follow.</div>'}</div>`;
+    };
+    body = `<div class="wsesslist">${upcoming.map(card).join('')||'<div class="wsess"><div class="wxnote">No upcoming sessions \u2014 Mark will schedule your next block soon.</div></div>'}</div>`
+      + (past.length?`<div class="pastlabel">Completed</div><div class="wsesslist">${past.slice(0,6).map(card).join('')}</div>`:'');
+  } else {
+    body = `<div class="workout">${S.workoutHtml || '<p>Your programme will appear here once Mark has set it up.</p>'}</div>`;
+  }
+  const notes = (S.sessions.length && S.workoutHtml) ? `<div class="pastlabel">Coach notes</div><div class="workout">${S.workoutHtml}</div>` : '';
   return `<div class="head"><div class="eyebrow">Training</div><h1>Your programme</h1>
-    <p class="sub">Your current training plan, set by Mark. Check back here whenever it's updated.</p></div>
-    <div class="workout">${S.workoutHtml || '<p>Your programme will appear here once Mark has set it up.</p>'}</div>`;
+    <p class="sub">Your sessions, set by Mark. Tap an exercise for the demo and coaching cues.</p></div>
+    ${body}${notes}`;
 }
 
 /* ============ WEEK ============ */
@@ -484,11 +544,31 @@ function viewShopping(){
 /* ============ MODALS ============ */
 function renderModal(){
   const m = $('modal');
+  if(UI.openWx){ m.innerHTML = wxModal(); return; }
   if(UI.pickDay){ m.innerHTML = pickModal(); return; }
   if(UI.addRecipe){ m.innerHTML = dayPickModal(); return; }
   if(UI.openId){ m.innerHTML = detailModal(); return; }
   m.innerHTML = '';
 }
+function wxModal(){
+  const x=wxById(UI.openWx.id); if(!x)return'';
+  const e=UI.openWx.rx||{};
+  const emb=embedFor(x.video);
+  return `<div class="overlay" data-act="closemodal"><div class="sheet">
+    <div class="sh"><button class="close" data-act="closemodal">\u00d7</button>
+      <h2>${esc(x.name)}</h2>
+      <div class="meta">${rxText(e)?`<span><b>${esc(rxText(e))}</b></span>`:''}
+        <span>${esc((x.muscles||[]).join(', '))}</span>${x.equipment?`<span>${esc(x.equipment)}</span>`:''}</div>
+      ${e.note?`<div class="meta"><span>\u201c${esc(e.note)}\u201d \u2014 Mark</span></div>`:''}
+    </div>
+    <div class="sb">
+      ${emb?`<iframe class="wvid" src="${esc(emb)}" allowfullscreen></iframe>`
+        :(x.images&&x.images.length?`<div class="wimgs">${x.images.map(i=>`<img loading="lazy" src="${esc(i)}">`).join('')}</div>`:'')}
+      ${x.cues?`<h4 style="margin-top:14px">How to do it</h4><p style="color:var(--muted);font-size:14px">${esc(x.cues)}</p>`:''}
+    </div>
+  </div></div>`;
+}
+
 function detailModal(){
   const r = byId(UI.openId); if(!r) return '';
   const sc = (UI.detServings||r.servings)/r.servings;
@@ -594,7 +674,7 @@ function beep(){ try{ audioCtx=audioCtx||new(window.AudioContext||window.webkitA
 /* ============ EVENTS ============ */
 document.addEventListener('click', e=>{
   if(e.target.classList.contains('overlay')||e.target.classList.contains('close')){
-    UI.openId=null; UI.pickDay=null; UI.addRecipe=null; renderModal(); return; }
+    UI.openId=null; UI.pickDay=null; UI.addRecipe=null; UI.openWx=null; renderModal(); return; }
   const t = e.target.closest('[data-act]');
   if(!t) return;
   const act = t.dataset.act;
@@ -603,6 +683,8 @@ document.addEventListener('click', e=>{
     case 'logout': logout(); break;
     case 'nav': UI.view=t.dataset.k; UI.openId=null; render(); window.scrollTo(0,0); break;
     case 'open': UI.openId=t.dataset.id; UI.detServings=(byId(t.dataset.id)||{}).servings; renderModal(); break;
+    case 'openwx': { let rx={}; try{rx=JSON.parse(t.dataset.rx||'{}');}catch(err){}
+      UI.openWx={id:t.dataset.id,rx:rx}; renderModal(); break; }
     case 'cook': startCook(t.dataset.id); break;
     case 'addrec': UI.addRecipe=t.dataset.id; UI.openId=null; renderModal(); break;
     case 'confirmadd': S.week[t.dataset.d].push(UI.addRecipe); UI.addRecipe=null; save(); render(); break;
