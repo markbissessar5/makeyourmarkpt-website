@@ -73,7 +73,11 @@
   .step-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 22px; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; }
   .step-desc { font-size: 14px; line-height: 1.65; color: rgba(255,255,255,0.5); }
   .step-line { width: 32px; height: 3px; background: var(--red); margin-bottom: 16px; }
-  #coach { padding: 100px 40px; background: var(--off-black); }
+  #coach { position: relative; padding: 100px 40px; background: var(--off-black); overflow: hidden; }
+  .coach-bg { position: absolute; inset: 0; z-index: 0; }
+  .coach-bg img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; filter: grayscale(100%) contrast(1.05); opacity: 0.5; }
+  .coach-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, var(--off-black) 30%, rgba(13,13,13,0.55) 65%, rgba(200,16,46,0.18) 100%); }
+  #coach .section-label, #coach .section-title, .coach-grid { position: relative; z-index: 1; }
   .coach-grid { display: grid; grid-template-columns: 340px 1fr; gap: 64px; align-items: start; margin-top: 56px; }
   .coach-photo-wrap { position: relative; }
   .coach-photo-frame { position: relative; border-top: 3px solid var(--red); background: var(--dark); padding: 16px; }
@@ -296,12 +300,15 @@
 </section>
 
 <section id="coach">
+  <div class="coach-bg">
+    <img src="images/mark-rugby.jpg" alt="">
+  </div>
   <div class="section-label">The Person Behind the Programme</div>
   <h2 class="section-title">Meet Your<br>Coach</h2>
   <div class="coach-grid">
     <div class="coach-photo-wrap">
       <div class="coach-photo-frame">
-        <img class="coach-photo" src="https://media.licdn.com/dms/image/v2/C4E03AQEFwd1XBisnOQ/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1628957174265?e=2147483647&v=beta&t=PPilTl2V9nJ4xaWY-xDOhETv9SDD0hybJ4MCpk4eIo8" alt="Mark, founder and head coach at Make Your Mark Personal Training">
+        <img class="coach-photo" src="images/mark-headshot.jpg" alt="Mark, founder and head coach at Make Your Mark Personal Training">
         <div class="coach-photo-tag">Founder &amp; Head Coach</div>
       </div>
     </div>
