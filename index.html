@@ -15,8 +15,8 @@
   .logo-mark { width: 42px; height: 42px; background: var(--red); display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 20px; color: white; clip-path: polygon(10% 0%, 90% 0%, 100% 10%, 100% 90%, 90% 100%, 10% 100%, 0% 90%, 0% 10%); }
   .logo-text { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 16px; line-height: 1.1; color: white; text-transform: uppercase; letter-spacing: 0.02em; }
   .logo-text span { color: var(--red); }
-  .nav-links { display: flex; align-items: center; gap: 36px; list-style: none; }
-  .nav-links a { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--white); text-decoration: none; transition: color 0.2s; position: relative; }
+  .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+  .nav-links a { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--white); text-decoration: none; transition: color 0.2s; position: relative; white-space: nowrap; }
   .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 2px; background: var(--red); transform: scaleX(0); transition: transform 0.2s; }
   .nav-links a:hover { color: var(--red); }
   .nav-links a:hover::after { transform: scaleX(1); }
@@ -73,6 +73,23 @@
   .step-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 22px; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; }
   .step-desc { font-size: 14px; line-height: 1.65; color: rgba(255,255,255,0.5); }
   .step-line { width: 32px; height: 3px; background: var(--red); margin-bottom: 16px; }
+  #coach { padding: 100px 40px; background: var(--off-black); }
+  .coach-grid { display: grid; grid-template-columns: 340px 1fr; gap: 64px; align-items: start; margin-top: 56px; }
+  .coach-photo-wrap { position: relative; }
+  .coach-photo-frame { position: relative; border-top: 3px solid var(--red); background: var(--dark); padding: 16px; }
+  .coach-photo { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; filter: grayscale(15%); }
+  .coach-photo-tag { position: absolute; bottom: -14px; left: 16px; background: var(--red); color: white; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; padding: 6px 14px; }
+  .coach-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: clamp(34px, 4vw, 46px); text-transform: uppercase; line-height: 0.95; margin-bottom: 6px; }
+  .coach-role { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--red); margin-bottom: 24px; }
+  .coach-bio p { font-size: 15px; line-height: 1.75; color: rgba(255,255,255,0.65); margin-bottom: 16px; max-width: 620px; }
+  .coach-bio p:last-child { margin-bottom: 0; }
+  .coach-creds { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 28px 0 0; padding: 22px 24px; background: rgba(200,16,46,0.06); border-left: 3px solid var(--red); max-width: 620px; }
+  .coach-creds li { font-size: 13px; color: rgba(255,255,255,0.75); display: flex; align-items: flex-start; gap: 10px; }
+  .coach-creds li::before { content: '✓'; color: var(--red); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  @media (max-width: 760px) {
+    .coach-grid { grid-template-columns: 1fr; gap: 32px; }
+    .coach-photo-frame { max-width: 280px; margin: 0 auto; }
+  }
   #contact { padding: 100px 40px; background: var(--dark); }
   .contact-inner { max-width: 560px; }
   .contact-form { display: flex; flex-direction: column; gap: 16px; margin-top: 40px; }
@@ -152,7 +169,7 @@
     nav { padding: 0 20px; }
     .nav-links { display: none; }
     .hero-content { padding: 100px 20px 60px; }
-    #programmes, #about, #contact { padding: 70px 20px; }
+    #programmes, #about, #coach, #contact { padding: 70px 20px; }
     footer { padding: 24px 20px; }
     .qf-row { grid-template-columns: 1fr; }
     .form-row { grid-template-columns: 1fr; }
@@ -171,6 +188,7 @@
     <li><a href="#home" class="active">Home</a></li>
     <li><a href="#programmes">Programmes</a></li>
     <li><a href="#about">About</a></li>
+    <li><a href="#coach">Meet Your Coach</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
   <a href="#" class="nav-cta" onclick="openQuiz(); return false;">Start Now</a>
@@ -273,6 +291,33 @@
       <div class="step-line"></div>
       <div class="step-title">Make Your Mark</div>
       <p class="step-desc">Train with a programme built entirely around you, with ongoing support as you progress.</p>
+    </div>
+  </div>
+</section>
+
+<section id="coach">
+  <div class="section-label">The Person Behind the Programme</div>
+  <h2 class="section-title">Meet Your<br>Coach</h2>
+  <div class="coach-grid">
+    <div class="coach-photo-wrap">
+      <div class="coach-photo-frame">
+        <img class="coach-photo" src="https://media.licdn.com/dms/image/v2/C4E03AQEFwd1XBisnOQ/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1628957174265?e=2147483647&v=beta&t=PPilTl2V9nJ4xaWY-xDOhETv9SDD0hybJ4MCpk4eIo8" alt="Mark, founder and head coach at Make Your Mark Personal Training">
+        <div class="coach-photo-tag">Founder &amp; Head Coach</div>
+      </div>
+    </div>
+    <div class="coach-info">
+      <div class="coach-name">Mark</div>
+      <div class="coach-role">Founder, Make Your Mark Performance Coaching</div>
+      <div class="coach-bio">
+        <p>Mark started Make Your Mark because he was tired of watching people get handed the same generic programme regardless of their goals, their schedule, or where they were actually starting from. He built this business around a simpler idea: training should be designed for the person doing it, not the other way around.</p>
+        <p>Based in Sydney, Mark works with everyone from first-timers rebuilding a habit to competitive athletes chasing a season, to lifters who already know their way around a barbell and want real structure. Every programme starts with a conversation, not a template — your goals, your training history, and your week get mapped before a single session is written.</p>
+        <p>On the floor, Mark's approach is direct and hands-on: technique first, consistency over intensity, and progress you can actually measure. Off the floor, that means real check-ins and programming that adjusts as your life does — not a plan that falls apart the first time work gets busy.</p>
+      </div>
+      <ul class="coach-creds">
+        <li>Personalised programming across recomposition, performance and strength</li>
+        <li>Hands-on coaching, in-person and online across Sydney</li>
+        <li>Ongoing check-ins and programme adjustments, not a set-and-forget plan</li>
+      </ul>
     </div>
   </div>
 </section>
