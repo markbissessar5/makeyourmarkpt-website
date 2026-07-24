@@ -2,7 +2,7 @@
 // Bump CACHE_VERSION when you want to force every client onto a fresh cached shell
 // (e.g. after a big structural change). Day-to-day GitHub deploys reach clients
 // automatically without a bump, because navigations are served network-first.
-const CACHE_VERSION = 'mym-v1';
+const CACHE_VERSION = 'mym-v3-release1';
 
 const APP_SHELL = [
   '/portal.html',
