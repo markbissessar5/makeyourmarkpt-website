@@ -155,6 +155,10 @@
   .cactions{display:flex;gap:5px;margin-top:7px}
   .cactions button{flex:1;border:1px dashed var(--line2);border-radius:7px;padding:6px;font-family:var(--display);font-size:11px;text-transform:uppercase}
 
+
+  .groupbadge{font-family:var(--mono);font-size:9px;background:var(--black);color:#fff;border-radius:999px;padding:3px 7px}
+  .coachnut{font-family:var(--mono);font-size:9px;color:var(--muted);margin:5px 0}
+
 </style>
 </head>
 <body>
@@ -180,7 +184,7 @@ const PAGE = 60;
 
 /* ============ STATE ============ */
 let SESSION = null;
-let S = { name:'', clients:[], exercises:[] };
+let S = { name:'', clients:[], exercises:[], recipes:[] };
 let UI = { view:'clients', q:'', muscle:'', equip:'', shown:PAGE, client:null, invite:false, weekOffset:0, calEvent:null, calDate:null, dayPlanDate:null,
            openEx:null, editEx:false, addEx:false, addSess:null, pickFor:null, pickQ:'', rxFor:null, saving:'' };
 let saveTimer = null;
@@ -221,7 +225,7 @@ async function api(p){ const r = await fetch(API,{method:'POST',body:JSON.string
 async function loadData(){
   const res = await api({ action:'admin_data', session: SESSION });
   if(!res || !res.ok) return false;
-  S.name = res.name||''; S.clients = res.clients||[]; S.exercises = res.exercises||[];
+  S.name = res.name||''; S.clients = res.clients||[]; S.exercises = res.exercises||[]; S.recipes=res.recipes||[];
   S.clients.forEach(c=>{ if(!Array.isArray(c.sessions)) c.sessions=[]; });
   return true;
 }
@@ -391,6 +395,20 @@ function cStartWeek(offset){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.
 function cDateLabel(iso,opt){return new Date(iso+'T12:00:00').toLocaleDateString('en-AU',opt||{weekday:'short',day:'numeric',month:'short'});}
 function cEventDay(e){return String(e.start||'').slice(0,10);}
 function cTime(v,all){if(all)return'All day';const m=String(v||'').match(/T(\d\d):(\d\d)/);if(!m)return'';return new Date('2000-01-01T'+m[1]+':'+m[2]).toLocaleTimeString('en-AU',{hour:'numeric',minute:'2-digit'});}
+
+function coachNutrition(c,date){
+  const sel=c.selections||{}, ids=(sel.dateMeals&&sel.dateMeals[date])||[];
+  const out={calories:0,protein:0,carbs:0,fat:0};
+  ids.forEach(id=>{const r=S.recipes.find(x=>x.id===id),n=r&&r.nutrition||{};out.calories+=Number(n.calories)||0;out.protein+=Number(n.protein)||0;out.carbs+=Number(n.carbs)||0;out.fat+=Number(n.fat)||0;});
+  return out;
+}
+function coachNutritionLine(c,date,p){
+  const a=coachNutrition(c,date);
+  if(!p||!p.calories)return idsForCoachDate(c,date).length?'Meals planned':'No target';
+  return `${Math.round(a.calories)} / ${p.calories} kcal · ${Math.round(a.protein)} / ${p.protein||'—'}g P`;
+}
+function idsForCoachDate(c,date){return (c.selections&&c.selections.dateMeals&&c.selections.dateMeals[date])||[];}
+
 function viewCoachCalendar(){
   const rows=S.clients.map(c=>`<button class="crow ${UI.client===c.email?'on':''}" data-act="pickcalclient" data-e="${esc(c.email)}"><span class="cn">${esc(c.name||c.email)}</span></button>`).join('');
   if(!UI.client)return `<div class="head"><div class="eyebrow">Coach</div><h1>Client calendar</h1><p class="sub">Choose a client to see their sporting commitments and plan the week.</p></div><div class="clist" style="max-width:320px">${rows}</div>`;
@@ -401,7 +419,7 @@ function viewCoachCalendar(){
       <div class="toolbar"><button class="btn ghost sm" data-act="cprevweek">←</button><strong>${esc(label)}</strong><button class="btn ghost sm" data-act="cthisweek">Today</button><button class="btn ghost sm" data-act="cnextweek">→</button></div>
       <div class="cweek">${dates.map(date=>{const ev=(c.events||[]).filter(e=>cEventDay(e)===date),p=(c.dailyPlans||{})[date]||{},sess=(c.sessions||[]).filter(s=>s.date===date);
         return `<div class="cday ${date===localISO(new Date())?'today':''}"><div class="cdate">${cDateLabel(date,{weekday:'short',day:'numeric'})}</div>
-          ${p.dayType||p.coachNote?`<div class="cplan" data-act="editdayplan" data-date="${date}"><b>${esc(p.dayType||'Daily plan')}</b>${p.coachNote?`<br>${esc(p.coachNote)}`:''}</div>`:''}
+          ${p.dayType||p.coachNote?`<div class="cplan" data-act="editdayplan" data-date="${date}"><b>${esc(p.dayType||'Daily plan')}</b>${p.coachNote?`<br>${esc(p.coachNote)}`:''}<div class="coachnut">${esc(coachNutritionLine(c,date,p))}</div></div>`:''}
           ${sess.map(s=>`<div class="cevent coach"><b>${esc(s.title||'Workout')}</b><br>Programmed workout</div>`).join('')}
           ${ev.map(e=>`<div class="cevent ${e.createdBy==='coach'?'coach':''}" data-act="editcalevent" data-id="${esc(e.id)}"><b>${esc(e.title)}</b><br>${esc(cTime(e.start,e.allDay))} · ${esc(e.type)}</div>`).join('')}
           <div class="cactions"><button data-act="addcalevent" data-date="${date}">+ Event</button><button data-act="editdayplan" data-date="${date}">Plan</button></div>
@@ -527,16 +545,20 @@ function pickRows(){
 function rxModal(){
   const c=client(); const {i,j}=UI.rxFor;
   const e=c.sessions[i].exercises[j]; const x=exById(e.exerciseId);
-  return `<div class="overlay" data-act="closemodal"><div class="sheet" style="max-width:420px">
-    <div class="sh"><button class="close" data-act="closemodal">\u00d7</button>
-      <h2 style="font-size:20px">${esc(x?x.name:'Exercise')}</h2></div>
-    <div class="sb"><div class="rxgrid">
-      <div class="field"><label>Sets</label><input id="rx_sets" type="number" min="1" value="${esc(e.sets||'')}"></div>
+  return `<div class="overlay" data-act="closemodal"><div class="sheet" style="max-width:470px">
+    <div class="sh"><button class="close" data-act="closemodal">×</button><h2 style="font-size:20px">${esc(x?x.name:'Exercise')}</h2></div>
+    <div class="sb">
+      <div class="rxgrid"><div class="field"><label>Sets / rounds</label><input id="rx_sets" type="number" min="1" value="${esc(e.sets||e.rounds||3)}"></div>
       <div class="field"><label>Reps</label><input id="rx_reps" value="${esc(e.reps||'')}" placeholder="8-12"></div>
-      <div class="field"><label>Rest (s)</label><input id="rx_rest" type="number" min="0" step="15" value="${esc(e.rest||'')}"></div>
-    </div>
-    <div class="field"><label>Note (optional)</label><input id="rx_note" value="${esc(e.note||'')}" placeholder="e.g. leave 2 reps in reserve"></div></div>
-    <div class="sheetacts"><button class="btn" data-act="confirmrx">Save</button></div>
+      <div class="field"><label>Work timer (s)</label><input id="rx_duration" type="number" min="0" value="${esc(e.duration||'')}"></div></div>
+      <div class="fieldrow"><div class="field"><label>Group type</label><select id="rx_gtype">
+        ${['straight','superset','triset','circuit'].map(v=>`<option value="${v}" ${(e.groupType||'straight')===v?'selected':''}>${v}</option>`).join('')}
+      </select></div><div class="field"><label>Group ID</label><input id="rx_gid" value="${esc(e.groupId||'')}" placeholder="e.g. A"></div></div>
+      <div class="fieldrow"><div class="field"><label>Rest after exercise (s)</label><input id="rx_rest" type="number" min="0" step="15" value="${esc(e.rest||'')}"></div>
+      <div class="field"><label>Rest after round (s)</label><input id="rx_roundrest" type="number" min="0" step="15" value="${esc(e.restAfterRound||e.rest||'')}"></div></div>
+      <div class="field"><label>Note</label><input id="rx_note" value="${esc(e.note||'')}" placeholder="e.g. leave 2 reps in reserve"></div>
+      <div class="msg">To create a superset, give two exercises the same Group ID (for example A) and select Superset for both.</div>
+    </div><div class="sheetacts"><button class="btn" data-act="confirmrx">Save</button></div>
   </div></div>`;
 }
 
@@ -605,7 +627,7 @@ document.addEventListener('click', async e=>{
     case 'addsess': UI.addSess=true; renderModal(); break;
     case 'confirmsess': {
       const date=$('s_date').value||todayISO(); const title=$('s_title').value.trim()||'Session';
-      c.sessions.push({date,title,exercises:[]}); UI.addSess=null; saveProgramme(); render(); break; }
+      c.sessions.push({id:'session_'+Date.now(),date,title,exercises:[]}); UI.addSess=null; saveProgramme(); render(); break; }
     case 'dupsess': {
       const src=c.sessions[+t.dataset.i];
       const copy=JSON.parse(JSON.stringify(src));
@@ -615,15 +637,17 @@ document.addEventListener('click', async e=>{
     case 'delsess': c.sessions.splice(+t.dataset.i,1); saveProgramme(); render(); break;
     case 'addexto': UI.pickFor=+t.dataset.i; UI.pickQ=''; renderModal(); break;
     case 'confirmpick': {
-      c.sessions[UI.pickFor].exercises.push({exerciseId:t.dataset.id,sets:3,reps:'10',rest:60,note:''});
+      c.sessions[UI.pickFor].exercises.push({exerciseId:t.dataset.id,sets:3,reps:'10',duration:0,rest:60,note:'',groupId:'',groupType:'straight',rounds:3,restAfterRound:60});
       const i=UI.pickFor; UI.pickFor=null; UI.pickQ=''; saveProgramme(); render();
       break; }
     case 'delex': c.sessions[+t.dataset.i].exercises.splice(+t.dataset.j,1); saveProgramme(); render(); break;
     case 'editrx': UI.rxFor={i:+t.dataset.i,j:+t.dataset.j}; renderModal(); break;
     case 'confirmrx': {
       const {i,j}=UI.rxFor; const ex=c.sessions[i].exercises[j];
-      ex.sets=+$('rx_sets').value||''; ex.reps=$('rx_reps').value.trim();
-      ex.rest=+$('rx_rest').value||''; ex.note=$('rx_note').value.trim();
+      ex.sets=+$('rx_sets').value||1; ex.rounds=ex.sets; ex.reps=$('rx_reps').value.trim();
+      ex.duration=+$('rx_duration').value||0; ex.rest=+$('rx_rest').value||0;
+      ex.restAfterRound=+$('rx_roundrest').value||0; ex.groupType=$('rx_gtype').value;
+      ex.groupId=$('rx_gid').value.trim(); ex.note=$('rx_note').value.trim();
       UI.rxFor=null; saveProgramme(); render(); break; }
   }
 });
