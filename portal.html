@@ -244,6 +244,44 @@
   .codebox{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
   .codebox input{text-align:center;font-family:var(--mono);font-size:24px;letter-spacing:.25em}
 
+
+  /* calendar-first dashboard */
+  .todaygrid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.8fr);gap:18px}
+  @media(max-width:780px){.todaygrid{grid-template-columns:1fr}}
+  .daypanel,.sidepanel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .datehero{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:18px}
+  .datehero .bigdate{font-family:var(--display);font-size:34px;font-weight:800;text-transform:uppercase;line-height:1}
+  .datehero .full{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .timeline{display:flex;flex-direction:column;gap:9px}
+  .timelineitem{background:var(--raise);border:1px solid var(--line2);border-radius:11px;padding:12px 14px;display:grid;grid-template-columns:74px 1fr auto;gap:12px;align-items:start}
+  .timelineitem .time{font-family:var(--mono);font-size:11px;color:var(--red);padding-top:2px}
+  .timelineitem .title{font-weight:700}
+  .timelineitem .meta2{font-size:12px;color:var(--muted);margin-top:3px}
+  .eventtype{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line2);border-radius:999px;padding:3px 7px;color:var(--muted)}
+  .planblock{border-top:1px solid var(--line);padding-top:15px;margin-top:15px}
+  .planblock:first-child{border-top:0;padding-top:0;margin-top:0}
+  .planblock h3{font-size:18px;text-transform:uppercase;margin-bottom:8px}
+  .macrogrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .macro{background:var(--raise);border:1px solid var(--line);border-radius:9px;padding:10px}
+  .macro b{font-family:var(--display);font-size:22px}
+  .macro span{display:block;font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase}
+  .calhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+  .calnav{display:flex;gap:7px}
+  .calweek{display:grid;grid-template-columns:repeat(7,1fr);gap:9px}
+  @media(max-width:760px){.calweek{grid-template-columns:1fr}}
+  .calday{background:var(--panel);border:1px solid var(--line);border-radius:13px;min-height:210px;padding:12px}
+  .calday.today{border-color:var(--red);box-shadow:0 0 0 1px var(--red) inset}
+  .caldate{font-family:var(--display);font-size:18px;font-weight:800;text-transform:uppercase;margin-bottom:9px}
+  .calevent{background:var(--raise);border-left:3px solid var(--red);border-radius:7px;padding:7px 8px;margin-bottom:6px;cursor:pointer}
+  .calevent.coach{border-left-color:var(--black)}
+  .calevent .ct{font-size:12px;font-weight:700;line-height:1.2}
+  .calevent .cm{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px}
+  .calworkout{background:#fdf0f1;border:1px solid #eccdd2;border-radius:7px;padding:7px 8px;margin-bottom:6px}
+  .calworkout .ct{font-size:12px;font-weight:700}
+  .addday{width:100%;border:1px dashed var(--line2);border-radius:8px;padding:7px;font-family:var(--display);font-size:12px;text-transform:uppercase;color:var(--muted)}
+  .eventform .fieldrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:520px){.eventform .fieldrow{grid-template-columns:1fr}}
+
 </style>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#000000">
@@ -278,8 +316,8 @@ const FILTER_ORDER = ['keto','high-protein','low-carb','quick'];
 
 /* ============ STATE ============ */
 let SESSION = null;
-let S = { name:'', workoutHtml:'', sessions:[], exlib:[], recipes:[], week:{}, checked:{}, onboarding:{} };
-let UI = { view:'workouts', search:'', filter:'', openId:null, detServings:null, pickDay:null, addRecipe:null };
+let S = { name:'', workoutHtml:'', sessions:[], exlib:[], recipes:[], week:{}, checked:{}, onboarding:{}, events:[], dailyPlans:{} };
+let UI = { view:'today', search:'', filter:'', openId:null, detServings:null, pickDay:null, addRecipe:null, weekOffset:0, eventEdit:null, eventDate:null };
 let COOK = null;
 let audioCtx = null;
 let saveTimer = null;
@@ -329,6 +367,8 @@ async function loadData(){
   S.week = sel.week || {};
   S.checked = sel.checked || {};
   S.onboarding = res.onboarding || {};
+  S.events = res.events || [];
+  S.dailyPlans = res.dailyPlans || {};
   DAYS.forEach(d=>{ if(!Array.isArray(S.week[d])) S.week[d] = []; });
   return true;
 }
@@ -484,11 +524,92 @@ function rxText(e){
   return bits.join(' \u00b7 ');
 }
 
+
+function isoDate(d){ return d.toISOString().slice(0,10); }
+function localDateISO(d){ const x=new Date(d); x.setMinutes(x.getMinutes()-x.getTimezoneOffset()); return x.toISOString().slice(0,10); }
+function startOfWeek(offset){
+  const d=new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate()-((d.getDay()+6)%7)+(offset||0)*7); return d;
+}
+function dateLabel(iso,opts){ const d=new Date(iso+'T12:00:00'); return d.toLocaleDateString('en-AU',opts||{weekday:'short',day:'numeric',month:'short'}); }
+function eventDay(e){ return String(e.start||'').slice(0,10); }
+function timeLabel(value,allDay){ if(allDay)return'All day'; const m=String(value||'').match(/T(\d\d):(\d\d)/); if(!m)return''; const d=new Date('2000-01-01T'+m[1]+':'+m[2]); return d.toLocaleTimeString('en-AU',{hour:'numeric',minute:'2-digit'}); }
+function eventsForDate(date){ return S.events.filter(e=>eventDay(e)===date).sort((a,b)=>String(a.start).localeCompare(String(b.start))); }
+function sessionsForDate(date){ return S.sessions.filter(s=>s.date===date); }
+function openEvent(id,date){ UI.eventEdit=id?S.events.find(e=>e.id===id):null; UI.eventDate=date||localDateISO(new Date()); renderModal(); }
+function viewToday(){
+  const date=localDateISO(new Date()), ev=eventsForDate(date), sess=sessionsForDate(date), p=S.dailyPlans[date]||{};
+  const timeline=[
+    ...sess.map(s=>({kind:'workout',time:'Coach plan',title:s.title||'Workout',meta:(s.exercises||[]).length+' exercises'})),
+    ...ev.map(e=>({kind:'event',id:e.id,time:timeLabel(e.start,e.allDay),title:e.title,meta:[e.type,e.location,e.intensity].filter(Boolean).join(' · '),createdBy:e.createdBy}))
+  ];
+  timeline.sort((a,b)=>String(a.time).localeCompare(String(b.time)));
+  return `<div class="head"><div class="eyebrow">Today</div><h1>Your performance day</h1>
+    <p class="sub">Training, sport, nutrition and recovery in one place.</p></div>
+    <div class="todaygrid"><section class="daypanel">
+      <div class="datehero"><div><div class="bigdate">${dateLabel(date,{weekday:'long'})}</div><div class="full">${dateLabel(date,{day:'numeric',month:'long',year:'numeric'})}</div></div>
+      <button class="btn sm" data-act="addevent" data-date="${date}">+ Add event</button></div>
+      <div class="timeline">${timeline.length?timeline.map(x=>x.kind==='workout'
+        ?`<div class="timelineitem"><div class="time">Workout</div><div><div class="title">${esc(x.title)}</div><div class="meta2">${esc(x.meta)}</div></div><span class="eventtype">Coach</span></div>`
+        :`<div class="timelineitem" data-act="editevent" data-id="${esc(x.id)}"><div class="time">${esc(x.time)}</div><div><div class="title">${esc(x.title)}</div><div class="meta2">${esc(x.meta)}</div></div><span class="eventtype">${esc(x.createdBy||'client')}</span></div>`).join('')
+        :'<div class="empty">Nothing planned yet. Add training, a match, race, travel or another commitment.</div>'}</div>
+    </section><aside class="sidepanel">
+      <div class="planblock"><h3>${esc(p.dayType||'Daily plan')}</h3>
+        <div class="macrogrid">
+          <div class="macro"><b>${p.calories||'—'}</b><span>Calories</span></div>
+          <div class="macro"><b>${p.protein||'—'}${p.protein?'g':''}</b><span>Protein</span></div>
+          <div class="macro"><b>${p.carbs||'—'}${p.carbs?'g':''}</b><span>Carbs</span></div>
+          <div class="macro"><b>${p.fat||'—'}${p.fat?'g':''}</b><span>Fat</span></div>
+        </div></div>
+      ${p.hydration?`<div class="planblock"><h3>Hydration</h3><p>${esc(p.hydration)}</p></div>`:''}
+      ${p.recovery?`<div class="planblock"><h3>Recovery</h3><p>${esc(p.recovery)}</p></div>`:''}
+      ${p.coachNote?`<div class="planblock"><h3>Mark’s note</h3><p>${esc(p.coachNote)}</p></div>`:''}
+      ${!p.dayType&&!p.coachNote?'<div class="empty">Mark’s daily targets and notes will appear here.</div>':''}
+    </aside></div>`;
+}
+function viewCalendar(){
+  const start=startOfWeek(UI.weekOffset), dates=[]; for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);dates.push(localDateISO(d));}
+  const label=dateLabel(dates[0],{day:'numeric',month:'short'})+' – '+dateLabel(dates[6],{day:'numeric',month:'short',year:'numeric'});
+  return `<div class="head"><div class="eyebrow">Calendar</div><h1>Your week</h1>
+    <p class="sub">Add matches, races, team training, travel and other commitments so Mark can programme around real life.</p></div>
+    <div class="calhead"><h2>${esc(label)}</h2><div class="calnav"><button class="btn ghost sm" data-act="prevweek">←</button><button class="btn ghost sm" data-act="thisweek">Today</button><button class="btn ghost sm" data-act="nextweek">→</button></div></div>
+    <div class="calweek">${dates.map(date=>{
+      const ev=eventsForDate(date), sess=sessionsForDate(date), plan=S.dailyPlans[date]||{};
+      return `<div class="calday ${date===localDateISO(new Date())?'today':''}">
+        <div class="caldate">${dateLabel(date,{weekday:'short',day:'numeric'})}</div>
+        ${plan.dayType?`<div class="eventtype" style="margin-bottom:7px">${esc(plan.dayType)}</div>`:''}
+        ${sess.map(s=>`<div class="calworkout"><div class="ct">${esc(s.title||'Workout')}</div><div class="cm">Coach workout</div></div>`).join('')}
+        ${ev.map(e=>`<div class="calevent ${e.createdBy==='coach'?'coach':''}" data-act="editevent" data-id="${esc(e.id)}"><div class="ct">${esc(e.title)}</div><div class="cm">${esc(timeLabel(e.start,e.allDay))} · ${esc(e.type)}</div></div>`).join('')}
+        <button class="addday" data-act="addevent" data-date="${date}">+ Add</button>
+      </div>`;}).join('')}</div>`;
+}
+function eventModal(){
+  const e=UI.eventEdit||{}, date=UI.eventDate||eventDay(e)||localDateISO(new Date());
+  const start=e.start||date+'T09:00', end=e.end||date+'T10:00';
+  return `<div class="overlay" data-act="closemodal"><div class="sheet eventform">
+    <div class="sh"><button class="close" data-act="closemodal">×</button><h2>${e.id?'Edit event':'Add to calendar'}</h2></div>
+    <div class="sb">
+      <div class="field"><label>Event title</label><input id="ev_title" value="${esc(e.title||'')}" placeholder="e.g. Rugby match vs Randwick"></div>
+      <div class="fieldrow"><div class="field"><label>Type</label><select id="ev_type">
+        ${['match','competition','race','team training','gym','run','ride','travel','rest','medical','other'].map(x=>`<option ${e.type===x?'selected':''}>${x}</option>`).join('')}
+      </select></div><div class="field"><label>Intensity</label><select id="ev_intensity"><option value="">Not set</option>${['Low','Moderate','High','Max effort'].map(x=>`<option ${e.intensity===x?'selected':''}>${x}</option>`).join('')}</select></div></div>
+      <div class="checks"><label><input id="ev_allday" type="checkbox" ${e.allDay?'checked':''}> <span>All-day event</span></label></div>
+      <div class="fieldrow"><div class="field"><label>Starts</label><input id="ev_start" type="datetime-local" value="${esc(start)}"></div>
+      <div class="field"><label>Ends</label><input id="ev_end" type="datetime-local" value="${esc(end)}"></div></div>
+      <div class="field"><label>Location</label><input id="ev_location" value="${esc(e.location||'')}"></div>
+      <div class="field"><label>Notes for Mark</label><textarea id="ev_notes">${esc(e.notes||'')}</textarea></div>
+      <div id="evMsg"></div>
+    </div><div class="sheetacts"><button class="btn" data-act="saveevent" data-id="${esc(e.id||'')}">Save event</button>
+      ${e.id&&e.createdBy!=='coach'?`<button class="btn ghost" data-act="deleteevent" data-id="${esc(e.id)}">Delete</button>`:''}</div>
+  </div></div>`;
+}
+
 /* ============ RENDER ROUTER ============ */
 function render(){
   renderNav();
   const v = $('view');
-  if(UI.view==='workouts') v.innerHTML = viewWorkouts();
+  if(UI.view==='today') v.innerHTML = viewToday();
+  else if(UI.view==='calendar') v.innerHTML = viewCalendar();
+  else if(UI.view==='workouts') v.innerHTML = viewWorkouts();
   else if(UI.view==='week') v.innerHTML = viewWeek();
   else if(UI.view==='recipes') v.innerHTML = viewRecipes();
   else if(UI.view==='shopping') v.innerHTML = viewShopping();
@@ -499,9 +620,8 @@ function render(){
 }
 
 function renderNav(){
-  const plan = Object.values(S.week).reduce((a,b)=>a+b.length,0);
-  const items = [['workouts','Workouts',null],['week','Week',plan],['recipes','Recipes',S.recipes.length],['shopping','Shopping',shoppingItems().length]];
-  $('nav').innerHTML = items.map(([k,l,c])=>
+  const items = [['today','Today'],['calendar','Calendar'],['workouts','Training'],['week','Nutrition'],['recipes','Recipes']];
+  $('nav').innerHTML = items.map(([k,l])=>
     `<button class="tab ${UI.view===k?'on':''}" data-act="nav" data-k="${k}">${l}</button>`).join('');
 }
 
@@ -647,6 +767,7 @@ function viewShopping(){
 /* ============ MODALS ============ */
 function renderModal(){
   const m = $('modal');
+  if(UI.eventEdit || UI.eventDate){ m.innerHTML = eventModal(); return; }
   if(UI.openWx){ m.innerHTML = wxModal(); return; }
   if(UI.pickDay){ m.innerHTML = pickModal(); return; }
   if(UI.addRecipe){ m.innerHTML = dayPickModal(); return; }
@@ -775,9 +896,9 @@ function beep(){ try{ audioCtx=audioCtx||new(window.AudioContext||window.webkitA
     setTimeout(ring,520); }; ring(); }catch(e){} }
 
 /* ============ EVENTS ============ */
-document.addEventListener('click', e=>{
+document.addEventListener('click', async e=>{
   if(e.target.classList.contains('overlay')||e.target.classList.contains('close')){
-    UI.openId=null; UI.pickDay=null; UI.addRecipe=null; UI.openWx=null; renderModal(); return; }
+    UI.openId=null; UI.pickDay=null; UI.addRecipe=null; UI.openWx=null; UI.eventEdit=null; UI.eventDate=null; renderModal(); return; }
   const t = e.target.closest('[data-act]');
   if(!t) return;
   const act = t.dataset.act;
@@ -788,6 +909,21 @@ document.addEventListener('click', e=>{
     case 'saveprofile': saveProfile(); break;
     case 'logout': logout(); break;
     case 'nav': UI.view=t.dataset.k; UI.openId=null; render(); window.scrollTo(0,0); break;
+    case 'prevweek': UI.weekOffset--; render(); break;
+    case 'nextweek': UI.weekOffset++; render(); break;
+    case 'thisweek': UI.weekOffset=0; render(); break;
+    case 'addevent': UI.eventDate=t.dataset.date; UI.eventEdit=null; renderModal(); break;
+    case 'editevent': UI.eventEdit=S.events.find(x=>x.id===t.dataset.id)||null; UI.eventDate=null; renderModal(); break;
+    case 'saveevent': {
+      const ev={id:t.dataset.id||'',title:$('ev_title').value.trim(),type:$('ev_type').value,start:$('ev_start').value,end:$('ev_end').value,
+        allDay:$('ev_allday').checked,intensity:$('ev_intensity').value,location:$('ev_location').value.trim(),notes:$('ev_notes').value.trim()};
+      const box=$('evMsg'); if(!ev.title||!ev.start){box.innerHTML='<div class="msg err">Add a title and start time.</div>';break;}
+      t.disabled=true;t.textContent='Saving…'; const res=await api({action:'save_event',session:SESSION,event:ev});
+      if(res.ok){const i=S.events.findIndex(x=>x.id===res.event.id);if(i>=0)S.events[i]=res.event;else S.events.push(res.event);UI.eventEdit=null;UI.eventDate=null;render();}
+      else{t.disabled=false;t.textContent='Save event';box.innerHTML='<div class="msg err">Could not save the event.</div>';} break;}
+    case 'deleteevent': {
+      const res=await api({action:'delete_event',session:SESSION,id:t.dataset.id});
+      if(res.ok){S.events=S.events.filter(x=>x.id!==t.dataset.id);UI.eventEdit=null;UI.eventDate=null;render();} break;}
     case 'open': UI.openId=t.dataset.id; UI.detServings=(byId(t.dataset.id)||{}).servings; renderModal(); break;
     case 'openwx': { let rx={}; try{rx=JSON.parse(t.dataset.rx||'{}');}catch(err){}
       UI.openWx={id:t.dataset.id,rx:rx}; renderModal(); break; }
