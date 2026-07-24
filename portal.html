@@ -1025,7 +1025,7 @@ function beep(){ try{ audioCtx=audioCtx||new(window.AudioContext||window.webkitA
     setTimeout(ring,520); }; ring(); }catch(e){} }
 
 /* ============ EVENTS ============ */
-document.addEventListener('click', e=>{
+document.addEventListener('click', async e=>{
   if(e.target.classList.contains('overlay')||e.target.classList.contains('close')){
     UI.openId=null; UI.pickDay=null; UI.addRecipe=null; UI.openWx=null; UI.eventEdit=null; UI.eventDate=null; renderModal(); return; }
   const t = e.target.closest('[data-act]');
