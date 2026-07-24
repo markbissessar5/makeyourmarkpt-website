@@ -219,7 +219,23 @@
   .cookfoot .btn{flex:1;justify-content:center;text-align:center}
   .spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-1px}
   @keyframes sp{to{transform:rotate(360deg)}}
+
+  [hidden]{display:none !important}
+  #installBtn{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    background:#c8102e; color:#fff; border:none; border-radius:999px;
+    padding:12px 24px; font-family:'Barlow Condensed',sans-serif;
+    font-size:16px; font-weight:600; letter-spacing:.5px; text-transform:uppercase;
+    box-shadow:0 4px 12px rgba(0,0,0,.3); cursor:pointer; z-index:9999;
+  }
 </style>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="icon" href="/icons/favicon-32.png" sizes="32x32">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Make Your Mark">
 </head>
 <body>
 
@@ -703,6 +719,30 @@ document.addEventListener('click', e=>{
     case 'treset': resetTimer(); break;
   }
 });
+</script>
+<button id="installBtn" hidden>Add to home screen</button>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .catch((err) => console.warn('SW registration failed:', err));
+    });
+  }
+  let deferredPrompt = null;
+  const installBtn = document.getElementById('installBtn');
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (installBtn) installBtn.hidden = false;
+  });
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    installBtn.hidden = true;
+  });
+  window.addEventListener('appinstalled', () => { installBtn.hidden = true; });
 </script>
 </body>
 </html>
