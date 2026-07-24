@@ -228,6 +228,22 @@
     font-size:16px; font-weight:600; letter-spacing:.5px; text-transform:uppercase;
     box-shadow:0 4px 12px rgba(0,0,0,.3); cursor:pointer; z-index:9999;
   }
+
+  /* onboarding */
+  .onboard{max-width:720px;margin:0 auto;padding:28px 0 60px}
+  .oncard{background:var(--raise);border:1px solid var(--line);border-radius:16px;padding:24px;margin-top:18px}
+  .oncard h2{font-size:28px;font-weight:800;text-transform:uppercase;margin-bottom:8px}
+  .agreement{white-space:pre-wrap;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;max-height:46vh;overflow:auto;font-size:13px;line-height:1.6;margin:16px 0}
+  .checks{display:flex;flex-direction:column;gap:10px;margin:14px 0}
+  .checks label{display:flex;gap:10px;text-align:left;align-items:flex-start;font-size:14px}
+  .checks input{margin-top:4px}
+  .field{margin:12px 0;text-align:left}
+  .field label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+  .field input,.field textarea{width:100%;background:var(--panel);border:1px solid var(--line2);border-radius:9px;padding:12px 14px;font-size:15px}
+  .field textarea{min-height:90px;resize:vertical}
+  .codebox{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+  .codebox input{text-align:center;font-family:var(--mono);font-size:24px;letter-spacing:.25em}
+
 </style>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#000000">
@@ -262,7 +278,7 @@ const FILTER_ORDER = ['keto','high-protein','low-carb','quick'];
 
 /* ============ STATE ============ */
 let SESSION = null;
-let S = { name:'', workoutHtml:'', sessions:[], exlib:[], recipes:[], week:{}, checked:{} };
+let S = { name:'', workoutHtml:'', sessions:[], exlib:[], recipes:[], week:{}, checked:{}, onboarding:{} };
 let UI = { view:'workouts', search:'', filter:'', openId:null, detServings:null, pickDay:null, addRecipe:null };
 let COOK = null;
 let audioCtx = null;
@@ -312,6 +328,7 @@ async function loadData(){
   const sel = res.selections || {};
   S.week = sel.week || {};
   S.checked = sel.checked || {};
+  S.onboarding = res.onboarding || {};
   DAYS.forEach(d=>{ if(!Array.isArray(S.week[d])) S.week[d] = []; });
   return true;
 }
@@ -339,10 +356,17 @@ function showLogin(msg){
     <div class="logo">MAKE YOUR MARK<span class="dot">.</span></div>
     <div class="tag">Client Portal</div>
     <h2>Welcome back</h2>
-    <p>Enter your email and we'll send you a secure login link.</p>
+    <p>Enter your email to receive a secure 6-digit login code.</p>
     <div class="loginform">
       <input id="emailIn" type="email" placeholder="you@email.com" autocomplete="email">
-      <button class="btn" data-act="sendlink">Send my login link</button>
+      <button class="btn" data-act="sendlink">Send login code</button>
+    </div>
+    <div class="codebox" id="codeBox" hidden>
+      <p style="margin-bottom:10px">Enter the code from your email.</p>
+      <div class="loginform">
+        <input id="codeIn" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
+        <button class="btn" data-act="verifycode">Sign in</button>
+      </div>
     </div>
     <div id="loginMsg">${msg?`<div class="msg err">${esc(msg)}</div>`:''}</div>
   </div>`;
@@ -357,7 +381,22 @@ async function sendLink(){
   if(!email || email.indexOf('@')<0){ box.innerHTML = '<div class="msg err">Please enter a valid email address.</div>'; return; }
   box.innerHTML = '<div class="msg">Sending…</div>';
   try{ await api({ action:'request', email }); }catch(e){}
-  box.innerHTML = '<div class="msg ok">If that email is on file, a login link is on its way. Check your inbox (and spam).</div>';
+  box.innerHTML = '<div class="msg ok">If that email has access, a 6-digit code and login link are on their way. Check your inbox and spam.</div>';
+  const cb=$('codeBox'); if(cb) cb.hidden=false;
+  const ci=$('codeIn'); if(ci){ ci.focus(); ci.addEventListener('keydown',e=>{if(e.key==='Enter') verifyCode();}); }
+}
+
+async function verifyCode(){
+  const email=($('emailIn')?$('emailIn').value:'').trim();
+  const code=($('codeIn')?$('codeIn').value:'').replace(/\D/g,'');
+  const box=$('loginMsg');
+  if(!email || code.length!==6){ box.innerHTML='<div class="msg err">Enter your email and the 6-digit code.</div>'; return; }
+  box.innerHTML='<div class="msg">Signing in…</div>';
+  try{
+    const res=await api({action:'verify_code',email,code});
+    if(res.ok){ SESSION=res.session; try{localStorage.setItem('mym_session',SESSION);}catch(e){} if(await loadData()){showApp();return;} }
+  }catch(e){}
+  box.innerHTML='<div class="msg err">That code is invalid or has expired. Request a new one.</div>';
 }
 
 function showApp(){
@@ -366,7 +405,55 @@ function showApp(){
   document.getElementById('app').hidden = false;
   document.getElementById('whoName').textContent = S.name ? ('Hi, ' + S.name) : '';
   document.getElementById('coachLink').hidden = !S.admin;
-  render();
+  if(S.onboarding && (S.onboarding.agreementRequired || S.onboarding.profileRequired)) renderOnboarding(); else render();
+}
+
+function renderOnboarding(){
+  $('nav').innerHTML='';
+  $('whoName').textContent=S.name?('Hi, '+S.name):'';
+  const v=$('view');
+  if(S.onboarding.agreementRequired){
+    v.innerHTML=`<div class="onboard"><div class="eyebrow">Welcome to coaching</div><h1>Before you begin</h1>
+      <p class="sub">Review and accept the coaching service agreement to activate your account.</p>
+      <div class="oncard"><h2>Coaching service agreement</h2>
+        <div class="agreement">${esc(S.onboarding.agreementText||'')}</div>
+        <div class="checks">
+          <label><input id="agree18" type="checkbox"> <span>I confirm that I am at least 18 years old.</span></label>
+          <label><input id="agreeTerms" type="checkbox"> <span>I have read and agree to the coaching service agreement.</span></label>
+        </div>
+        <div class="field"><label>Type your full legal name</label><input id="acceptedName" autocomplete="name" placeholder="Full name"></div>
+        <div id="onMsg"></div>
+        <button class="btn" data-act="acceptagreement">Accept and continue</button>
+      </div></div>`;
+    return;
+  }
+  const p=S.onboarding.profile||{};
+  v.innerHTML=`<div class="onboard"><div class="eyebrow">Set up your profile</div><h1>Tell Mark what matters</h1>
+    <p class="sub">This information helps Mark programme safely and tailor your coaching.</p>
+    <div class="oncard">
+      <div class="field"><label>Mobile number</label><input id="p_phone" value="${esc(p.phone||'')}" autocomplete="tel"></div>
+      <div class="field"><label>Date of birth</label><input id="p_dob" type="date" value="${esc(p.dob||'')}"></div>
+      <div class="field"><label>Emergency contact</label><input id="p_emergency" value="${esc(p.emergency||'')}" placeholder="Name and phone number"></div>
+      <div class="field"><label>Injuries, medical considerations or dietary restrictions</label><textarea id="p_medical" placeholder="Include anything Mark should know before programming.">${esc(p.medical||'')}</textarea></div>
+      <div class="field"><label>Primary sport and current goals</label><textarea id="p_goals" placeholder="e.g. rugby, improve speed and strength before next season">${esc(p.goals||'')}</textarea></div>
+      <div id="onMsg"></div><button class="btn" data-act="saveprofile">Save and enter portal</button>
+    </div></div>`;
+}
+
+async function acceptAgreement(){
+  const name=($('acceptedName')?$('acceptedName').value:'').trim(); const box=$('onMsg');
+  if(!$('agree18').checked || !$('agreeTerms').checked || name.length<2){box.innerHTML='<div class="msg err">Confirm both boxes and type your full name.</div>';return;}
+  box.innerHTML='<div class="msg">Saving acceptance…</div>';
+  const res=await api({action:'accept_agreement',session:SESSION,acceptedName:name,confirm18:true,userAgent:navigator.userAgent});
+  if(!res.ok){box.innerHTML='<div class="msg err">We could not save your acceptance. Try again.</div>';return;}
+  S.onboarding.agreementRequired=false; renderOnboarding();
+}
+async function saveProfile(){
+  const profile={phone:$('p_phone').value.trim(),dob:$('p_dob').value,emergency:$('p_emergency').value.trim(),medical:$('p_medical').value.trim(),goals:$('p_goals').value.trim()};
+  const box=$('onMsg'); box.innerHTML='<div class="msg">Saving profile…</div>';
+  const res=await api({action:'save_profile',session:SESSION,profile});
+  if(!res.ok){box.innerHTML='<div class="msg err">We could not save your profile. Try again.</div>';return;}
+  S.onboarding.profileRequired=false; S.onboarding.profile=profile; render();
 }
 
 /* ============ HELPERS ============ */
@@ -696,6 +783,9 @@ document.addEventListener('click', e=>{
   const act = t.dataset.act;
   switch(act){
     case 'sendlink': sendLink(); break;
+    case 'verifycode': verifyCode(); break;
+    case 'acceptagreement': acceptAgreement(); break;
+    case 'saveprofile': saveProfile(); break;
     case 'logout': logout(); break;
     case 'nav': UI.view=t.dataset.k; UI.openId=null; render(); window.scrollTo(0,0); break;
     case 'open': UI.openId=t.dataset.id; UI.detServings=(byId(t.dataset.id)||{}).servings; renderModal(); break;

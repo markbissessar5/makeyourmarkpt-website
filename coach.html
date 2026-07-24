@@ -166,7 +166,7 @@ const PAGE = 60;
 /* ============ STATE ============ */
 let SESSION = null;
 let S = { name:'', clients:[], exercises:[] };
-let UI = { view:'clients', q:'', muscle:'', equip:'', shown:PAGE, client:null,
+let UI = { view:'clients', q:'', muscle:'', equip:'', shown:PAGE, client:null, invite:false,
            openEx:null, editEx:false, addEx:false, addSess:null, pickFor:null, pickQ:'', rxFor:null, saving:'' };
 let saveTimer = null;
 
@@ -328,7 +328,8 @@ function viewClients(){
       <span class="num">${c.sessions.length} sess.</span>
     </button>`).join('');
   return `<div class="head"><div class="eyebrow">Coach</div><h1>Programmes</h1>
-    <p class="sub">Pick a client, then build their sessions day by day. Changes save automatically and appear in their portal immediately.</p></div>
+    <p class="sub">Invite a client, then build their sessions day by day. Changes save automatically and appear in their portal immediately.</p></div>
+    <div class="toolbar"><button class="btn" data-act="inviteclient">+ Invite client</button></div>
     <div class="layout">
       <div class="clist">${rows||'<div class="empty">No clients yet.</div>'}</div>
       <div>${UI.client?builder():'<div class="empty">Select a client to build their programme.</div>'}</div>
@@ -372,7 +373,8 @@ function rxText(e){
 /* ---- modals ---- */
 function renderModal(){
   const m=$('modal');
-  if(UI.addSess) m.innerHTML=addSessModal();
+  if(UI.invite) m.innerHTML=inviteModal();
+  else if(UI.addSess) m.innerHTML=addSessModal();
   else if(UI.pickFor!=null) m.innerHTML=pickModal();
   else if(UI.rxFor) m.innerHTML=rxModal();
   else if(UI.addEx) m.innerHTML=exFormModal(null);
@@ -422,6 +424,18 @@ function exFormModal(x){
       <button class="btn ghost" data-act="closemodal">Cancel</button>
     </div></div></div>`;
 }
+function inviteModal(){
+  return `<div class="overlay" data-act="closemodal"><div class="sheet" style="max-width:430px">
+    <div class="sh"><button class="close" data-act="closemodal">×</button><h2>Invite client</h2></div>
+    <div class="sb">
+      <div class="field"><label>Full name</label><input id="inv_name" autocomplete="name" placeholder="Client name"></div>
+      <div class="field"><label>Email address</label><input id="inv_email" type="email" autocomplete="email" placeholder="client@email.com"></div>
+      <div id="inviteMsg"></div>
+    </div>
+    <div class="sheetacts"><button class="btn" data-act="confirminvite">Send invitation</button><button class="btn ghost" data-act="closemodal">Cancel</button></div>
+  </div></div>`;
+}
+
 function addSessModal(){
   return `<div class="overlay" data-act="closemodal"><div class="sheet" style="max-width:420px">
     <div class="sh"><button class="close" data-act="closemodal">\u00d7</button><h2>New session</h2></div>
@@ -474,7 +488,7 @@ document.addEventListener('change', e=>{
 });
 document.addEventListener('click', async e=>{
   if(e.target.classList.contains('overlay')||e.target.classList.contains('close')){
-    UI.openEx=null;UI.editEx=false;UI.addEx=false;UI.addSess=null;UI.pickFor=null;UI.pickQ='';UI.rxFor=null;renderModal();return;}
+    UI.openEx=null;UI.editEx=false;UI.addEx=false;UI.addSess=null;UI.invite=false;UI.pickFor=null;UI.pickQ='';UI.rxFor=null;renderModal();return;}
   const t=e.target.closest('[data-act]'); if(!t)return;
   const act=t.dataset.act;
   const c=client();
@@ -482,6 +496,15 @@ document.addEventListener('click', async e=>{
     case 'sendlink': sendLink(); break;
     case 'logout': logout(); break;
     case 'nav': UI.view=t.dataset.k; render(); window.scrollTo(0,0); break;
+    case 'inviteclient': UI.invite=true; renderModal(); break;
+    case 'confirminvite': {
+      const name=$('inv_name').value.trim(), email=$('inv_email').value.trim().toLowerCase(), box=$('inviteMsg');
+      if(!name || email.indexOf('@')<1){box.innerHTML='<div class="msg err">Enter the client name and a valid email.</div>';break;}
+      t.disabled=true;t.textContent='Sending…';
+      const res=await api({action:'admin_invite',session:SESSION,name,email});
+      if(res.ok){ const existing=S.clients.find(x=>x.email===email); if(!existing)S.clients.push(res.client); UI.invite=false; UI.client=email; render(); }
+      else {t.disabled=false;t.textContent='Send invitation';box.innerHTML='<div class="msg err">Invitation could not be sent.</div>';}
+      break; }
     case 'more': UI.shown+=PAGE; $('exList').innerHTML=exRows(); break;
     case 'openex': UI.openEx=t.dataset.id; UI.editEx=false; renderModal(); break;
     case 'editex': UI.editEx=true; renderModal(); break;
