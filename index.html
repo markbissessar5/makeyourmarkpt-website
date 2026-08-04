@@ -11,10 +11,8 @@
   html { scroll-behavior: smooth; }
   body { font-family: 'Barlow', sans-serif; background: var(--black); color: var(--white); overflow-x: hidden; }
   nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 70px; background: rgba(0,0,0,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(255,255,255,0.06); }
-  .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-  .logo-mark { width: 42px; height: 42px; background: var(--red); display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 20px; color: white; clip-path: polygon(10% 0%, 90% 0%, 100% 10%, 100% 90%, 90% 100%, 10% 100%, 0% 90%, 0% 10%); }
-  .logo-text { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 16px; line-height: 1.1; color: white; text-transform: uppercase; letter-spacing: 0.02em; }
-  .logo-text span { color: var(--red); }
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .nav-logo-img { height: 42px; width: auto; display: block; }
   .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
   .nav-links a { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--white); text-decoration: none; transition: color 0.2s; position: relative; white-space: nowrap; }
   .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 2px; background: var(--red); transform: scaleX(0); transition: transform 0.2s; }
@@ -94,6 +92,23 @@
     .coach-grid { grid-template-columns: 1fr; gap: 32px; }
     .coach-photo-frame { max-width: 280px; margin: 0 auto; }
   }
+  #transformation { padding: 100px 40px; background: var(--black); }
+  .ba-stack { margin: 56px 0 0; }
+  .ba-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; max-width: 680px; position: relative; }
+  .ba-pair + .ba-pair { margin-top: 52px; }
+  .ba-item { position: relative; background: var(--dark); overflow: hidden; }
+  .ba-item img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block; filter: grayscale(12%) contrast(1.02); }
+  .ba-tag { position: absolute; top: 14px; left: 14px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; padding: 5px 12px; z-index: 2; }
+  .ba-tag.before { background: rgba(255,255,255,0.16); color: #fff; }
+  .ba-tag.after { background: var(--red); color: #fff; }
+  .ba-weeks { position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); background: var(--red); color: #fff; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 15px; letter-spacing: 0.18em; text-transform: uppercase; padding: 8px 18px; z-index: 3; white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.55); }
+  .transformation-note { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin: 18px 0 0; }
+  .testimonial { max-width: 680px; margin: 40px 0 0; padding: 34px 38px 34px 40px; background: var(--off-black); border-left: 3px solid var(--red); position: relative; }
+  .testimonial-lead { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: clamp(22px, 3vw, 30px); line-height: 1.12; text-transform: uppercase; color: #fff; margin-bottom: 18px; }
+  .testimonial-lead span { color: var(--red); }
+  .testimonial-body { font-size: 16px; line-height: 1.75; color: rgba(255,255,255,0.68); margin-bottom: 22px; }
+  .testimonial-attr { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--red); display: flex; align-items: center; gap: 12px; }
+  .testimonial-attr::before { content: ''; width: 24px; height: 2px; background: var(--red); flex-shrink: 0; }
   #contact { padding: 100px 40px; background: var(--dark); }
   .contact-inner { max-width: 560px; }
   .contact-form { display: flex; flex-direction: column; gap: 16px; margin-top: 40px; }
@@ -105,7 +120,9 @@
   .form-submit { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; background: var(--red); color: white; border: none; padding: 16px 36px; cursor: pointer; transition: background 0.2s; align-self: flex-start; }
   .form-submit:hover { background: var(--red-dark); }
   .form-disclaimer { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: -4px; font-style: italic; }
-  footer { padding: 32px 40px; background: var(--black); border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  footer { padding: 32px 40px; background: var(--black); border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+  .footer-left { display: flex; align-items: center; gap: 16px; }
+  .footer-badge { height: 54px; width: auto; flex-shrink: 0; display: block; }
   .footer-brand { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 15px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.3); }
   .footer-brand span { color: var(--red); }
   .footer-copy { font-size: 13px; color: rgba(255,255,255,0.25); }
@@ -173,7 +190,8 @@
     nav { padding: 0 20px; }
     .nav-links { display: none; }
     .hero-content { padding: 100px 20px 60px; }
-    #programmes, #about, #coach, #contact { padding: 70px 20px; }
+    #programmes, #about, #coach, #transformation, #contact { padding: 70px 20px; }
+    .nav-logo-img { height: 32px; }
     footer { padding: 24px 20px; }
     .qf-row { grid-template-columns: 1fr; }
     .form-row { grid-template-columns: 1fr; }
@@ -185,19 +203,18 @@
 <body>
 <nav>
   <a href="#home" class="nav-logo">
-    <div class="logo-mark">M</div>
-    <div class="logo-text">Make Your<br><span>Mark</span></div>
+    <img class="nav-logo-img" src="images/logo-lockup.png" alt="Make Your Mark Performance Coaching">
   </a>
   <ul class="nav-links">
     <li><a href="#home" class="active">Home</a></li>
     <li><a href="#programmes">Programmes</a></li>
     <li><a href="#about">About</a></li>
     <li><a href="#coach">Meet Your Coach</a></li>
+    <li><a href="#transformation">Results</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
   <a href="#" class="nav-cta" onclick="openQuiz(); return false;">Start Now</a>
 </nav>
-
 <section id="home">
   <div class="hero-bg"></div>
   <div class="hero-content">
@@ -217,7 +234,6 @@
     <span>Scroll</span>
   </div>
 </section>
-
 <section id="programmes">
   <div class="section-label">What we offer</div>
   <h2 class="section-title">A Programme<br>Built for You</h2>
@@ -267,7 +283,6 @@
     </div>
   </div>
 </section>
-
 <section id="about">
   <div class="section-label">The Process</div>
   <h2 class="section-title">How It<br>Works</h2>
@@ -298,7 +313,6 @@
     </div>
   </div>
 </section>
-
 <section id="coach">
   <div class="coach-bg">
     <img src="images/mark-rugby.jpg" alt="">
@@ -327,7 +341,41 @@
     </div>
   </div>
 </section>
-
+<section id="transformation">
+  <div class="section-label">Real Results</div>
+  <h2 class="section-title">8-Week<br>Transformations</h2>
+  <p class="section-sub">Eight weeks apart. Full coaching — training, nutrition, and accountability — not a crash diet.</p>
+  <div class="ba-stack">
+    <div class="ba-pair">
+      <div class="ba-item">
+        <span class="ba-tag before">Before</span>
+        <img src="images/transformation-before.jpg" alt="Before, week one">
+      </div>
+      <div class="ba-item">
+        <span class="ba-tag after">After</span>
+        <img src="images/transformation-after.jpg" alt="After, week eight">
+      </div>
+      <div class="ba-weeks">8 Weeks</div>
+    </div>
+    <div class="ba-pair">
+      <div class="ba-item">
+        <span class="ba-tag before">Before</span>
+        <img src="images/transformation-2-before.jpg" alt="Before, week one">
+      </div>
+      <div class="ba-item">
+        <span class="ba-tag after">After</span>
+        <img src="images/transformation-2-after.jpg" alt="After, week eight">
+      </div>
+      <div class="ba-weeks">8 Weeks</div>
+    </div>
+  </div>
+  <p class="transformation-note">Individual results vary · committed effort required</p>
+  <div class="testimonial">
+    <p class="testimonial-lead">Leaner, stronger on the pitch, and <span>thinking clearer than I have in years.</span></p>
+    <p class="testimonial-body">Eight weeks ago I had no plan and a gut I was tired of looking at. Mark didn't hand me a generic programme. He sorted my head first, then built the training around it: the morning primers, eating that finally made sense, gym sessions with an actual point. He kept me honest on the days I wanted to skip. My lifts are up across the board and I can feel it on the pitch, quicker into contact and sharper in the last twenty. I look better than I have in years, but the part I didn't expect is how much clearer I think now. Best money I've spent.</p>
+    <div class="testimonial-attr">Harry · 8-Week Transformation</div>
+  </div>
+</section>
 <section id="contact">
   <div class="contact-inner">
     <div class="section-label">Get in touch</div>
@@ -345,13 +393,13 @@
     </form>
   </div>
 </section>
-
 <div class="footer-red-bar"></div>
 <footer>
-  <div class="footer-brand">Make Your <span>Mark</span> Performance Coaching</div>
+  <div class="footer-left">
+    <img class="footer-badge" src="images/logo-badge.png" alt="Make Your Mark Performance Coaching">
+  </div>
   <div class="footer-copy">© 2026 makeyourmarkpt.com · Sydney, Australia</div>
 </footer>
-
 <div class="modal-overlay" id="quizModal">
   <div class="modal">
     <button class="modal-close" onclick="closeQuiz()">✕</button>
@@ -485,28 +533,22 @@
     </div>
   </div>
 </div>
-
 <script>
   // ⚠️ REPLACE THIS WITH YOUR APPS SCRIPT WEB APP URL (see setup instructions)
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyD8fPljDiT_HGMfxRGbPK7lQTyM82iWnu6s2hmu7CzmGgFfopLZ6DCwOn4Nf5ylKAEkg/exec';
-
   const answers = {};
   const totalSteps = 7;
-
   function openQuiz() {
     document.getElementById('quizModal').classList.add('active');
     document.body.style.overflow = 'hidden';
   }
-
   function closeQuiz() {
     document.getElementById('quizModal').classList.remove('active');
     document.body.style.overflow = '';
   }
-
   document.getElementById('quizModal').addEventListener('click', function(e) {
     if (e.target === this) closeQuiz();
   });
-
   function selectOption(el, key, value) {
     const parent = el.closest('.quiz-options');
     parent.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
@@ -516,7 +558,6 @@
     const nextBtn = document.getElementById('next' + step);
     if (nextBtn) nextBtn.disabled = false;
   }
-
   function checkProfileStep() {
     const name = document.getElementById('qfName').value.trim();
     const email = document.getElementById('qfEmail').value.trim();
@@ -527,7 +568,6 @@
     const valid = name && email && email.includes('@') && phone && gender && age && weight;
     document.getElementById('next6').disabled = !valid;
   }
-
   function goToStep(step) {
     document.querySelectorAll('.quiz-step').forEach(s => s.classList.remove('active'));
     document.querySelector('[data-step="' + step + '"]').classList.add('active');
@@ -536,7 +576,6 @@
     document.querySelector('.modal').scrollTop = 0;
     if (step === 7) showResult();
   }
-
   // Routing: Mostly A/D → Recomp, Mostly B → Performance, Mostly C → Strength
   function calculateProgramme() {
     const counts = { A: 0, B: 0, C: 0, D: 0 };
@@ -546,7 +585,6 @@
     if (counts.C > counts.B && counts.C >= adCount) return 'strength';
     return 'recomp';
   }
-
   function showResult() {
     document.getElementById('progressFill').style.width = '100%';
     const programme = calculateProgramme();
@@ -594,13 +632,11 @@
       <button class="result-restart" onclick="restartQuiz()">← Start over</button>
     `;
   }
-
   function setDelivery(el, value) {
     el.closest('.delivery-options').querySelectorAll('.delivery-card').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
     answers.delivery = value;
   }
-
   async function submitResult() {
     const btn = document.getElementById('claimBtn');
     btn.disabled = true;
@@ -641,7 +677,6 @@
       alert('Something went wrong. Please try again or contact us directly.');
     }
   }
-
   function restartQuiz() {
     Object.keys(answers).forEach(k => delete answers[k]);
     document.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
@@ -650,12 +685,10 @@
     document.getElementById('qfGender').value = '';
     goToStep(1);
   }
-
   function handleContact(e) {
     e.preventDefault();
     e.target.innerHTML = '<p style="color: var(--red); font-family: \'Barlow Condensed\', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.05em; text-transform: uppercase;">Message sent. We\'ll be in touch shortly.</p>';
   }
-
   const sections = document.querySelectorAll('section[id]');
   window.addEventListener('scroll', () => {
     let current = '';
