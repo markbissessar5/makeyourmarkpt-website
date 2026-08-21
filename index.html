@@ -19,6 +19,10 @@
   .nav-links a:hover { color: var(--red); }
   .nav-links a:hover::after { transform: scaleX(1); }
   .nav-links a.active::after { transform: scaleX(1); }
+  .nav-actions { display: flex; align-items: center; gap: 22px; }
+  .nav-login { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7); text-decoration: none; white-space: nowrap; transition: color 0.2s; }
+  .nav-login:hover { color: var(--white); }
+  .login-short { display: none; }
   .nav-cta { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; background: var(--red); color: white; border: none; padding: 10px 24px; cursor: pointer; transition: background 0.2s; text-decoration: none; }
   .nav-cta:hover { background: var(--red-dark); }
   #home { position: relative; min-height: 100vh; display: flex; align-items: center; overflow: hidden; }
@@ -103,10 +107,16 @@
   .ba-tag.after { background: var(--red); color: #fff; }
   .ba-weeks { position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); background: var(--red); color: #fff; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 15px; letter-spacing: 0.18em; text-transform: uppercase; padding: 8px 18px; z-index: 3; white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.55); }
   .transformation-note { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin: 18px 0 0; }
+  .testimonials-label { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--red); margin: 72px 0 20px; }
+  .testimonials { display: grid; gap: 20px; max-width: 1120px; align-items: start; }
+  @media (min-width: 1000px) { .testimonials { grid-template-columns: 1fr 1fr; } .testimonial.wide { grid-column: 1 / -1; } }
   .testimonial { max-width: 680px; margin: 40px 0 0; padding: 34px 38px 34px 40px; background: var(--off-black); border-left: 3px solid var(--red); position: relative; }
+  .testimonials .testimonial { max-width: none; margin: 0; }
+  .testimonials .testimonial.wide .testimonial-body { max-width: 78ch; }
   .testimonial-lead { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: clamp(22px, 3vw, 30px); line-height: 1.12; text-transform: uppercase; color: #fff; margin-bottom: 18px; }
   .testimonial-lead span { color: var(--red); }
-  .testimonial-body { font-size: 16px; line-height: 1.75; color: rgba(255,255,255,0.68); margin-bottom: 22px; }
+  .testimonial-body { font-size: 16px; line-height: 1.75; color: rgba(255,255,255,0.68); margin-bottom: 14px; }
+  .testimonial-body:last-of-type { margin-bottom: 22px; }
   .testimonial-attr { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--red); display: flex; align-items: center; gap: 12px; }
   .testimonial-attr::before { content: ''; width: 24px; height: 2px; background: var(--red); flex-shrink: 0; }
   #contact { padding: 100px 40px; background: var(--dark); }
@@ -126,6 +136,9 @@
   .footer-brand { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 15px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.3); }
   .footer-brand span { color: var(--red); }
   .footer-copy { font-size: 13px; color: rgba(255,255,255,0.25); }
+  .footer-links { display: flex; gap: 26px; flex-wrap: wrap; }
+  .footer-links a { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.45); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--red); }
   .footer-red-bar { height: 4px; background: var(--red); width: 100%; }
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
   .modal-overlay.active { opacity: 1; pointer-events: all; }
@@ -189,9 +202,20 @@
   @media (max-width: 768px) {
     nav { padding: 0 20px; }
     .nav-links { display: none; }
+    nav { padding: 0 14px; }
+    .nav-actions { gap: 14px; }
+    .nav-login { font-size: 13px; letter-spacing: 0.08em; }
+    .login-long { display: none; }
+    .login-short { display: inline; }
+    .nav-cta { font-size: 13px; letter-spacing: 0.06em; padding: 9px 14px; }
+    footer { justify-content: flex-start; }
     .hero-content { padding: 100px 20px 60px; }
     #programmes, #about, #coach, #transformation, #contact { padding: 70px 20px; }
-    .nav-logo-img { height: 32px; }
+    /* "TRANSFORMATION" is one long word and overflowed a 390px viewport at the
+       previous minimum size, pushing the whole page sideways. */
+    .section-title { font-size: clamp(34px, 9vw, 64px); }
+    .testimonial { padding: 26px 24px 26px 26px; }
+    .nav-logo-img { height: 24px; }
     footer { padding: 24px 20px; }
     .qf-row { grid-template-columns: 1fr; }
     .form-row { grid-template-columns: 1fr; }
@@ -213,7 +237,10 @@
     <li><a href="#transformation">Results</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
-  <a href="#" class="nav-cta" onclick="openQuiz(); return false;">Start Now</a>
+  <div class="nav-actions">
+    <a href="/portal.html" class="nav-login"><span class="login-long">Client Login</span><span class="login-short">Log In</span></a>
+    <a href="#" class="nav-cta" onclick="openQuiz(); return false;">Start Now</a>
+  </div>
 </nav>
 <section id="home">
   <div class="hero-bg"></div>
@@ -322,7 +349,7 @@
   <div class="coach-grid">
     <div class="coach-photo-wrap">
       <div class="coach-photo-frame">
-        <img class="coach-photo" src="images/mark-headshot.jpg" alt="Mark, founder and head coach at Make Your Mark Performance Coaching">
+        <img class="coach-photo" src="images/mark-headshot.jpg" loading="lazy" decoding="async" alt="Mark, founder and head coach at Make Your Mark Performance Coaching">
         <div class="coach-photo-tag">Founder &amp; Head Coach</div>
       </div>
     </div>
@@ -343,37 +370,48 @@
 </section>
 <section id="transformation">
   <div class="section-label">Real Results</div>
-  <h2 class="section-title">8-Week<br>Transformations</h2>
+  <h2 class="section-title">8-Week<br>Transformation</h2>
   <p class="section-sub">Eight weeks apart. Full coaching — training, nutrition, and accountability — not a crash diet.</p>
   <div class="ba-stack">
     <div class="ba-pair">
       <div class="ba-item">
         <span class="ba-tag before">Before</span>
-        <img src="images/transformation-before.jpg" alt="Before, week one">
+        <img src="images/transformation-before.jpg" loading="lazy" decoding="async" alt="Before, week one">
       </div>
       <div class="ba-item">
         <span class="ba-tag after">After</span>
-        <img src="images/transformation-after.jpg" alt="After, week eight">
-      </div>
-      <div class="ba-weeks">8 Weeks</div>
-    </div>
-    <div class="ba-pair">
-      <div class="ba-item">
-        <span class="ba-tag before">Before</span>
-        <img src="images/transformation-2-before.jpg" alt="Before, week one">
-      </div>
-      <div class="ba-item">
-        <span class="ba-tag after">After</span>
-        <img src="images/transformation-2-after.jpg" alt="After, week eight">
+        <img src="images/transformation-after.jpg" loading="lazy" decoding="async" alt="After, week eight">
       </div>
       <div class="ba-weeks">8 Weeks</div>
     </div>
   </div>
   <p class="transformation-note">Individual results vary · committed effort required</p>
-  <div class="testimonial">
-    <p class="testimonial-lead">Leaner, stronger on the pitch, and <span>thinking clearer than I have in years.</span></p>
-    <p class="testimonial-body">Eight weeks ago I had no plan and a gut I was tired of looking at. Mark didn't hand me a generic programme. He sorted my head first, then built the training around it: the morning primers, eating that finally made sense, gym sessions with an actual point. He kept me honest on the days I wanted to skip. My lifts are up across the board and I can feel it on the pitch, quicker into contact and sharper in the last twenty. I look better than I have in years, but the part I didn't expect is how much clearer I think now. Best money I've spent.</p>
-    <div class="testimonial-attr">Harry · 8-Week Transformation</div>
+  <div class="testimonials-label">What clients say</div>
+  <div class="testimonials">
+
+    <div class="testimonial wide">
+      <p class="testimonial-lead">I've had several personal trainers before, and Mark has <span>easily been my favourite.</span></p>
+      <p class="testimonial-body">I couldn't recommend Mark more highly as a coach. He truly encompasses the phrase “the more you put in, the more you get out”. He's excellent both online and in person, and any question you have comes back with a detailed response to help you progress or resolve the issue.</p>
+      <p class="testimonial-body">He's very personable and takes the time to tailor his programmes specifically to your individual needs. In my case, after previously breaking my hip, Mark provided the ideal strengthening exercises to support my recovery and progression. He was extremely helpful, highly adaptable, and always willing to adjust the programme based on how I was responding.</p>
+      <p class="testimonial-body">In person, he's also excellent at quickly identifying and correcting form issues, often fixing them within a single session.</p>
+      <p class="testimonial-body">On top of this, Mark is a top, top, top bloke. He's a legend who quickly becomes a mate as well as a coach.</p>
+      <div class="testimonial-attr">Eoin O'Dwyer · Online &amp; In-Person Coaching</div>
+    </div>
+
+    <div class="testimonial">
+      <p class="testimonial-lead">Much more consistent in the gym, with <span>habits I know will last.</span></p>
+      <p class="testimonial-body">Before I started working with Mark, I struggled to build a consistent routine in the gym and never felt like I was making steady progress. Mark helped me create a solid foundation and gave me a structured plan that was easy to stick to.</p>
+      <p class="testimonial-body">His communication was excellent throughout, and his knowledge of training, exercises and fitness was clear in every session and check-in. Thanks to his coaching I feel more confident in my training, and I've had good sessions for running as well. I'd highly recommend Mark to anyone looking for a coach who genuinely knows his stuff.</p>
+      <div class="testimonial-attr">David · Online Coaching</div>
+    </div>
+
+    <div class="testimonial">
+      <p class="testimonial-lead">Leaner, stronger on the pitch, and <span>thinking clearer than I have in years.</span></p>
+      <p class="testimonial-body">Eight weeks ago I had no plan and a gut I was tired of looking at. Mark didn't hand me a generic programme. He sorted my head first, then built the training around it: the morning primers, eating that finally made sense, gym sessions with an actual point. He kept me honest on the days I wanted to skip.</p>
+      <p class="testimonial-body">My lifts are up across the board and I can feel it on the pitch, quicker into contact and sharper in the last twenty. I look better than I have in years, but the part I didn't expect is how much clearer I think now. Best money I've spent.</p>
+      <div class="testimonial-attr">Harry · 8-Week Transformation</div>
+    </div>
+
   </div>
 </section>
 <section id="contact">
@@ -396,7 +434,11 @@
 <div class="footer-red-bar"></div>
 <footer>
   <div class="footer-left">
-    <img class="footer-badge" src="images/logo-badge.png" alt="Make Your Mark Performance Coaching">
+    <img class="footer-badge" src="images/logo-badge.png" loading="lazy" decoding="async" alt="Make Your Mark Performance Coaching">
+  </div>
+  <div class="footer-links">
+    <a href="/portal.html">Client Login</a>
+    <a href="#contact">Contact</a>
   </div>
   <div class="footer-copy">© 2026 makeyourmarkpt.com · Sydney, Australia</div>
 </footer>
