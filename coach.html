@@ -33,6 +33,8 @@
   .btn:disabled{opacity:.5;cursor:default}
   .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line2)}
   .btn.ghost:hover{background:var(--panel2);border-color:var(--ink)}
+  .btn.danger{background:transparent;color:var(--red-d);border:1px solid #eccdd2}
+  .btn.danger:hover{background:#fbeeef;border-color:var(--red)}
   .btn.sm{font-size:12px;padding:7px 12px}
 
   #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
@@ -43,6 +45,8 @@
   .loginform{display:flex;flex-direction:column;gap:12px}
   .loginform input{background:var(--panel);border:1px solid var(--line2);border-radius:8px;padding:13px 16px;font-size:16px}
   .loginform input:focus{outline:none;border-color:var(--red)}
+  .codebox{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+  .codebox input{text-align:center;font-family:var(--mono);font-size:24px;letter-spacing:.25em}
   .msg{margin-top:16px;font-size:14px;padding:12px 14px;border-radius:8px}
   .msg.ok{background:#f0f7f0;color:#2e6b2e;border:1px solid #cfe6cf}
   .msg.err{background:#fbeeef;color:var(--red-d);border:1px solid #f0d2d6}
@@ -69,7 +73,7 @@
 
   /* library */
   .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
-  .search{flex:1;min-width:220px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:10px 14px}
+  .search{flex:1;min-width:200px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:10px 14px}
   .search:focus{outline:none;border-color:var(--red)}
   .toolbar select{background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:10px 12px;color:var(--ink)}
   .count{font-family:var(--mono);font-size:11px;color:var(--faint)}
@@ -85,32 +89,82 @@
   .vbadge.none{color:var(--faint);background:var(--panel2);border:1px solid var(--line)}
   .custombadge{font-family:var(--mono);font-size:9.5px;color:var(--red-d);background:#fdf3f4;border:1px solid #eccdd2;border-radius:999px;padding:3px 9px;flex:none}
   .loadmore{margin:16px auto 0;display:block}
+  .bulkvid{flex:none;width:270px;background:var(--raise);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font-family:var(--mono);font-size:11.5px}
+  .bulkvid:focus{outline:none;border-color:var(--red)}
+  .bulkvid.dirty{border-color:var(--red);background:#fdf7f8}
+  @media(max-width:720px){.bulkvid{width:100%}.exrow{flex-wrap:wrap}}
 
   /* clients + builder */
-  .layout{display:grid;grid-template-columns:250px 1fr;gap:20px}
+  .layout{display:grid;grid-template-columns:250px 1fr;gap:20px;align-items:start}
   @media(max-width:820px){.layout{grid-template-columns:1fr}}
   .clist{display:flex;flex-direction:column;gap:6px}
-  .crow{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 14px}
+  .crow{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 14px;width:100%}
   .crow:hover{border-color:var(--line2)}
   .crow.on{border-color:var(--red);box-shadow:0 0 0 1px var(--red) inset}
   .crow .cn{font-weight:600}
   .crow .cs{font-family:var(--mono);font-size:10px;color:var(--faint)}
-  .crow .num{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .crow .num{font-family:var(--mono);font-size:11px;color:var(--muted);flex:none}
+  .crow.archived .cn{color:var(--faint)}
+
+  .subtabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .subtab{font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--muted);padding:9px 4px;margin-right:14px;border-bottom:2px solid transparent}
+  .subtab.on{color:var(--ink);border-bottom-color:var(--red)}
+  .clientbar{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+  .clientbar h2{font-size:27px;font-weight:800;text-transform:uppercase;line-height:1}
+  .pill{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:3px 9px;border:1px solid var(--line2);color:var(--muted)}
+  .pill.good{color:#2e6b2e;background:#f0f7f0;border-color:#cfe6cf}
+  .pill.warn{color:var(--red-d);background:#fdf3f4;border-color:#eccdd2}
+
   .sesslist{display:flex;flex-direction:column;gap:10px}
   .sess{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-  .sess.past{opacity:.6}
   .sesshead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-  .sessdate{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--red);text-transform:uppercase}
-  .sesstitle{font-family:var(--display);font-weight:700;font-size:18px;text-transform:uppercase;margin-right:auto}
-  .sessx{display:flex;gap:6px}
+  .sessdate{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--red);text-transform:uppercase;flex:none}
+  .sesstitle{font-family:var(--display);font-weight:700;font-size:18px;text-transform:uppercase;margin-right:auto;
+    background:none;border:none;border-bottom:1px dashed transparent;padding:1px 0;min-width:120px;flex:1}
+  .sesstitle:hover,.sesstitle:focus{border-bottom-color:var(--line2);outline:none}
+  .sessx{display:flex;gap:6px;flex-wrap:wrap}
   .exline{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line)}
   .exline:first-of-type{margin-top:10px}
   .exline .en{flex:1;font-weight:600;font-size:14px}
   .exline .rx{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .exline .ord{font-family:var(--mono);font-size:13px;color:var(--faint);padding:0 3px}
+  .exline .ord:hover{color:var(--ink)}
   .exline .del{color:var(--faint);font-size:15px}
   .exline .del:hover{color:var(--red)}
   .empty{text-align:center;padding:44px 16px;color:var(--muted);background:var(--panel);border:1px dashed var(--line2);border-radius:12px}
-  .savestate{font-family:var(--mono);font-size:11px;color:var(--faint)}
+  .savestate{font-family:var(--mono);font-size:11px;color:var(--faint);margin-left:auto}
+
+  /* weekly schedule */
+  .schedwrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 16px;margin-bottom:16px}
+  .schedwrap h3{font-size:17px;text-transform:uppercase;margin-bottom:3px}
+  .schednote{font-size:13px;color:var(--muted);margin-bottom:12px}
+  .schedgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+  @media(max-width:860px){.schedgrid{grid-template-columns:repeat(2,1fr)}}
+  .schedcell label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+  .schedcell select{width:100%;background:var(--raise);border:1px solid var(--line2);border-radius:8px;padding:8px 6px;font-size:12.5px}
+  .schedcell select:focus{outline:none;border-color:var(--red)}
+
+  /* profile + progress */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .card h3{font-size:17px;text-transform:uppercase;margin-bottom:10px}
+  .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px}
+  .kpibox{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .kpibox b{font-family:var(--display);font-size:29px;font-weight:800;line-height:1;display:block}
+  .kpibox span{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .rowlist{display:flex;flex-direction:column;gap:7px}
+  .rowitem{display:flex;align-items:center;gap:10px;background:var(--raise);border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:13.5px}
+  .rowitem .rt{flex:1;font-weight:600}
+  .rowitem .rm{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+  .rowitem .del{color:var(--faint);font-size:15px}
+  .rowitem .del:hover{color:var(--red)}
+  .readonly{font-size:14px;color:var(--muted);white-space:pre-wrap}
+  .readonly b{color:var(--ink);font-weight:600}
+  .spark{display:flex;align-items:flex-end;gap:3px;height:60px;margin-top:8px}
+  .spark i{flex:1;max-width:30px;background:var(--red);border-radius:3px 3px 0 0;min-height:3px;opacity:.85}
+  .spark{justify-content:flex-start}
+  .dangerzone{border-color:#eccdd2;background:#fdf7f8}
 
   /* modal */
   .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
@@ -142,23 +196,21 @@
   .rxgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:6px}
 
   /* calendar planning */
-  .coachcal{display:grid;grid-template-columns:240px 1fr;gap:18px}
+  .coachcal{display:grid;grid-template-columns:240px 1fr;gap:18px;align-items:start}
   @media(max-width:820px){.coachcal{grid-template-columns:1fr}}
   .cweek{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
   @media(max-width:900px){.cweek{grid-template-columns:1fr}}
-  .cday{background:var(--panel);border:1px solid var(--line);border-radius:12px;min-height:240px;padding:11px}
+  .cday{background:var(--panel);border:1px solid var(--line);border-radius:12px;min-height:220px;padding:11px}
   .cday.today{border-color:var(--red)}
   .cdate{font-family:var(--display);font-weight:800;font-size:17px;text-transform:uppercase;margin-bottom:8px}
   .cevent{background:var(--raise);border-left:3px solid var(--red);border-radius:7px;padding:7px;margin-bottom:6px;font-size:12px;cursor:pointer}
-  .cevent.coach{border-left-color:var(--black)}
+  .cevent.coach{border-left-color:var(--black);cursor:default}
   .cplan{background:#fdf3f4;border:1px solid #eccdd2;border-radius:8px;padding:8px;margin-bottom:7px;font-size:11px;cursor:pointer}
   .cactions{display:flex;gap:5px;margin-top:7px}
   .cactions button{flex:1;border:1px dashed var(--line2);border-radius:7px;padding:6px;font-family:var(--display);font-size:11px;text-transform:uppercase}
 
-
   .groupbadge{font-family:var(--mono);font-size:9px;background:var(--black);color:#fff;border-radius:999px;padding:3px 7px}
   .coachnut{font-family:var(--mono);font-size:9px;color:var(--muted);margin:5px 0}
-
 </style>
 </head>
 <body>
@@ -181,12 +233,22 @@
 /* ============ CONFIG ============ */
 const API = 'https://script.google.com/macros/s/AKfycbyD8fPljDiT_HGMfxRGbPK7lQTyM82iWnu6s2hmu7CzmGgFfopLZ6DCwOn4Nf5ylKAEkg/exec';
 const PAGE = 60;
+const WEEKDAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 
 /* ============ STATE ============ */
 let SESSION = null;
-let S = { name:'', clients:[], exercises:[], recipes:[] };
-let UI = { view:'clients', q:'', muscle:'', equip:'', shown:PAGE, client:null, invite:false, weekOffset:0, calEvent:null, calDate:null, dayPlanDate:null,
-           openEx:null, editEx:false, addEx:false, addSess:null, pickFor:null, pickQ:'', rxFor:null, saving:'' };
+let S = { name:'', clients:[], templates:[], exercises:[], recipes:[] };
+let DETAIL = {};           // email -> admin_client_detail payload
+let VIDEO_EDITS = {};      // exerciseId -> pending video url (bulk mode)
+let UI = {
+  view:'clients', ctab:'programme', q:'', muscle:'', equip:'', shown:PAGE, bulk:false,
+  client:null, tpl:null, invite:false, weekOffset:0,
+  calEvent:null, calDate:null, dayPlanDate:null,
+  openEx:null, editEx:false, addEx:false,
+  addDay:null, pickFor:null, pickQ:'', rxFor:null,
+  newTpl:false, assign:false, addHabit:false, confirmRemove:false,
+  saving:''
+};
 let saveTimer = null;
 
 const $ = id => document.getElementById(id);
@@ -207,7 +269,11 @@ async function api(p){ const r = await fetch(API,{method:'POST',body:JSON.string
         try{ localStorage.setItem('mym_coach_session', SESSION); }catch(e){}
         if(await loadData()){ showApp(); return; }
       } else if(res.ok){
-        showLogin('That account doesn\u2019t have coach access.'); return;
+        // Valid login, but not a coach account: hand them to the client portal
+        // with the session already stored so they don't burn a second link.
+        try{ localStorage.setItem('mym_session', res.session); }catch(e){}
+        location.replace('/portal.html');
+        return;
       }
     }catch(e){}
     showLogin('That link has expired or already been used. Enter your email for a fresh one.');
@@ -225,9 +291,23 @@ async function api(p){ const r = await fetch(API,{method:'POST',body:JSON.string
 async function loadData(){
   const res = await api({ action:'admin_data', session: SESSION });
   if(!res || !res.ok) return false;
-  S.name = res.name||''; S.clients = res.clients||[]; S.exercises = res.exercises||[]; S.recipes=res.recipes||[];
-  S.clients.forEach(c=>{ if(!Array.isArray(c.sessions)) c.sessions=[]; });
+  S.name = res.name||''; S.clients = res.clients||[]; S.templates = res.templates||[];
+  S.exercises = res.exercises||[]; S.recipes = res.recipes||[];
+  S.clients.forEach(c=>{
+    if(!Array.isArray(c.days)) c.days=[];
+    if(!c.schedule||typeof c.schedule!=='object') c.schedule={};
+    if(!c.targets||typeof c.targets!=='object') c.targets={};
+    if(!Array.isArray(c.habits)) c.habits=[];
+  });
+  S.templates.forEach(t=>{ if(!Array.isArray(t.days)) t.days=[]; });
   return true;
+}
+
+async function loadDetail(email){
+  if(DETAIL[email]) return DETAIL[email];
+  const res = await api({action:'admin_client_detail',session:SESSION,email});
+  if(res && res.ok){ DETAIL[email]=res; return res; }
+  return null;
 }
 
 function showLogin(msg){
@@ -238,7 +318,14 @@ function showLogin(msg){
     <div class="tag">Coach Login</div>
     <div class="loginform">
       <input id="emailIn" type="email" placeholder="you@email.com" autocomplete="email">
-      <button class="btn" data-act="sendlink">Send my login link</button>
+      <button class="btn" data-act="sendlink">Send my login code</button>
+    </div>
+    <div class="codebox" id="codeBox" hidden>
+      <p style="margin-bottom:10px;color:var(--muted)">Enter the code from your email.</p>
+      <div class="loginform">
+        <input id="codeIn" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
+        <button class="btn" data-act="verifycode">Sign in</button>
+      </div>
     </div>
     <div id="loginMsg">${msg?`<div class="msg err">${esc(msg)}</div>`:''}</div>
   </div>`;
@@ -251,13 +338,36 @@ async function sendLink(){
   if(!email || email.indexOf('@')<0){ box.innerHTML='<div class="msg err">Enter a valid email.</div>'; return; }
   box.innerHTML = '<div class="msg">Sending…</div>';
   try{ await api({ action:'request', email }); }catch(e){}
-  box.innerHTML = '<div class="msg ok">If that email has access, a login link is on its way. The link opens the client portal \u2014 come back to this page after clicking it, or change the link\u2019s /portal.html to /coach.html.</div>';
+  box.innerHTML = '<div class="msg ok">If that email has coach access, a 6-digit code and login link are on their way. The link opens this coach app directly.</div>';
+  const cb=$('codeBox'); if(cb) cb.hidden=false;
+  const ci=$('codeIn'); if(ci){ ci.focus(); ci.addEventListener('keydown',e=>{ if(e.key==='Enter') verifyCode(); }); }
+}
+async function verifyCode(){
+  const email=($('emailIn')?$('emailIn').value:'').trim();
+  const code=($('codeIn')?$('codeIn').value:'').replace(/\D/g,'');
+  const box=$('loginMsg');
+  if(!email || code.length!==6){ box.innerHTML='<div class="msg err">Enter your email and the 6-digit code.</div>'; return; }
+  box.innerHTML='<div class="msg">Signing in…</div>';
+  try{
+    const res=await api({action:'verify_code',email,code});
+    if(res.ok && res.admin){
+      SESSION=res.session; try{localStorage.setItem('mym_coach_session',SESSION);}catch(e){}
+      if(await loadData()){ showApp(); return; }
+    } else if(res.ok){
+      box.innerHTML='<div class="msg err">That account doesn\u2019t have coach access.</div>'; return;
+    }
+  }catch(e){}
+  box.innerHTML='<div class="msg err">That code is invalid or has expired. Request a new one.</div>';
 }
 function showApp(){ $('boot').hidden=true; $('login').hidden=true; $('app').hidden=false; render(); }
 function logout(){ try{ localStorage.removeItem('mym_coach_session'); }catch(e){} SESSION=null; showLogin(); }
 
 /* ============ HELPERS ============ */
 const exById = id => S.exercises.find(x=>x.id===id);
+function client(){ return S.clients.find(c=>c.email===UI.client); }
+function tpl(){ return S.templates.find(t=>t.id===UI.tpl); }
+function detail(){ return DETAIL[UI.client]||null; }
+
 function ytId(url){ const m=(url||'').match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/); return m?m[1]:null; }
 function driveId(url){ const m=(url||'').match(/drive\.google\.com\/file\/d\/([\w-]+)/); return m?m[1]:null; }
 function embedFor(url){
@@ -265,34 +375,59 @@ function embedFor(url){
   const d=driveId(url); if(d) return 'https://drive.google.com/file/d/'+d+'/preview';
   return null;
 }
-function fmtDate(iso){ if(!iso)return''; const d=new Date(iso+'T12:00:00');
-  return d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'}); }
-function isPast(iso){ const t=new Date(); t.setHours(0,0,0,0); return new Date(iso+'T12:00:00') < t; }
-function todayISO(){ const d=new Date(); return d.toISOString().slice(0,10); }
-function client(){ return S.clients.find(c=>c.email===UI.client); }
+function localISO(d){const x=new Date(d);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,10);}
+function todayISO(){ return localISO(new Date()); }
+function newId(p){ return p+'_'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); }
+/* Monday = 0, matching the schedule keys and the portal's week grid. */
+function weekdayIndex(iso){ return (new Date(iso+'T12:00:00').getDay()+6)%7; }
 
 function markSaving(){ UI.saving='Saving…'; const el=$('saveState'); if(el)el.textContent=UI.saving; }
 function markSaved(){ UI.saving='Saved'; const el=$('saveState'); if(el)el.textContent=UI.saving; }
-function saveProgramme(){
-  const c = client(); if(!c) return;
+
+/* Both editors autosave on the same debounce. ctx 'c' = this client's own
+   programme, 't' = the master template. */
+function ctxDays(ctx){ const o = ctx==='t'?tpl():client(); return o?o.days:[]; }
+function ctxSave(ctx){ ctx==='t'?saveTemplate():saveDays(); }
+
+function saveDays(){
+  const c=client(); if(!c) return;
+  markSaving(); clearTimeout(saveTimer);
+  saveTimer=setTimeout(async ()=>{
+    try{ await api({action:'admin_save_days',session:SESSION,email:c.email,days:c.days,schedule:c.schedule}); markSaved(); }
+    catch(e){ UI.saving='Save failed — retrying'; const el=$('saveState'); if(el)el.textContent=UI.saving; saveDays(); }
+  },700);
+}
+function saveTemplate(){
+  const t=tpl(); if(!t) return;
+  markSaving(); clearTimeout(saveTimer);
+  saveTimer=setTimeout(async ()=>{
+    try{ await api({action:'admin_save_template',session:SESSION,template:{id:t.id,name:t.name,description:t.description,days:t.days}}); markSaved(); }
+    catch(e){ UI.saving='Save failed — retrying'; const el=$('saveState'); if(el)el.textContent=UI.saving; saveTemplate(); }
+  },700);
+}
+async function saveClientFields(patch){
+  const c=client(); if(!c) return;
   markSaving();
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(async ()=>{
-    try{ await api({ action:'admin_saveprogramme', session:SESSION, email:c.email, sessions:c.sessions }); markSaved(); }
-    catch(e){ UI.saving='Save failed — retrying'; const el=$('saveState'); if(el)el.textContent=UI.saving; saveProgramme(); }
-  }, 700);
+  const res=await api(Object.assign({action:'admin_save_client',session:SESSION,email:c.email},patch));
+  if(res && res.ok){ Object.assign(c,res.client); markSaved(); }
+  else { UI.saving='Save failed'; }
+  const el=$('saveState'); if(el)el.textContent=UI.saving;
 }
 
 /* ============ RENDER ============ */
 function render(){
-  $('nav').innerHTML = [['clients','Clients'],['calendar','Calendar'],['library','Library']].map(([k,l])=>
+  $('nav').innerHTML = [['clients','Clients'],['templates','Programmes'],['calendar','Calendar'],['library','Library']].map(([k,l])=>
     `<button class="tab ${UI.view===k?'on':''}" data-act="nav" data-k="${k}">${l}</button>`).join('');
-  $('view').innerHTML = UI.view==='library' ? viewLibrary() : (UI.view==='calendar' ? viewCoachCalendar() : viewClients());
+  const v=$('view');
+  if(UI.view==='library') v.innerHTML=viewLibrary();
+  else if(UI.view==='templates') v.innerHTML=viewTemplates();
+  else if(UI.view==='calendar') v.innerHTML=viewCoachCalendar();
+  else v.innerHTML=viewClients();
   renderModal();
   const s=$('libSearch'); if(s){ s.value=UI.q; s.oninput=e=>{UI.q=e.target.value;UI.shown=PAGE;$('exList').innerHTML=exRows();$('exCount').textContent=countText();}; }
 }
 
-/* ---- library ---- */
+/* ---- exercise library ---- */
 function filteredEx(){
   const q=UI.q.trim().toLowerCase();
   return S.exercises.filter(x=>{
@@ -302,12 +437,16 @@ function filteredEx(){
     return true;
   });
 }
-function countText(){ return filteredEx().length+' exercises'; }
+function countText(){
+  const withVid=S.exercises.filter(x=>x.video).length;
+  return filteredEx().length+' shown · '+withVid+' of '+S.exercises.length+' have a demo video';
+}
 function viewLibrary(){
   const muscles=[...new Set(S.exercises.flatMap(x=>x.muscles||[]))].sort();
   const equips=[...new Set(S.exercises.map(x=>x.equipment).filter(Boolean))].sort();
+  const pending=Object.keys(VIDEO_EDITS).length;
   return `<div class="head"><div class="eyebrow">Coach</div><h1>Exercise library</h1>
-    <p class="sub">Search the bank, open an exercise to attach a demo video, or add your own.</p></div>
+    <p class="sub">Search the bank, attach a YouTube or Drive demo, or add your own movement. Switch on link mode to paste video URLs straight into the list without opening each exercise.</p></div>
     <div class="toolbar">
       <input class="search" id="libSearch" placeholder="Search exercises\u2026">
       <select data-act="fmuscle">
@@ -318,132 +457,271 @@ function viewLibrary(){
         <option value="">All equipment</option>
         ${equips.map(m=>`<option ${UI.equip===m?'selected':''}>${esc(m)}</option>`).join('')}
       </select>
-      <button class="btn" data-act="addex">+ New exercise</button>
+      <button class="btn ${UI.bulk?'':'ghost'}" data-act="togglebulk">${UI.bulk?'Link mode on':'Link mode'}</button>
+      <button class="btn ghost" data-act="addex">+ New exercise</button>
     </div>
+    ${UI.bulk?`<div class="toolbar" style="background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 14px">
+      <span style="font-size:13.5px;color:var(--muted);flex:1;min-width:200px">Paste a YouTube or Drive link on any row, then save them all in one go. Filter first (by muscle or search) to work through a group at a time.</span>
+      <span class="count">${pending} unsaved</span>
+      <button class="btn" data-act="savevideos" ${pending?'':'disabled'}>Save ${pending||''} link${pending===1?'':'s'}</button>
+      <button class="btn ghost sm" data-act="discardvideos" ${pending?'':'disabled'}>Discard</button>
+    </div>`:''}
     <div class="count" id="exCount" style="margin-bottom:10px">${countText()}</div>
     <div class="exlist" id="exList">${exRows()}</div>`;
 }
 function exRows(){
   const list=filteredEx();
-  const rows=list.slice(0,UI.shown).map(x=>`
-    <div class="exrow">
+  const rows=list.slice(0,UI.shown).map(x=>{
+    const pending=VIDEO_EDITS.hasOwnProperty(x.id);
+    const val=pending?VIDEO_EDITS[x.id]:(x.video||'');
+    return `<div class="exrow">
       ${x.images&&x.images[0]?`<img class="exthumb" loading="lazy" src="${esc(x.images[0])}">`:`<div class="exthumb"></div>`}
       <div class="exmain" data-act="openex" data-id="${esc(x.id)}">
         <div class="exname">${esc(x.name)}</div>
         <div class="exmeta">${esc((x.muscles||[]).join(', '))}${x.equipment?' \u00b7 '+esc(x.equipment):''}${x.level?' \u00b7 '+esc(x.level):''}</div>
       </div>
       ${x.custom?`<span class="custombadge">Custom</span>`:''}
-      <span class="vbadge ${x.video?'has':'none'}">${x.video?'\u25b6 video':'no video'}</span>
-    </div>`).join('');
+      ${UI.bulk
+        ? `<input class="bulkvid ${pending?'dirty':''}" data-act="vidinput" data-id="${esc(x.id)}" value="${esc(val)}" placeholder="Paste YouTube or Drive link\u2026">`
+        : `<span class="vbadge ${x.video?'has':'none'}">${x.video?'\u25b6 video':'no video'}</span>`}
+    </div>`;}).join('');
   const more = list.length>UI.shown ? `<button class="btn ghost loadmore" data-act="more">Show more (${list.length-UI.shown})</button>` : '';
   return (rows||`<div class="empty">No exercises match that.</div>`)+more;
 }
 
-/* ---- clients & builder ---- */
-function viewClients(){
-  const rows=S.clients.map(c=>`
-    <button class="crow ${UI.client===c.email?'on':''}" data-act="pickclient" data-e="${esc(c.email)}">
-      <span><span class="cn">${esc(c.name||c.email)}</span><br><span class="cs">${esc(c.status)}</span></span>
-      <span class="num">${c.sessions.length} sess.</span>
-    </button>`).join('');
-  return `<div class="head"><div class="eyebrow">Coach</div><h1>Programmes</h1>
-    <p class="sub">Invite a client, then build their sessions day by day. Changes save automatically and appear in their portal immediately.</p></div>
-    <div class="toolbar"><button class="btn" data-act="inviteclient">+ Invite client</button></div>
-    <div class="layout">
-      <div class="clist">${rows||'<div class="empty">No clients yet.</div>'}</div>
-      <div>${UI.client?builder():'<div class="empty">Select a client to build their programme.</div>'}</div>
-    </div>`;
-}
-function builder(){
-  const c=client(); if(!c) return '';
-  const sorted=[...c.sessions].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-  const list=sorted.map(s=>{
-    const i=c.sessions.indexOf(s);
-    const lines=(s.exercises||[]).map((e,j)=>{
+/* ---- shared day editor (used by client programmes and templates) ---- */
+function dayList(days, ctx){
+  if(!days.length) return '<div class="empty">No days yet. Add the first one, or assign a template.</div>';
+  return `<div class="sesslist">${days.map((d,i)=>{
+    const lines=(d.exercises||[]).map((e,j)=>{
       const x=exById(e.exerciseId);
       return `<div class="exline">
         <span class="en">${esc(x?x.name:'(missing exercise)')}</span>
-        <button class="rx" data-act="editrx" data-i="${i}" data-j="${j}">${esc(rxText(e))}</button>
-        <button class="del" data-act="delex" data-i="${i}" data-j="${j}">\u00d7</button>
+        ${e.groupId?`<span class="groupbadge">${esc(e.groupType||'group')} ${esc(e.groupId)}</span>`:''}
+        <button class="ord" data-act="exup" data-ctx="${ctx}" data-i="${i}" data-j="${j}" title="Move up">\u2191</button>
+        <button class="ord" data-act="exdown" data-ctx="${ctx}" data-i="${i}" data-j="${j}" title="Move down">\u2193</button>
+        <button class="rx" data-act="editrx" data-ctx="${ctx}" data-i="${i}" data-j="${j}">${esc(rxText(e))}</button>
+        <button class="del" data-act="delex" data-ctx="${ctx}" data-i="${i}" data-j="${j}">\u00d7</button>
       </div>`;}).join('');
-    return `<div class="sess ${isPast(s.date)?'past':''}">
+    return `<div class="sess">
       <div class="sesshead">
-        <span class="sessdate">${fmtDate(s.date)}</span>
-        <span class="sesstitle">${esc(s.title||'Session')}</span>
+        <span class="sessdate">${esc(d.label||('Day '+(i+1)))}</span>
+        <input class="sesstitle" data-act="daytitle" data-ctx="${ctx}" data-i="${i}" value="${esc(d.title||'')}" placeholder="Session name">
         <span class="sessx">
-          <button class="btn ghost sm" data-act="addexto" data-i="${i}">+ exercise</button>
-          <button class="btn ghost sm" data-act="dupsess" data-i="${i}">Duplicate</button>
-          <button class="btn ghost sm" data-act="delsess" data-i="${i}">Delete</button>
+          <button class="btn ghost sm" data-act="addexto" data-ctx="${ctx}" data-i="${i}">+ exercise</button>
+          <button class="btn ghost sm" data-act="dupday" data-ctx="${ctx}" data-i="${i}">Duplicate</button>
+          <button class="btn ghost sm" data-act="dayup" data-ctx="${ctx}" data-i="${i}" ${i===0?'disabled':''}>\u2191</button>
+          <button class="btn ghost sm" data-act="daydown" data-ctx="${ctx}" data-i="${i}" ${i===days.length-1?'disabled':''}>\u2193</button>
+          <button class="btn ghost sm" data-act="delday" data-ctx="${ctx}" data-i="${i}">Delete</button>
         </span>
-      </div>${lines}</div>`;}).join('');
-  return `<div class="toolbar">
-      <button class="btn" data-act="addsess">+ New session</button>
-      <span class="savestate" id="saveState">${esc(UI.saving)}</span>
-    </div>
-    <div class="sesslist">${list||'<div class="empty">No sessions yet \u2014 add the first one.</div>'}</div>`;
+      </div>${lines}</div>`;}).join('')}</div>`;
 }
 function rxText(e){
   const bits=[];
   if(e.sets&&e.reps) bits.push(e.sets+'\u00d7'+e.reps); else if(e.sets) bits.push(e.sets+' sets'); else if(e.reps) bits.push(e.reps+' reps');
+  if(e.duration) bits.push(e.duration+'s work');
   if(e.rest) bits.push(e.rest+'s rest');
   return bits.join(' \u00b7 ')||'set rx';
 }
+function relabelDays(days){ days.forEach((d,i)=>{ d.label='Day '+(i+1); }); }
 
+/* ---- clients ---- */
+function viewClients(){
+  const active=S.clients.filter(c=>c.status.toLowerCase()!=='archived');
+  const archived=S.clients.filter(c=>c.status.toLowerCase()==='archived');
+  const row=c=>`<button class="crow ${UI.client===c.email?'on':''} ${c.status.toLowerCase()==='archived'?'archived':''}" data-act="pickclient" data-e="${esc(c.email)}">
+      <span><span class="cn">${esc(c.name||c.email)}</span><br><span class="cs">${esc(c.status)}${c.templateName?' \u00b7 '+esc(c.templateName):''}</span></span>
+      <span class="num">${(c.days||[]).length}d</span>
+    </button>`;
+  const rows=active.map(row).join('')
+    + (archived.length?`<div class="count" style="margin:10px 0 4px">Archived</div>`+archived.map(row).join(''):'');
+  return `<div class="head"><div class="eyebrow">Coach</div><h1>Clients</h1>
+    <p class="sub">Assign a template, adjust it for the individual, and set their nutrition targets and habits. Everything saves as you type and shows in their portal immediately.</p></div>
+    <div class="toolbar"><button class="btn" data-act="inviteclient">+ Invite client</button></div>
+    <div class="layout">
+      <div class="clist">${rows||'<div class="empty">No clients yet.</div>'}</div>
+      <div>${UI.client?clientPane():'<div class="empty">Select a client.</div>'}</div>
+    </div>`;
+}
 
-function localISO(d){const x=new Date(d);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,10);}
-function cStartWeek(offset){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7)+(offset||0)*7);return d;}
+function clientPane(){
+  const c=client(); if(!c) return '';
+  const tabs=[['programme','Programme'],['profile','Profile'],['progress','Progress']];
+  const accepted=c.agreementAcceptedAt?'Agreement signed':'Agreement pending';
+  return `<div class="clientbar">
+      <h2>${esc(c.name||c.email)}</h2>
+      <span class="pill ${c.status.toLowerCase()==='active'?'good':'warn'}">${esc(c.status)}</span>
+      <span class="pill ${c.agreementAcceptedAt?'good':'warn'}">${accepted}</span>
+      <span class="savestate" id="saveState">${esc(UI.saving)}</span>
+    </div>
+    <div class="count" style="margin-bottom:14px">${esc(c.email)}</div>
+    <div class="subtabs">${tabs.map(([k,l])=>`<button class="subtab ${UI.ctab===k?'on':''}" data-act="ctab" data-k="${k}">${l}</button>`).join('')}</div>
+    ${UI.ctab==='profile'?paneProfile(c):UI.ctab==='progress'?paneProgress(c):paneProgramme(c)}`;
+}
+
+function paneProgramme(c){
+  const opts=id=>`<option value="">Rest</option>`+c.days.map(d=>
+    `<option value="${esc(d.id)}" ${id===d.id?'selected':''}>${esc(d.label)}${d.title?' \u00b7 '+esc(d.title):''}</option>`).join('');
+  return `<div class="toolbar">
+      <button class="btn ${c.days.length?'ghost':''}" data-act="assignmodal">${c.templateId?'Reassign template':'Assign template'}</button>
+      <button class="btn ${c.days.length?'':'ghost'}" data-act="addday" data-ctx="c">+ Add day</button>
+      ${c.days.length?`<button class="btn ghost" data-act="savetplfrom">Save as template</button>`:''}
+      ${c.templateName?`<span class="count">From: ${esc(c.templateName)}</span>`:''}
+    </div>
+    <div class="schedwrap">
+      <h3>Weekly schedule</h3>
+      <div class="schednote">Which day of the programme lands on each weekday. This repeats every week, so you only set it once.</div>
+      <div class="schedgrid">${WEEKDAYS.map((w,k)=>`<div class="schedcell"><label>${w.slice(0,3)}</label>
+        <select data-act="sched" data-k="${k}">${opts(c.schedule[String(k)]||'')}</select></div>`).join('')}</div>
+    </div>
+    ${dayList(c.days,'c')}`;
+}
+
+function paneProfile(c){
+  const d=detail();
+  const p=(d&&d.profile)||{};
+  const t=c.targets||{};
+  return `<div class="cards">
+      <div class="card"><h3>Nutrition targets</h3>
+        <div class="fieldrow">
+          <div class="field"><label>Calories</label><input id="t_cal" type="number" value="${esc(t.calories||'')}" placeholder="2600"></div>
+          <div class="field"><label>Protein (g)</label><input id="t_pro" type="number" value="${esc(t.protein||'')}" placeholder="180"></div>
+        </div>
+        <div class="field"><label>Guidance note</label><textarea id="t_notes" placeholder="e.g. hit protein first, carbs around training. Isabelle to review monthly.">${esc(t.notes||'')}</textarea></div>
+        <button class="btn sm" data-act="savetargets">Save targets</button>
+      </div>
+      <div class="card"><h3>Habits</h3>
+        <div class="rowlist">${(c.habits||[]).map((h,i)=>`<div class="rowitem">
+          <span class="rt">${esc(h.name)}</span><span class="rm">${esc(h.frequency||'daily')}</span>
+          <button class="del" data-act="delhabit" data-i="${i}">\u00d7</button></div>`).join('')||'<div class="rm" style="color:var(--muted);font-size:13px">No habits set.</div>'}</div>
+        <button class="btn ghost sm" data-act="addhabit" style="margin-top:10px">+ Add habit</button>
+      </div>
+    </div>
+    <div class="cards">
+      <div class="card"><h3>Coach notes</h3>
+        <div class="field"><textarea id="c_notes" placeholder="Private notes: check-in history, injuries to work around, what motivates them.">${esc((d&&d.coachNotes)||'')}</textarea></div>
+        <button class="btn sm" data-act="savecoachnotes">Save notes</button>
+      </div>
+      <div class="card"><h3>Client details</h3>
+        ${d?`<div class="readonly"><b>Phone</b> ${esc(d.phone||'\u2014')}
+<b>Date of birth</b> ${esc(d.dob||'\u2014')}
+<b>Emergency</b> ${esc(d.emergency||'\u2014')}
+<b>Joined</b> ${esc(d.joinedAt||'\u2014')}
+
+<b>Injuries / medical / dietary</b>
+${esc(d.medical||p.medical||'Nothing recorded.')}
+
+<b>Sport and goals</b>
+${esc(p.goals||'Nothing recorded.')}</div>`:'<div class="rm">Loading\u2026</div>'}
+      </div>
+    </div>
+    <div class="card dangerzone">
+      <h3>Remove client</h3>
+      <p style="font-size:13.5px;color:var(--muted);margin-bottom:12px">Archiving hides them from the active roster and blocks portal access, keeping their programme, invoices and workout history. Deleting removes the row outright and can't be undone.</p>
+      <button class="btn ghost sm" data-act="removeclient">Archive or delete\u2026</button>
+    </div>`;
+}
+
+function paneProgress(c){
+  const d=detail();
+  if(!d) return '<div class="empty">Loading\u2026</div>';
+  const logs=d.workoutLogs||[], checkins=d.checkins||[];
+  const since=new Date(); since.setDate(since.getDate()-28);
+  const recent=logs.filter(l=>l.completedAt && new Date(l.completedAt)>=since);
+  const perWeek=Object.keys(c.schedule||{}).length;
+  const expected=perWeek*4;
+  const adherence=expected?Math.round(recent.length/expected*100):null;
+  const diffs=recent.map(l=>Number(l.difficulty)).filter(n=>n>0);
+  const avgDiff=diffs.length?(diffs.reduce((a,b)=>a+b,0)/diffs.length).toFixed(1):'\u2014';
+  const last=logs[0];
+  const weights=checkins.filter(x=>Number(x.weight)>0).slice(0,12).reverse();
+  const wNow=weights.length?Number(weights[weights.length-1].weight):null;
+  const wThen=weights.length>1?Number(weights[0].weight):null;
+  const wDelta=(wNow!==null&&wThen!==null)?(wNow-wThen):null;
+  const vals=weights.map(w=>Number(w.weight));
+  const lo=vals.length?Math.min(...vals):0, hi=vals.length?Math.max(...vals):1;
+  const pad=Math.max((hi-lo)*0.6,2);
+  const min=lo-pad, max=hi+pad;
+  const pains=recent.filter(l=>String(l.pain).toLowerCase()==='yes').length;
+  return `<div class="kpi">
+      <div class="kpibox"><b>${recent.length}</b><span>Sessions, 28 days</span></div>
+      <div class="kpibox"><b>${adherence===null?'\u2014':adherence+'%'}</b><span>Adherence${expected?' of '+expected:''}</span></div>
+      <div class="kpibox"><b>${avgDiff}</b><span>Avg difficulty</span></div>
+      <div class="kpibox"><b>${wNow!==null?wNow:'\u2014'}</b><span>Weight${wDelta!==null?(wDelta>=0?' (+'+wDelta.toFixed(1)+')':' ('+wDelta.toFixed(1)+')'):''}</span></div>
+      <div class="kpibox"><b>${pains}</b><span>Sessions with pain</span></div>
+    </div>
+    ${weights.length>1?`<div class="card" style="margin-bottom:16px"><h3>Weight trend</h3>
+      <div class="spark">${weights.map(w=>{const v=Number(w.weight);const h=max===min?50:Math.round((v-min)/(max-min)*90)+5;
+        return `<i style="height:${h}%" title="${esc(w.date)} \u00b7 ${v}"></i>`;}).join('')}</div>
+      <div class="count" style="margin-top:6px">${esc(weights[0].date)} \u2192 ${esc(weights[weights.length-1].date)}</div></div>`:''}
+    <div class="card" style="margin-bottom:16px"><h3>Recent sessions</h3>
+      <div class="rowlist">${logs.slice(0,10).map(l=>`<div class="rowitem">
+        <span class="rt">${esc(l.title||'Workout')}</span>
+        <span class="rm">${esc((l.completedAt||'').slice(0,10))} \u00b7 ${Math.round((l.duration||0)/60)} min${l.difficulty?' \u00b7 RPE '+esc(l.difficulty):''}${String(l.pain).toLowerCase()==='yes'?' \u00b7 pain':''}</span>
+        </div>${l.note?`<div class="count" style="padding:0 12px 4px">\u201c${esc(l.note)}\u201d</div>`:''}`).join('')||'<div class="rm" style="color:var(--muted);font-size:13px">No completed sessions yet.</div>'}</div>
+    </div>
+    <div class="card"><h3>Check-ins</h3>
+      <div class="rowlist">${checkins.slice(0,10).map(k=>`<div class="rowitem">
+        <span class="rt">${esc(k.date)}</span><span class="rm">${k.weight?esc(k.weight)+' kg':''}${k.note?' \u00b7 '+esc(k.note):''}</span></div>`).join('')
+        ||'<div class="rm" style="color:var(--muted);font-size:13px">No check-ins logged yet.</div>'}</div>
+    </div>`;
+}
+
+/* ---- templates ---- */
+function viewTemplates(){
+  const rows=S.templates.map(t=>`<button class="crow ${UI.tpl===t.id?'on':''}" data-act="picktpl" data-id="${esc(t.id)}">
+      <span><span class="cn">${esc(t.name)}</span><br><span class="cs">${(t.days||[]).length} day${(t.days||[]).length===1?'':'s'}</span></span>
+    </button>`).join('');
+  const t=tpl();
+  const right = t
+    ? `<div class="clientbar"><h2>${esc(t.name)}</h2><span class="savestate" id="saveState">${esc(UI.saving)}</span></div>
+       <div class="count" style="margin-bottom:14px">${esc(t.description||'No description')}</div>
+       <div class="toolbar">
+         <button class="btn" data-act="addday" data-ctx="t">+ Add day</button>
+         <button class="btn ghost" data-act="assignfromtpl">Assign to client</button>
+         <button class="btn ghost" data-act="edittplmeta">Rename</button>
+         <button class="btn danger" data-act="deltpl">Delete template</button>
+       </div>
+       ${dayList(t.days,'t')}`
+    : '<div class="empty">Select a template, or create one.</div>';
+  return `<div class="head"><div class="eyebrow">Coach</div><h1>Programme templates</h1>
+    <p class="sub">Build a programme once and reuse it. Assigning copies the days onto a client, so editing the master here never changes anyone already on it.</p></div>
+    <div class="toolbar"><button class="btn" data-act="newtpl">+ New template</button></div>
+    <div class="layout"><div class="clist">${rows||'<div class="empty">No templates yet.</div>'}</div><div>${right}</div></div>`;
+}
+
+/* ---- calendar ---- */
 function cDateLabel(iso,opt){return new Date(iso+'T12:00:00').toLocaleDateString('en-AU',opt||{weekday:'short',day:'numeric',month:'short'});}
+function cStartWeek(offset){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7)+(offset||0)*7);return d;}
 function cEventDay(e){return String(e.start||'').slice(0,10);}
 function cTime(v,all){if(all)return'All day';const m=String(v||'').match(/T(\d\d):(\d\d)/);if(!m)return'';return new Date('2000-01-01T'+m[1]+':'+m[2]).toLocaleTimeString('en-AU',{hour:'numeric',minute:'2-digit'});}
-
-function coachNutrition(c,date){
-  const sel=c.selections||{}, ids=(sel.dateMeals&&sel.dateMeals[date])||[];
-  const out={calories:0,protein:0,carbs:0,fat:0};
-  ids.forEach(id=>{const r=S.recipes.find(x=>x.id===id),n=r&&r.nutrition||{};out.calories+=Number(n.calories)||0;out.protein+=Number(n.protein)||0;out.carbs+=Number(n.carbs)||0;out.fat+=Number(n.fat)||0;});
-  return out;
-}
+function dayForDate(c,date){ const id=(c.schedule||{})[String(weekdayIndex(date))]; return id?c.days.find(d=>d.id===id):null; }
 function coachNutritionLine(c,date,p){
-  const a=coachNutrition(c,date);
-  if(!p||!p.calories)return idsForCoachDate(c,date).length?'Meals planned':'No target';
-  return `${Math.round(a.calories)} / ${p.calories} kcal · ${Math.round(a.protein)} / ${p.protein||'—'}g P`;
+  const t=c.targets||{};
+  const cal=(p&&p.calories)||t.calories, pro=(p&&p.protein)||t.protein;
+  if(!cal&&!pro) return 'No target';
+  return (cal?cal+' kcal':'')+(cal&&pro?' \u00b7 ':'')+(pro?pro+'g P':'');
 }
-function idsForCoachDate(c,date){return (c.selections&&c.selections.dateMeals&&c.selections.dateMeals[date])||[];}
-
 function viewCoachCalendar(){
-  const rows=S.clients.map(c=>`<button class="crow ${UI.client===c.email?'on':''}" data-act="pickcalclient" data-e="${esc(c.email)}"><span class="cn">${esc(c.name||c.email)}</span></button>`).join('');
-  if(!UI.client)return `<div class="head"><div class="eyebrow">Coach</div><h1>Client calendar</h1><p class="sub">Choose a client to see their sporting commitments and plan the week.</p></div><div class="clist" style="max-width:320px">${rows}</div>`;
-  const c=client(), start=cStartWeek(UI.weekOffset), dates=[];for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);dates.push(localISO(d));}
-  const label=cDateLabel(dates[0],{day:'numeric',month:'short'})+' – '+cDateLabel(dates[6],{day:'numeric',month:'short',year:'numeric'});
-  return `<div class="head"><div class="eyebrow">Coach</div><h1>${esc(c.name)}’s calendar</h1><p class="sub">See client commitments, add coach events, and set nutrition and recovery guidance for each day.</p></div>
+  const rows=S.clients.filter(c=>c.status.toLowerCase()!=='archived').map(c=>
+    `<button class="crow ${UI.client===c.email?'on':''}" data-act="pickcalclient" data-e="${esc(c.email)}"><span class="cn">${esc(c.name||c.email)}</span></button>`).join('');
+  if(!UI.client)return `<div class="head"><div class="eyebrow">Coach</div><h1>Client calendar</h1><p class="sub">Choose a client to see their sporting commitments and plan around them.</p></div><div class="clist" style="max-width:320px">${rows}</div>`;
+  const c=client(), d=detail();
+  const start=cStartWeek(UI.weekOffset), dates=[];for(let i=0;i<7;i++){const x=new Date(start);x.setDate(start.getDate()+i);dates.push(localISO(x));}
+  const label=cDateLabel(dates[0],{day:'numeric',month:'short'})+' \u2013 '+cDateLabel(dates[6],{day:'numeric',month:'short',year:'numeric'});
+  const events=(d&&d.events)||[], plans=(d&&d.dailyPlans)||{};
+  return `<div class="head"><div class="eyebrow">Coach</div><h1>${esc(c.name)}\u2019s calendar</h1><p class="sub">Their commitments and the scheduled training day, plus one-off nutrition or recovery overrides.</p></div>
     <div class="coachcal"><div class="clist">${rows}</div><div>
-      <div class="toolbar"><button class="btn ghost sm" data-act="cprevweek">←</button><strong>${esc(label)}</strong><button class="btn ghost sm" data-act="cthisweek">Today</button><button class="btn ghost sm" data-act="cnextweek">→</button></div>
-      <div class="cweek">${dates.map(date=>{const ev=(c.events||[]).filter(e=>cEventDay(e)===date),p=(c.dailyPlans||{})[date]||{},sess=(c.sessions||[]).filter(s=>s.date===date);
-        return `<div class="cday ${date===localISO(new Date())?'today':''}"><div class="cdate">${cDateLabel(date,{weekday:'short',day:'numeric'})}</div>
+      <div class="toolbar"><button class="btn ghost sm" data-act="cprevweek">\u2190</button><strong>${esc(label)}</strong><button class="btn ghost sm" data-act="cthisweek">Today</button><button class="btn ghost sm" data-act="cnextweek">\u2192</button></div>
+      ${d?`<div class="cweek">${dates.map(date=>{
+        const ev=events.filter(e=>cEventDay(e)===date), p=plans[date]||{}, day=dayForDate(c,date);
+        return `<div class="cday ${date===todayISO()?'today':''}"><div class="cdate">${cDateLabel(date,{weekday:'short',day:'numeric'})}</div>
           ${p.dayType||p.coachNote?`<div class="cplan" data-act="editdayplan" data-date="${date}"><b>${esc(p.dayType||'Daily plan')}</b>${p.coachNote?`<br>${esc(p.coachNote)}`:''}<div class="coachnut">${esc(coachNutritionLine(c,date,p))}</div></div>`:''}
-          ${sess.map(s=>`<div class="cevent coach"><b>${esc(s.title||'Workout')}</b><br>Programmed workout</div>`).join('')}
-          ${ev.map(e=>`<div class="cevent ${e.createdBy==='coach'?'coach':''}" data-act="editcalevent" data-id="${esc(e.id)}"><b>${esc(e.title)}</b><br>${esc(cTime(e.start,e.allDay))} · ${esc(e.type)}</div>`).join('')}
+          ${day?`<div class="cevent coach"><b>${esc(day.title||day.label)}</b><br>${esc(day.label)} \u00b7 ${(day.exercises||[]).length} exercise${(day.exercises||[]).length===1?'':'s'}</div>`:''}
+          ${ev.map(e=>`<div class="cevent ${e.createdBy==='coach'?'coach':''}" data-act="editcalevent" data-id="${esc(e.id)}"><b>${esc(e.title)}</b><br>${esc(cTime(e.start,e.allDay))} \u00b7 ${esc(e.type)}</div>`).join('')}
           <div class="cactions"><button data-act="addcalevent" data-date="${date}">+ Event</button><button data-act="editdayplan" data-date="${date}">Plan</button></div>
-        </div>`;}).join('')}</div>
+        </div>`;}).join('')}</div>`:'<div class="empty">Loading\u2026</div>'}
     </div></div>`;
-}
-function coachEventModal(){
-  const e=UI.calEvent||{},date=UI.calDate||cEventDay(e)||localISO(new Date()),start=e.start||date+'T09:00',end=e.end||date+'T10:00';
-  return `<div class="overlay"><div class="sheet"><div class="sh"><button class="close">×</button><h2>${e.id?'Edit calendar event':'Add coach event'}</h2></div><div class="sb">
-    <div class="field"><label>Title</label><input id="ce_title" value="${esc(e.title||'')}"></div>
-    <div class="fieldrow"><div class="field"><label>Type</label><select id="ce_type">${['match','competition','race','team training','gym','travel','rest','recovery','other'].map(x=>`<option ${e.type===x?'selected':''}>${x}</option>`).join('')}</select></div>
-    <div class="field"><label>Intensity</label><select id="ce_intensity"><option value="">Not set</option>${['Low','Moderate','High','Max effort'].map(x=>`<option ${e.intensity===x?'selected':''}>${x}</option>`).join('')}</select></div></div>
-    <div class="fieldrow"><div class="field"><label>Starts</label><input id="ce_start" type="datetime-local" value="${esc(start)}"></div><div class="field"><label>Ends</label><input id="ce_end" type="datetime-local" value="${esc(end)}"></div></div>
-    <div class="field"><label>Location</label><input id="ce_location" value="${esc(e.location||'')}"></div><div class="field"><label>Notes</label><textarea id="ce_notes">${esc(e.notes||'')}</textarea></div>
-  </div><div class="sheetacts"><button class="btn" data-act="savecalevent" data-id="${esc(e.id||'')}">Save</button>${e.id&&e.createdBy==='coach'?`<button class="btn ghost" data-act="deletecalevent" data-id="${esc(e.id)}">Delete</button>`:''}</div></div></div>`;
-}
-function dayPlanModal(){
-  const c=client(),date=UI.dayPlanDate,p=(c.dailyPlans||{})[date]||{};
-  return `<div class="overlay"><div class="sheet"><div class="sh"><button class="close">×</button><h2>Plan ${cDateLabel(date,{weekday:'long',day:'numeric',month:'long'})}</h2></div><div class="sb">
-    <div class="field"><label>Day type</label><input id="dp_type" value="${esc(p.dayType||'')}" placeholder="e.g. Match day, recovery, high-load"></div>
-    <div class="rxgrid"><div class="field"><label>Calories</label><input id="dp_cal" type="number" value="${esc(p.calories||'')}"></div><div class="field"><label>Protein g</label><input id="dp_pro" type="number" value="${esc(p.protein||'')}"></div><div class="field"><label>Carbs g</label><input id="dp_carb" type="number" value="${esc(p.carbs||'')}"></div></div>
-    <div class="fieldrow"><div class="field"><label>Fat g</label><input id="dp_fat" type="number" value="${esc(p.fat||'')}"></div><div class="field"><label>Hydration</label><input id="dp_hyd" value="${esc(p.hydration||'')}" placeholder="e.g. 3 litres + electrolytes"></div></div>
-    <div class="field"><label>Recovery task</label><textarea id="dp_rec">${esc(p.recovery||'')}</textarea></div><div class="field"><label>Coach note</label><textarea id="dp_note">${esc(p.coachNote||'')}</textarea></div>
-  </div><div class="sheetacts"><button class="btn" data-act="savedayplan">Save daily plan</button></div></div></div>`;
 }
 
 /* ---- modals ---- */
@@ -452,8 +730,12 @@ function renderModal(){
   if(UI.calEvent || UI.calDate) m.innerHTML=coachEventModal();
   else if(UI.dayPlanDate) m.innerHTML=dayPlanModal();
   else if(UI.invite) m.innerHTML=inviteModal();
-  else if(UI.addSess) m.innerHTML=addSessModal();
-  else if(UI.pickFor!=null) m.innerHTML=pickModal();
+  else if(UI.newTpl) m.innerHTML=tplMetaModal();
+  else if(UI.assign) m.innerHTML=assignModal();
+  else if(UI.addHabit) m.innerHTML=habitModal();
+  else if(UI.confirmRemove) m.innerHTML=removeModal();
+  else if(UI.addDay) m.innerHTML=addDayModal();
+  else if(UI.pickFor) m.innerHTML=pickModal();
   else if(UI.rxFor) m.innerHTML=rxModal();
   else if(UI.addEx) m.innerHTML=exFormModal(null);
   else if(UI.openEx && UI.editEx) m.innerHTML=exFormModal(exById(UI.openEx));
@@ -462,11 +744,16 @@ function renderModal(){
   const ps=$('pickSearch');
   if(ps){ ps.value=UI.pickQ; ps.focus(); ps.oninput=e=>{UI.pickQ=e.target.value;$('pickList').innerHTML=pickRows();}; }
 }
+function closeModals(){
+  UI.openEx=null;UI.editEx=false;UI.addEx=false;UI.addDay=null;UI.invite=false;UI.pickFor=null;UI.pickQ='';
+  UI.rxFor=null;UI.calEvent=null;UI.calDate=null;UI.dayPlanDate=null;UI.newTpl=false;UI.assign=false;
+  UI.addHabit=false;UI.confirmRemove=false;
+}
 function exDetailModal(){
   const x=exById(UI.openEx); if(!x)return'';
   const emb=embedFor(x.video);
-  return `<div class="overlay" data-act="closemodal"><div class="sheet">
-    <div class="sh"><button class="close" data-act="closemodal">\u00d7</button>
+  return `<div class="overlay"><div class="sheet">
+    <div class="sh"><button class="close">\u00d7</button>
       <h2>${esc(x.name)}</h2>
       <div class="m">${esc((x.muscles||[]).join(', '))}${x.equipment?' \u00b7 '+esc(x.equipment):''}${x.level?' \u00b7 '+esc(x.level):''}${x.custom?' \u00b7 custom':''}</div></div>
     <div class="sb">
@@ -480,8 +767,8 @@ function exDetailModal(){
 }
 function exFormModal(x){
   const isNew=!x; x=x||{};
-  return `<div class="overlay" data-act="closemodal"><div class="sheet">
-    <div class="sh"><button class="close" data-act="closemodal">\u00d7</button>
+  return `<div class="overlay"><div class="sheet">
+    <div class="sh"><button class="close">\u00d7</button>
       <h2>${isNew?'New exercise':'Edit exercise'}</h2></div>
     <div class="sb">
       <div class="field"><label>Name</label><input id="f_name" value="${esc(x.name||'')}" placeholder="e.g. Bulgarian Split Squat"></div>
@@ -499,34 +786,94 @@ function exFormModal(x){
     </div>
     <div class="sheetacts">
       <button class="btn" data-act="${isNew?'saveaddex':'saveeditex'}" ${isNew?'':`data-id="${esc(x.id)}"`}>${isNew?'Add to library':'Save changes'}</button>
-      <button class="btn ghost" data-act="closemodal">Cancel</button>
+      <button class="btn ghost close">Cancel</button>
     </div></div></div>`;
 }
 function inviteModal(){
-  return `<div class="overlay" data-act="closemodal"><div class="sheet" style="max-width:430px">
-    <div class="sh"><button class="close" data-act="closemodal">×</button><h2>Invite client</h2></div>
+  return `<div class="overlay"><div class="sheet" style="max-width:430px">
+    <div class="sh"><button class="close">\u00d7</button><h2>Invite client</h2></div>
     <div class="sb">
       <div class="field"><label>Full name</label><input id="inv_name" autocomplete="name" placeholder="Client name"></div>
       <div class="field"><label>Email address</label><input id="inv_email" type="email" autocomplete="email" placeholder="client@email.com"></div>
       <div id="inviteMsg"></div>
     </div>
-    <div class="sheetacts"><button class="btn" data-act="confirminvite">Send invitation</button><button class="btn ghost" data-act="closemodal">Cancel</button></div>
+    <div class="sheetacts"><button class="btn" data-act="confirminvite">Send invitation</button><button class="btn ghost close">Cancel</button></div>
   </div></div>`;
 }
-
-function addSessModal(){
-  return `<div class="overlay" data-act="closemodal"><div class="sheet" style="max-width:420px">
-    <div class="sh"><button class="close" data-act="closemodal">\u00d7</button><h2>New session</h2></div>
+function addDayModal(){
+  const ctx=UI.addDay;
+  const n=ctxDays(ctx).length+1;
+  return `<div class="overlay"><div class="sheet" style="max-width:420px">
+    <div class="sh"><button class="close">\u00d7</button><h2>Add Day ${n}</h2></div>
     <div class="sb">
-      <div class="field"><label>Date</label><input id="s_date" type="date" value="${todayISO()}"></div>
-      <div class="field"><label>Title</label><input id="s_title" placeholder="e.g. Lower Body \u2014 Strength"></div>
+      <div class="field"><label>Session name</label><input id="d_title" placeholder="e.g. Lower Body \u2014 Strength"></div>
+      <div class="msg">Days are ordered, not dated. Set which weekday each one lands on in the weekly schedule.</div>
     </div>
-    <div class="sheetacts"><button class="btn" data-act="confirmsess">Create session</button></div>
+    <div class="sheetacts"><button class="btn" data-act="confirmday" data-ctx="${ctx}">Add day</button></div>
+  </div></div>`;
+}
+function tplMetaModal(){
+  const t=UI.newTpl==='edit'?tpl():null;
+  return `<div class="overlay"><div class="sheet" style="max-width:440px">
+    <div class="sh"><button class="close">\u00d7</button><h2>${t?'Rename template':'New template'}</h2></div>
+    <div class="sb">
+      <div class="field"><label>Template name</label><input id="tpl_name" value="${esc(t?t.name:'')}" placeholder="e.g. 4-Day Upper / Lower"></div>
+      <div class="field"><label>Description</label><input id="tpl_desc" value="${esc(t?t.description:'')}" placeholder="Who it suits, how many days a week"></div>
+    </div>
+    <div class="sheetacts"><button class="btn" data-act="confirmtpl" data-id="${esc(t?t.id:'')}">${t?'Save':'Create template'}</button></div>
+  </div></div>`;
+}
+function assignModal(){
+  // Called either from a client (pick a template) or from a template (pick a client).
+  const fromTpl=UI.assign==='tpl';
+  const c=client(), t=tpl();
+  const body = fromTpl
+    ? `<div class="field"><label>Assign "${esc(t?t.name:'')}" to</label><select id="as_client">
+        ${S.clients.filter(x=>x.status.toLowerCase()!=='archived').map(x=>`<option value="${esc(x.email)}">${esc(x.name||x.email)}</option>`).join('')}
+      </select></div>`
+    : `<div class="field"><label>Template</label><select id="as_tpl">
+        ${S.templates.map(x=>`<option value="${esc(x.id)}">${esc(x.name)} (${(x.days||[]).length} days)</option>`).join('')||'<option value="">No templates yet</option>'}
+      </select></div>`;
+  const target = fromTpl ? '' : (c?c.name||c.email:'');
+  return `<div class="overlay"><div class="sheet" style="max-width:460px">
+    <div class="sh"><button class="close">\u00d7</button><h2>Assign template</h2>
+      ${target?`<div class="m">${esc(target)}</div>`:''}</div>
+    <div class="sb">
+      ${body}
+      <div class="msg err">This replaces the current programme days for that client. Their completed workout history is untouched.</div>
+      <div id="assignMsg"></div>
+    </div>
+    <div class="sheetacts"><button class="btn" data-act="confirmassign" data-from="${fromTpl?'tpl':'client'}">Assign</button><button class="btn ghost close">Cancel</button></div>
+  </div></div>`;
+}
+function habitModal(){
+  return `<div class="overlay"><div class="sheet" style="max-width:420px">
+    <div class="sh"><button class="close">\u00d7</button><h2>Add habit</h2></div>
+    <div class="sb">
+      <div class="field"><label>Habit</label><input id="h_name" placeholder="e.g. 10,000 steps"></div>
+      <div class="field"><label>Frequency</label><select id="h_freq">${['daily','weekdays','3x per week','weekly'].map(f=>`<option>${f}</option>`).join('')}</select></div>
+    </div>
+    <div class="sheetacts"><button class="btn" data-act="confirmhabit">Add habit</button></div>
+  </div></div>`;
+}
+function removeModal(){
+  const c=client();
+  return `<div class="overlay"><div class="sheet" style="max-width:460px">
+    <div class="sh"><button class="close">\u00d7</button><h2>Remove ${esc(c?c.name:'client')}</h2></div>
+    <div class="sb">
+      <p style="font-size:14px;color:var(--muted);margin-bottom:14px">Archive is almost always the right choice. It blocks their portal login and takes them off the active roster while keeping the programme, invoice history and workout logs intact.</p>
+      <p style="font-size:14px;color:var(--muted)">Delete removes their row from the Clients sheet permanently. Only do this for someone who was never invoiced.</p>
+      <div id="removeMsg"></div>
+    </div>
+    <div class="sheetacts">
+      <button class="btn" data-act="confirmremove" data-mode="archive">Archive client</button>
+      <button class="btn danger" data-act="confirmremove" data-mode="delete">Delete permanently</button>
+    </div>
   </div></div>`;
 }
 function pickModal(){
-  return `<div class="overlay" data-act="closemodal"><div class="sheet picker" style="max-width:480px">
-    <div class="sh"><button class="close" data-act="closemodal">\u00d7</button><h2>Add exercise</h2></div>
+  return `<div class="overlay"><div class="sheet picker" style="max-width:480px">
+    <div class="sh"><button class="close">\u00d7</button><h2>Add exercise</h2></div>
     <div class="sb">
       <input class="search" id="pickSearch" placeholder="Search the library\u2026">
       <div id="pickList">${pickRows()}</div>
@@ -543,10 +890,10 @@ function pickRows(){
     </button>`).join('')||'<div class="empty">No matches.</div>';
 }
 function rxModal(){
-  const c=client(); const {i,j}=UI.rxFor;
-  const e=c.sessions[i].exercises[j]; const x=exById(e.exerciseId);
-  return `<div class="overlay" data-act="closemodal"><div class="sheet" style="max-width:470px">
-    <div class="sh"><button class="close" data-act="closemodal">×</button><h2 style="font-size:20px">${esc(x?x.name:'Exercise')}</h2></div>
+  const {ctx,i,j}=UI.rxFor;
+  const e=ctxDays(ctx)[i].exercises[j]; const x=exById(e.exerciseId);
+  return `<div class="overlay"><div class="sheet" style="max-width:470px">
+    <div class="sh"><button class="close">\u00d7</button><h2 style="font-size:20px">${esc(x?x.name:'Exercise')}</h2></div>
     <div class="sb">
       <div class="rxgrid"><div class="field"><label>Sets / rounds</label><input id="rx_sets" type="number" min="1" value="${esc(e.sets||e.rounds||3)}"></div>
       <div class="field"><label>Reps</label><input id="rx_reps" value="${esc(e.reps||'')}" placeholder="8-12"></div>
@@ -561,50 +908,208 @@ function rxModal(){
     </div><div class="sheetacts"><button class="btn" data-act="confirmrx">Save</button></div>
   </div></div>`;
 }
+function coachEventModal(){
+  const e=UI.calEvent||{},date=UI.calDate||cEventDay(e)||todayISO(),start=e.start||date+'T09:00',end=e.end||date+'T10:00';
+  return `<div class="overlay"><div class="sheet"><div class="sh"><button class="close">\u00d7</button><h2>${e.id?'Edit calendar event':'Add coach event'}</h2></div><div class="sb">
+    <div class="field"><label>Title</label><input id="ce_title" value="${esc(e.title||'')}"></div>
+    <div class="fieldrow"><div class="field"><label>Type</label><select id="ce_type">${['match','competition','race','team training','gym','travel','rest','recovery','other'].map(x=>`<option ${e.type===x?'selected':''}>${x}</option>`).join('')}</select></div>
+    <div class="field"><label>Intensity</label><select id="ce_intensity"><option value="">Not set</option>${['Low','Moderate','High','Max effort'].map(x=>`<option ${e.intensity===x?'selected':''}>${x}</option>`).join('')}</select></div></div>
+    <div class="fieldrow"><div class="field"><label>Starts</label><input id="ce_start" type="datetime-local" value="${esc(start)}"></div><div class="field"><label>Ends</label><input id="ce_end" type="datetime-local" value="${esc(end)}"></div></div>
+    <div class="field"><label>Location</label><input id="ce_location" value="${esc(e.location||'')}"></div><div class="field"><label>Notes</label><textarea id="ce_notes">${esc(e.notes||'')}</textarea></div>
+  </div><div class="sheetacts"><button class="btn" data-act="savecalevent" data-id="${esc(e.id||'')}">Save</button>${e.id&&e.createdBy==='coach'?`<button class="btn ghost" data-act="deletecalevent" data-id="${esc(e.id)}">Delete</button>`:''}</div></div></div>`;
+}
+function dayPlanModal(){
+  const c=client(),d=detail(),date=UI.dayPlanDate,p=((d&&d.dailyPlans)||{})[date]||{};
+  const t=c.targets||{};
+  return `<div class="overlay"><div class="sheet"><div class="sh"><button class="close">\u00d7</button><h2>Plan ${cDateLabel(date,{weekday:'long',day:'numeric',month:'long'})}</h2>
+    <div class="m">Standing target: ${esc(t.calories||'\u2014')} kcal \u00b7 ${esc(t.protein||'\u2014')}g protein</div></div><div class="sb">
+    <div class="field"><label>Day type</label><input id="dp_type" value="${esc(p.dayType||'')}" placeholder="e.g. Match day, recovery, high-load"></div>
+    <div class="fieldrow"><div class="field"><label>Calories (override)</label><input id="dp_cal" type="number" value="${esc(p.calories||'')}" placeholder="${esc(t.calories||'')}"></div>
+    <div class="field"><label>Protein g (override)</label><input id="dp_pro" type="number" value="${esc(p.protein||'')}" placeholder="${esc(t.protein||'')}"></div></div>
+    <div class="field"><label>Hydration</label><input id="dp_hyd" value="${esc(p.hydration||'')}" placeholder="e.g. 3 litres + electrolytes"></div>
+    <div class="field"><label>Recovery task</label><textarea id="dp_rec">${esc(p.recovery||'')}</textarea></div>
+    <div class="field"><label>Coach note</label><textarea id="dp_note">${esc(p.coachNote||'')}</textarea></div>
+  </div><div class="sheetacts"><button class="btn" data-act="savedayplan">Save daily plan</button></div></div></div>`;
+}
 
 /* ============ EVENTS ============ */
 document.addEventListener('change', e=>{
   const t=e.target.closest('[data-act]'); if(!t)return;
-  if(t.dataset.act==='fmuscle'){ UI.muscle=t.value; UI.shown=PAGE; render(); }
-  if(t.dataset.act==='fequip'){ UI.equip=t.value; UI.shown=PAGE; render(); }
+  const act=t.dataset.act;
+  if(act==='fmuscle'){ UI.muscle=t.value; UI.shown=PAGE; render(); }
+  if(act==='fequip'){ UI.equip=t.value; UI.shown=PAGE; render(); }
+  if(act==='sched'){ const c=client(); if(!c)return;
+    if(t.value) c.schedule[t.dataset.k]=t.value; else delete c.schedule[t.dataset.k];
+    saveDays(); }
 });
-document.addEventListener('click', async e=>{
-  if(e.target.classList.contains('overlay')||e.target.classList.contains('close')){
-    UI.openEx=null;UI.editEx=false;UI.addEx=false;UI.addSess=null;UI.invite=false;UI.pickFor=null;UI.pickQ='';UI.rxFor=null;UI.calEvent=null;UI.calDate=null;UI.dayPlanDate=null;renderModal();return;}
+document.addEventListener('input', e=>{
   const t=e.target.closest('[data-act]'); if(!t)return;
   const act=t.dataset.act;
+  if(act==='daytitle'){ const days=ctxDays(t.dataset.ctx); days[+t.dataset.i].title=t.value; ctxSave(t.dataset.ctx); }
+  if(act==='vidinput'){
+    const id=t.dataset.id, ex=exById(id);
+    const val=t.value.trim();
+    if(ex && val===(ex.video||'')) delete VIDEO_EDITS[id]; else VIDEO_EDITS[id]=val;
+    t.classList.toggle('dirty',VIDEO_EDITS.hasOwnProperty(id));
+    const n=Object.keys(VIDEO_EDITS).length;
+    const btn=document.querySelector('[data-act="savevideos"]');
+    if(btn){ btn.disabled=!n; btn.textContent='Save '+(n||'')+' link'+(n===1?'':'s'); }
+    const dbtn=document.querySelector('[data-act="discardvideos"]'); if(dbtn) dbtn.disabled=!n;
+    const cnt=document.querySelector('.toolbar .count'); if(cnt&&cnt.textContent.indexOf('unsaved')>=0) cnt.textContent=n+' unsaved';
+  }
+});
+document.addEventListener('click', async e=>{
+  if(e.target.classList.contains('overlay')||e.target.classList.contains('close')){ closeModals(); renderModal(); return; }
+  const t=e.target.closest('[data-act]'); if(!t)return;
+  const act=t.dataset.act;
+  const ctx=t.dataset.ctx;
   const c=client();
   switch(act){
     case 'sendlink': sendLink(); break;
+    case 'verifycode': verifyCode(); break;
     case 'logout': logout(); break;
     case 'nav': UI.view=t.dataset.k; render(); window.scrollTo(0,0); break;
-    case 'pickcalclient': UI.client=t.dataset.e; render(); break;
-    case 'cprevweek': UI.weekOffset--; render(); break;
-    case 'cnextweek': UI.weekOffset++; render(); break;
-    case 'cthisweek': UI.weekOffset=0; render(); break;
-    case 'addcalevent': UI.calDate=t.dataset.date;UI.calEvent=null;renderModal();break;
-    case 'editcalevent': UI.calEvent=(c.events||[]).find(x=>x.id===t.dataset.id)||null;UI.calDate=null;renderModal();break;
-    case 'savecalevent': {
-      const ev={id:t.dataset.id||'',title:$('ce_title').value.trim(),type:$('ce_type').value,start:$('ce_start').value,end:$('ce_end').value,intensity:$('ce_intensity').value,location:$('ce_location').value.trim(),notes:$('ce_notes').value.trim()};
-      if(!ev.title||!ev.start)break;t.disabled=true;t.textContent='Saving…';
-      const res=await api({action:'admin_save_event',session:SESSION,email:c.email,event:ev});
-      if(res.ok){c.events=c.events||[];const i=c.events.findIndex(x=>x.id===res.event.id);if(i>=0)c.events[i]=res.event;else c.events.push(res.event);UI.calEvent=null;UI.calDate=null;render();}break;}
-    case 'deletecalevent': {const res=await api({action:'admin_delete_event',session:SESSION,email:c.email,id:t.dataset.id});if(res.ok){c.events=(c.events||[]).filter(x=>x.id!==t.dataset.id);UI.calEvent=null;render();}break;}
-    case 'editdayplan': UI.dayPlanDate=t.dataset.date;renderModal();break;
-    case 'savedayplan': {
-      const plan={date:UI.dayPlanDate,dayType:$('dp_type').value.trim(),calories:$('dp_cal').value,protein:$('dp_pro').value,carbs:$('dp_carb').value,fat:$('dp_fat').value,hydration:$('dp_hyd').value.trim(),recovery:$('dp_rec').value.trim(),coachNote:$('dp_note').value.trim()};
-      t.disabled=true;t.textContent='Saving…';const res=await api({action:'admin_save_dayplan',session:SESSION,email:c.email,plan});
-      if(res.ok){c.dailyPlans=c.dailyPlans||{};c.dailyPlans[plan.date]=res.plan;UI.dayPlanDate=null;render();}break;}
+
+    /* clients */
+    case 'pickclient': case 'pickcalclient': {
+      UI.client=t.dataset.e; UI.saving=''; render();
+      const d=await loadDetail(UI.client); if(d) render();
+      break; }
+    case 'ctab': UI.ctab=t.dataset.k; render(); break;
     case 'inviteclient': UI.invite=true; renderModal(); break;
     case 'confirminvite': {
       const name=$('inv_name').value.trim(), email=$('inv_email').value.trim().toLowerCase(), box=$('inviteMsg');
       if(!name || email.indexOf('@')<1){box.innerHTML='<div class="msg err">Enter the client name and a valid email.</div>';break;}
-      t.disabled=true;t.textContent='Sending…';
+      t.disabled=true;t.textContent='Sending\u2026';
       const res=await api({action:'admin_invite',session:SESSION,name,email});
-      if(res.ok){ const existing=S.clients.find(x=>x.email===email); if(!existing)S.clients.push(res.client); UI.invite=false; UI.client=email; render(); }
+      if(res.ok){ const existing=S.clients.find(x=>x.email===email); if(!existing)S.clients.push(res.client); else Object.assign(existing,res.client);
+        closeModals(); UI.client=email; UI.ctab='programme'; render(); }
       else {t.disabled=false;t.textContent='Send invitation';box.innerHTML='<div class="msg err">Invitation could not be sent.</div>';}
       break; }
+    case 'savetargets': {
+      await saveClientFields({targets:{calories:$('t_cal').value,protein:$('t_pro').value,notes:$('t_notes').value}});
+      break; }
+    case 'savecoachnotes': {
+      const notes=$('c_notes').value;
+      await saveClientFields({coachNotes:notes});
+      if(DETAIL[UI.client]) DETAIL[UI.client].coachNotes=notes;
+      break; }
+    case 'addhabit': UI.addHabit=true; renderModal(); break;
+    case 'confirmhabit': {
+      const name=$('h_name').value.trim(); if(!name)break;
+      const habits=(c.habits||[]).concat([{name,frequency:$('h_freq').value}]);
+      closeModals(); await saveClientFields({habits}); render(); break; }
+    case 'delhabit': {
+      const habits=(c.habits||[]).filter((_,i)=>i!==+t.dataset.i);
+      await saveClientFields({habits}); render(); break; }
+    case 'removeclient': UI.confirmRemove=true; renderModal(); break;
+    case 'confirmremove': {
+      const mode=t.dataset.mode, box=$('removeMsg');
+      t.disabled=true; t.textContent='Working\u2026';
+      const res=await api({action:'admin_delete_client',session:SESSION,email:c.email,mode});
+      if(res.ok){
+        if(mode==='delete'){ S.clients=S.clients.filter(x=>x.email!==c.email); UI.client=null; }
+        else { c.status='Archived'; }
+        delete DETAIL[c.email]; closeModals(); render();
+      } else {
+        t.disabled=false; t.textContent=mode==='delete'?'Delete permanently':'Archive client';
+        box.innerHTML='<div class="msg err">'+(res.error==='cannot_remove_coach'?'Coach accounts can\u2019t be removed here.':'That didn\u2019t work. Try again.')+'</div>';
+      }
+      break; }
+
+    /* templates */
+    case 'newtpl': UI.newTpl=true; renderModal(); break;
+    case 'edittplmeta': UI.newTpl='edit'; renderModal(); break;
+    case 'picktpl': UI.tpl=t.dataset.id; UI.saving=''; render(); break;
+    case 'confirmtpl': {
+      const name=$('tpl_name').value.trim(); if(!name)break;
+      const desc=$('tpl_desc').value.trim(); const id=t.dataset.id||'';
+      t.disabled=true; t.textContent='Saving\u2026';
+      const existing=id?tpl():null;
+      const res=await api({action:'admin_save_template',session:SESSION,template:{id,name,description:desc,days:existing?existing.days:[]}});
+      if(res.ok){
+        const i=S.templates.findIndex(x=>x.id===res.template.id);
+        if(i>=0) S.templates[i]=res.template; else S.templates.push(res.template);
+        UI.tpl=res.template.id; closeModals(); render();
+      } else { t.disabled=false; t.textContent='Save'; }
+      break; }
+    case 'deltpl': {
+      const tt=tpl(); if(!tt)break;
+      const res=await api({action:'admin_delete_template',session:SESSION,id:tt.id});
+      if(res.ok){ S.templates=S.templates.filter(x=>x.id!==tt.id); UI.tpl=null; render(); }
+      break; }
+    case 'savetplfrom': {
+      // Promote a client's current programme back into the master library.
+      const name=prompt('Name this template',(c.templateName||c.name+' programme'));
+      if(!name)break;
+      const res=await api({action:'admin_save_template',session:SESSION,template:{name,description:'Saved from '+(c.name||c.email),days:c.days}});
+      if(res.ok){ S.templates.push(res.template); UI.view='templates'; UI.tpl=res.template.id; render(); }
+      break; }
+    case 'assignmodal': UI.assign='client'; renderModal(); break;
+    case 'assignfromtpl': UI.assign='tpl'; renderModal(); break;
+    case 'confirmassign': {
+      const fromTpl=t.dataset.from==='tpl';
+      const email=fromTpl?$('as_client').value:c.email;
+      const templateId=fromTpl?tpl().id:$('as_tpl').value;
+      if(!email||!templateId){$('assignMsg').innerHTML='<div class="msg err">Pick both a template and a client.</div>';break;}
+      t.disabled=true;t.textContent='Assigning\u2026';
+      const res=await api({action:'admin_assign_template',session:SESSION,email,templateId});
+      if(res.ok){
+        const target=S.clients.find(x=>x.email===email);
+        if(target){ target.days=res.programme.days; target.schedule=res.programme.schedule;
+          target.templateId=res.programme.templateId; target.templateName=res.programme.templateName; }
+        closeModals(); UI.view='clients'; UI.client=email; UI.ctab='programme'; render();
+      } else { t.disabled=false;t.textContent='Assign';$('assignMsg').innerHTML='<div class="msg err">That didn\u2019t work.</div>'; }
+      break; }
+
+    /* day editor (shared) */
+    case 'addday': UI.addDay=ctx; renderModal(); break;
+    case 'confirmday': {
+      const days=ctxDays(ctx);
+      days.push({id:newId('day'),label:'Day '+(days.length+1),title:$('d_title').value.trim()||('Day '+(days.length+1)),exercises:[]});
+      relabelDays(days); closeModals(); ctxSave(ctx); render(); break; }
+    case 'dupday': {
+      const days=ctxDays(ctx); const copy=JSON.parse(JSON.stringify(days[+t.dataset.i]));
+      copy.id=newId('day'); days.splice(+t.dataset.i+1,0,copy); relabelDays(days); ctxSave(ctx); render(); break; }
+    case 'delday': {
+      const days=ctxDays(ctx); const removed=days.splice(+t.dataset.i,1)[0]; relabelDays(days);
+      if(ctx!=='t'&&c){ Object.keys(c.schedule).forEach(k=>{ if(c.schedule[k]===removed.id) delete c.schedule[k]; }); }
+      ctxSave(ctx); render(); break; }
+    case 'dayup': case 'daydown': {
+      const days=ctxDays(ctx); const i=+t.dataset.i; const j=act==='dayup'?i-1:i+1;
+      if(j<0||j>=days.length)break;
+      const [d]=days.splice(i,1); days.splice(j,0,d); relabelDays(days); ctxSave(ctx); render(); break; }
+    case 'addexto': UI.pickFor={ctx,i:+t.dataset.i}; UI.pickQ=''; renderModal(); break;
+    case 'confirmpick': {
+      const {ctx:pctx,i}=UI.pickFor;
+      ctxDays(pctx)[i].exercises.push({exerciseId:t.dataset.id,sets:3,rounds:3,reps:'10',duration:0,rest:60,note:'',groupId:'',groupType:'straight',restAfterRound:60});
+      UI.pickFor=null; UI.pickQ=''; ctxSave(pctx); render(); break; }
+    case 'delex': ctxDays(ctx)[+t.dataset.i].exercises.splice(+t.dataset.j,1); ctxSave(ctx); render(); break;
+    case 'exup': case 'exdown': {
+      const list=ctxDays(ctx)[+t.dataset.i].exercises; const j=+t.dataset.j; const k=act==='exup'?j-1:j+1;
+      if(k<0||k>=list.length)break;
+      const [x]=list.splice(j,1); list.splice(k,0,x); ctxSave(ctx); render(); break; }
+    case 'editrx': UI.rxFor={ctx,i:+t.dataset.i,j:+t.dataset.j}; renderModal(); break;
+    case 'confirmrx': {
+      const {ctx:rctx,i,j}=UI.rxFor; const ex=ctxDays(rctx)[i].exercises[j];
+      ex.sets=+$('rx_sets').value||1; ex.rounds=ex.sets; ex.reps=$('rx_reps').value.trim();
+      ex.duration=+$('rx_duration').value||0; ex.rest=+$('rx_rest').value||0;
+      ex.restAfterRound=+$('rx_roundrest').value||0; ex.groupType=$('rx_gtype').value;
+      ex.groupId=$('rx_gid').value.trim(); ex.note=$('rx_note').value.trim();
+      UI.rxFor=null; ctxSave(rctx); render(); break; }
+
+    /* library */
     case 'more': UI.shown+=PAGE; $('exList').innerHTML=exRows(); break;
+    case 'togglebulk': UI.bulk=!UI.bulk; if(!UI.bulk)VIDEO_EDITS={}; render(); break;
+    case 'discardvideos': VIDEO_EDITS={}; render(); break;
+    case 'savevideos': {
+      const items=Object.keys(VIDEO_EDITS).map(id=>({id,video:VIDEO_EDITS[id]}));
+      if(!items.length)break;
+      t.disabled=true;t.textContent='Saving\u2026';
+      const res=await api({action:'admin_bulk_video',session:SESSION,items});
+      if(res.ok){ items.forEach(it=>{const x=exById(it.id); if(x)x.video=it.video;}); VIDEO_EDITS={}; render(); }
+      else { t.disabled=false;t.textContent='Save links'; }
+      break; }
     case 'openex': UI.openEx=t.dataset.id; UI.editEx=false; renderModal(); break;
     case 'editex': UI.editEx=true; renderModal(); break;
     case 'addex': UI.addEx=true; renderModal(); break;
@@ -612,7 +1117,7 @@ document.addEventListener('click', async e=>{
       const ex=readExForm(); if(!ex.name)return;
       t.disabled=true; t.textContent='Adding\u2026';
       const res=await api({action:'admin_addexercise',session:SESSION,exercise:ex});
-      if(res.ok){ S.exercises.push(res.exercise); UI.addEx=false; render(); }
+      if(res.ok){ S.exercises.push(res.exercise); closeModals(); render(); }
       else { t.disabled=false; t.textContent='Add to library'; }
       break; }
     case 'saveeditex': {
@@ -620,35 +1125,36 @@ document.addEventListener('click', async e=>{
       t.disabled=true; t.textContent='Saving\u2026';
       const res=await api({action:'admin_updateexercise',session:SESSION,exercise:ex});
       if(res.ok){ const i=S.exercises.findIndex(x=>x.id===ex.id); if(i>=0)S.exercises[i]=res.exercise;
-        UI.editEx=false; render(); }
+        closeModals(); render(); }
       else { t.disabled=false; t.textContent='Save changes'; }
       break; }
-    case 'pickclient': UI.client=t.dataset.e; UI.saving=''; render(); break;
-    case 'addsess': UI.addSess=true; renderModal(); break;
-    case 'confirmsess': {
-      const date=$('s_date').value||todayISO(); const title=$('s_title').value.trim()||'Session';
-      c.sessions.push({id:'session_'+Date.now(),date,title,exercises:[]}); UI.addSess=null; saveProgramme(); render(); break; }
-    case 'dupsess': {
-      const src=c.sessions[+t.dataset.i];
-      const copy=JSON.parse(JSON.stringify(src));
-      const d=new Date(copy.date+'T12:00:00'); d.setDate(d.getDate()+7);
-      copy.date=d.toISOString().slice(0,10);
-      c.sessions.push(copy); saveProgramme(); render(); break; }
-    case 'delsess': c.sessions.splice(+t.dataset.i,1); saveProgramme(); render(); break;
-    case 'addexto': UI.pickFor=+t.dataset.i; UI.pickQ=''; renderModal(); break;
-    case 'confirmpick': {
-      c.sessions[UI.pickFor].exercises.push({exerciseId:t.dataset.id,sets:3,reps:'10',duration:0,rest:60,note:'',groupId:'',groupType:'straight',rounds:3,restAfterRound:60});
-      const i=UI.pickFor; UI.pickFor=null; UI.pickQ=''; saveProgramme(); render();
+
+    /* calendar */
+    case 'cprevweek': UI.weekOffset--; render(); break;
+    case 'cnextweek': UI.weekOffset++; render(); break;
+    case 'cthisweek': UI.weekOffset=0; render(); break;
+    case 'addcalevent': UI.calDate=t.dataset.date;UI.calEvent=null;renderModal();break;
+    case 'editcalevent': UI.calEvent=((detail()||{}).events||[]).find(x=>x.id===t.dataset.id)||null;UI.calDate=null;renderModal();break;
+    case 'savecalevent': {
+      const ev={id:t.dataset.id||'',title:$('ce_title').value.trim(),type:$('ce_type').value,start:$('ce_start').value,end:$('ce_end').value,intensity:$('ce_intensity').value,location:$('ce_location').value.trim(),notes:$('ce_notes').value.trim()};
+      if(!ev.title||!ev.start)break;t.disabled=true;t.textContent='Saving\u2026';
+      const res=await api({action:'admin_save_event',session:SESSION,email:c.email,event:ev});
+      if(res.ok){ const d=detail(); if(d){ d.events=d.events||[]; const i=d.events.findIndex(x=>x.id===res.event.id);
+        if(i>=0)d.events[i]=res.event; else d.events.push(res.event); }
+        closeModals(); render(); }
       break; }
-    case 'delex': c.sessions[+t.dataset.i].exercises.splice(+t.dataset.j,1); saveProgramme(); render(); break;
-    case 'editrx': UI.rxFor={i:+t.dataset.i,j:+t.dataset.j}; renderModal(); break;
-    case 'confirmrx': {
-      const {i,j}=UI.rxFor; const ex=c.sessions[i].exercises[j];
-      ex.sets=+$('rx_sets').value||1; ex.rounds=ex.sets; ex.reps=$('rx_reps').value.trim();
-      ex.duration=+$('rx_duration').value||0; ex.rest=+$('rx_rest').value||0;
-      ex.restAfterRound=+$('rx_roundrest').value||0; ex.groupType=$('rx_gtype').value;
-      ex.groupId=$('rx_gid').value.trim(); ex.note=$('rx_note').value.trim();
-      UI.rxFor=null; saveProgramme(); render(); break; }
+    case 'deletecalevent': {
+      const res=await api({action:'admin_delete_event',session:SESSION,email:c.email,id:t.dataset.id});
+      if(res.ok){ const d=detail(); if(d)d.events=(d.events||[]).filter(x=>x.id!==t.dataset.id); closeModals(); render(); }
+      break; }
+    case 'editdayplan': UI.dayPlanDate=t.dataset.date;renderModal();break;
+    case 'savedayplan': {
+      const plan={date:UI.dayPlanDate,dayType:$('dp_type').value.trim(),calories:$('dp_cal').value,protein:$('dp_pro').value,
+        hydration:$('dp_hyd').value.trim(),recovery:$('dp_rec').value.trim(),coachNote:$('dp_note').value.trim()};
+      t.disabled=true;t.textContent='Saving\u2026';
+      const res=await api({action:'admin_save_dayplan',session:SESSION,email:c.email,plan});
+      if(res.ok){ const d=detail(); if(d){ d.dailyPlans=d.dailyPlans||{}; d.dailyPlans[plan.date]=res.plan; } closeModals(); render(); }
+      break; }
   }
 });
 function readExForm(){

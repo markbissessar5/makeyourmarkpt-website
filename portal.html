@@ -20,6 +20,7 @@
   *{box-sizing:border-box;margin:0;padding:0}
   [hidden]{display:none !important}
   html,body{height:100%}
+  html{overflow-x:hidden}
   body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
   button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
   input{font-family:inherit}
@@ -41,7 +42,10 @@
   .loginbox{width:100%;max-width:400px;text-align:center}
   .loginbox .logo{font-size:40px;font-weight:800;text-transform:uppercase;line-height:.95}
   .loginbox .logo .dot{color:var(--red)}
-  .loginbox .tag{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);margin:10px 0 28px}
+  .loginbox .loginmark{width:150px;height:auto;display:block;margin:0 auto}
+  .loginbox .tag{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);margin:14px 0 28px}
+  .backsite{display:inline-block;margin-top:26px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);text-decoration:none}
+  .backsite:hover{color:var(--red)}
   .loginbox h2{font-size:26px;font-weight:700;margin-bottom:6px}
   .loginbox p{color:var(--muted);margin-bottom:22px}
   .loginform{display:flex;flex-direction:column;gap:12px}
@@ -66,6 +70,15 @@
   .logout{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.55)}
   .logout:hover{color:#fff}
 
+  /* Five nav pills overflow a 390px viewport, which pushed the whole page
+     sideways. Let the nav scroll instead of the document. */
+  @media(max-width:560px){
+    .bar{gap:10px}
+    .logo.top{font-size:20px;margin-right:0}
+    nav{order:3;width:100%;overflow-x:auto;justify-content:flex-start;scrollbar-width:none}
+    nav::-webkit-scrollbar{display:none}
+    .who{margin-left:auto;font-size:13px}
+  }
   main{padding:32px 0 80px;min-height:60vh}
   .head{margin-bottom:24px}
   .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-bottom:6px}
@@ -299,6 +312,8 @@
   .workrunner{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;flex-direction:column}
   .wrhead{background:var(--black);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:12px}
   .wrhead .wtitle{font-family:var(--display);font-size:20px;font-weight:800;text-transform:uppercase;margin-right:auto}
+  .wrhead .wrclose{font-size:26px;line-height:1;color:rgba(255,255,255,.7)}
+  .wrhead .wrclose:hover{color:#fff}
   .wrprogress{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.65)}
   .wrbody{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:24px}
   .wrcard{width:100%;max-width:600px;text-align:center}
@@ -315,6 +330,30 @@
   .finishgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:left;margin:22px 0}
   .finishgrid .field{margin:0}
 
+  /* habits and check-ins */
+  .habitrow{display:flex;align-items:center;gap:10px;background:var(--raise);border:1px solid var(--line2);border-radius:10px;padding:10px 12px;margin-bottom:7px;cursor:pointer}
+  .habitrow.done{border-color:var(--red);background:#fdf0f1}
+  .habitrow .hb{width:18px;height:18px;border:1.5px solid var(--line2);border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center}
+  .habitrow.done .hb{background:var(--red);border-color:var(--red)}
+  .habitrow .hb svg{opacity:0;width:11px;height:11px}
+  .habitrow.done .hb svg{opacity:1}
+  .habitrow .hn{flex:1;font-size:14px;font-weight:600}
+  .habitrow .hf{font-family:var(--mono);font-size:9.5px;color:var(--muted);text-transform:uppercase}
+  .checkinrow{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .checkinrow input{flex:1;min-width:110px;background:var(--raise);border:1px solid var(--line2);border-radius:9px;padding:10px 12px;font-size:14px}
+  .checkinrow input:focus{outline:none;border-color:var(--red)}
+
+  /* weekly programme rows */
+  .dayrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:8px}
+  .dayrow.today{border-color:var(--red);box-shadow:0 0 0 1px var(--red) inset}
+  .dayrow .dd{font-family:var(--mono);font-size:11px;color:var(--red);text-transform:uppercase;width:78px;flex:none}
+  .dayrow .dt{flex:1;min-width:140px;font-family:var(--display);font-weight:700;font-size:19px;text-transform:uppercase;line-height:1.05}
+  .dayrow .dm{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .dayrow.rest .dd{color:var(--faint)}
+  .dayrow.rest .dt{color:var(--faint);font-weight:600;font-size:17px}
+  .dayrow.donetick{opacity:.7}
+  .weeknav{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+  .proglabel{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:28px 0 10px}
 </style>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#000000">
@@ -349,8 +388,10 @@ const FILTER_ORDER = ['keto','high-protein','low-carb','quick'];
 
 /* ============ STATE ============ */
 let SESSION = null;
-let S = { name:'', workoutHtml:'', sessions:[], exlib:[], recipes:[], week:{}, dateMeals:{}, checked:{}, onboarding:{}, events:[], dailyPlans:{}, workoutLogs:[] };
-let UI = { view:'today', search:'', filter:'', openId:null, detServings:null, pickDay:null, addRecipe:null, weekOffset:0, eventEdit:null, eventDate:null };
+let S = { name:'', workoutHtml:'', days:[], schedule:{}, programmeName:'', exlib:[], recipes:[],
+          week:{}, dateMeals:{}, checked:{}, habitLog:{}, onboarding:{}, events:[], dailyPlans:{},
+          targets:{}, habits:[], workoutLogs:[], checkins:[] };
+let UI = { view:'today', search:'', filter:'', openId:null, detServings:null, pickDay:null, addRecipe:null, weekOffset:0, eventEdit:null, eventDate:null, progWeek:0 };
 let COOK = null;
 let WORK = null;
 let audioCtx = null;
@@ -370,6 +411,14 @@ async function api(payload){
     history.replaceState({}, '', location.pathname);
     try{
       const res = await api({ action:'validate', token });
+      if(res.ok && res.admin){
+        // Coach account: hand the session straight to the coach app rather than
+        // making them log in twice. Tokens are single use, so the session has to
+        // travel in storage, not in the URL.
+        try{ localStorage.setItem('mym_coach_session', res.session); }catch(e){}
+        location.replace('/coach.html');
+        return;
+      }
       if(res.ok){
         SESSION = res.session;
         try{ localStorage.setItem('mym_session', SESSION); }catch(e){}
@@ -394,14 +443,20 @@ async function loadData(){
   S.name = res.name || '';
   S.admin = !!res.admin;
   S.workoutHtml = res.workoutHtml || '';
-  S.sessions = res.sessions || [];
+  S.days = res.days || [];
+  S.schedule = res.schedule || {};
+  S.programmeName = res.programmeName || '';
   S.exlib = res.exercises || [];
   S.recipes = res.recipes || [];
   const sel = res.selections || {};
   S.week = sel.week || {};
   S.dateMeals = sel.dateMeals || {};
   S.checked = sel.checked || {};
+  S.habitLog = sel.habits || {};
   S.workoutLogs = res.workoutLogs || [];
+  S.checkins = res.checkins || [];
+  S.targets = res.targets || {};
+  S.habits = res.habits || [];
   S.onboarding = res.onboarding || {};
   S.events = res.events || [];
   S.dailyPlans = res.dailyPlans || {};
@@ -412,7 +467,7 @@ async function loadData(){
 function save(){
   clearTimeout(saveTimer);
   saveTimer = setTimeout(()=>{
-    api({ action:'save', session: SESSION, selections:{ week:S.week, dateMeals:S.dateMeals, checked:S.checked } }).catch(()=>{});
+    api({ action:'save', session: SESSION, selections:{ week:S.week, dateMeals:S.dateMeals, checked:S.checked, habits:S.habitLog } }).catch(()=>{});
   }, 600);
 }
 
@@ -429,7 +484,7 @@ function showLogin(msg){
   const el = document.getElementById('login');
   el.hidden = false;
   el.innerHTML = `<div class="loginbox">
-    <div class="logo">MAKE YOUR MARK<span class="dot">.</span></div>
+    <img class="loginmark" src="/images/logo-badge.png" alt="Make Your Mark Performance Coaching">
     <div class="tag">Client Portal</div>
     <h2>Welcome back</h2>
     <p>Enter your email to receive a secure 6-digit login code.</p>
@@ -445,6 +500,7 @@ function showLogin(msg){
       </div>
     </div>
     <div id="loginMsg">${msg?`<div class="msg err">${esc(msg)}</div>`:''}</div>
+    <a class="backsite" href="/">← Back to makeyourmarkpt.com</a>
   </div>`;
   const inp = document.getElementById('emailIn');
   if(inp){ inp.focus(); inp.addEventListener('keydown',e=>{ if(e.key==='Enter') sendLink(); }); }
@@ -570,7 +626,20 @@ function dateLabel(iso,opts){ const d=new Date(iso+'T12:00:00'); return d.toLoca
 function eventDay(e){ return String(e.start||'').slice(0,10); }
 function timeLabel(value,allDay){ if(allDay)return'All day'; const m=String(value||'').match(/T(\d\d):(\d\d)/); if(!m)return''; const d=new Date('2000-01-01T'+m[1]+':'+m[2]); return d.toLocaleTimeString('en-AU',{hour:'numeric',minute:'2-digit'}); }
 function eventsForDate(date){ return S.events.filter(e=>eventDay(e)===date).sort((a,b)=>String(a.start).localeCompare(String(b.start))); }
-function sessionsForDate(date){ return S.sessions.filter(s=>s.date===date); }
+/* Monday = 0, matching the schedule keys Mark sets in the coach app. */
+function weekdayIndex(iso){ return (new Date(iso+'T12:00:00').getDay()+6)%7; }
+function dayForDate(date){
+  const id=S.schedule[String(weekdayIndex(date))];
+  if(!id) return null;
+  return S.days.find(d=>d.id===id)||null;
+}
+/* A scheduled day repeats weekly, so the calendar and Today view ask for a date
+   and get back the day that lands on it, with the date attached for logging. */
+function sessionsForDate(date){
+  const d=dayForDate(date);
+  return d?[Object.assign({},d,{date})]:[];
+}
+function loggedOn(date){ return S.workoutLogs.some(l=>String(l.sessionDate||'').slice(0,10)===date && l.status==='completed'); }
 function openEvent(id,date){ UI.eventEdit=id?S.events.find(e=>e.id===id):null; UI.eventDate=date||localDateISO(new Date()); renderModal(); }
 
 function mealsForDate(date){
@@ -583,8 +652,17 @@ function nutritionForDate(date){
   mealsForDate(date).forEach(id=>{const r=byId(id),n=r&&r.nutrition||{};total.calories+=Number(n.calories)||0;total.protein+=Number(n.protein)||0;total.carbs+=Number(n.carbs)||0;total.fat+=Number(n.fat)||0;});
   return total;
 }
+/* Targets are standing (calories + protein, set once per client). A Daily Plan
+   for that date overrides them when Mark wants a one-off, e.g. match day. */
+function targetForDate(date){
+  const p=S.dailyPlans[date]||{}, t=S.targets||{};
+  return {
+    calories: Number(p.calories)||Number(t.calories)||0,
+    protein:  Number(p.protein)||Number(t.protein)||0
+  };
+}
 function nutritionStatus(actual,target){
-  const keys=['calories','protein','carbs','fat'].filter(k=>Number(target[k])>0);
+  const keys=['calories','protein'].filter(k=>Number(target[k])>0);
   if(!keys.length)return'No target';
   if(!keys.some(k=>actual[k]>0))return'No meals planned';
   const close=keys.every(k=>Math.abs(actual[k]-Number(target[k]))/Number(target[k])<=.1);
@@ -593,10 +671,10 @@ function nutritionStatus(actual,target){
   return mostlyUnder?'Under target':'Review plan';
 }
 function compareNutritionHtml(date,compact){
-  const a=nutritionForDate(date),t=S.dailyPlans[date]||{}, keys=[
-    ['calories','Calories','kcal'],['protein','Protein','g'],['carbs','Carbs','g'],['fat','Fat','g']
+  const a=nutritionForDate(date),t=targetForDate(date), keys=[
+    ['calories','Calories','kcal'],['protein','Protein','g']
   ];
-  if(!keys.some(([k])=>Number(t[k])>0)) return compact?'':'<div class="empty">Mark has not set nutrition targets for this date yet.</div>';
+  if(!keys.some(([k])=>Number(t[k])>0)) return compact?'':'<div class="empty">Mark hasn\u2019t set your calorie and protein targets yet.</div>';
   const rows=keys.filter(([k])=>Number(t[k])>0).map(([k,label,u])=>{
     const av=Math.round(a[k]),tv=Math.round(Number(t[k])),diff=tv-av,pct=Math.min(100,Math.round(av/tv*100)),over=av>tv;
     return `<div class="nrow"><div class="nlabel">${label}</div><div><div class="ntrack"><div class="nfill ${over?'over':''}" style="width:${pct}%"></div></div><div style="font-family:var(--mono);font-size:11px;margin-top:4px">${av} / ${tv} ${u}</div></div><div class="ndiff">${diff>=0?diff+' '+u+' remaining':Math.abs(diff)+' '+u+' above'}</div></div>`;
@@ -606,8 +684,9 @@ function compareNutritionHtml(date,compact){
 
 function viewToday(){
   const date=localDateISO(new Date()), ev=eventsForDate(date), sess=sessionsForDate(date), p=S.dailyPlans[date]||{};
+  const tg=targetForDate(date);
   const timeline=[
-    ...sess.map(s=>({kind:'workout',time:'Coach plan',title:s.title||'Workout',meta:(s.exercises||[]).length+' exercises'})),
+    ...sess.map(s=>({kind:'workout',time:'Coach plan',title:s.title||s.label||'Workout',meta:(s.exercises||[]).length+' exercises'})),
     ...ev.map(e=>({kind:'event',id:e.id,time:timeLabel(e.start,e.allDay),title:e.title,meta:[e.type,e.location,e.intensity].filter(Boolean).join(' · '),createdBy:e.createdBy}))
   ];
   timeline.sort((a,b)=>String(a.time).localeCompare(String(b.time)));
@@ -621,18 +700,39 @@ function viewToday(){
         :`<div class="timelineitem" data-act="editevent" data-id="${esc(x.id)}"><div class="time">${esc(x.time)}</div><div><div class="title">${esc(x.title)}</div><div class="meta2">${esc(x.meta)}</div></div><span class="eventtype">${esc(x.createdBy||'client')}</span></div>`).join('')
         :'<div class="empty">Nothing planned yet. Add training, a match, race, travel or another commitment.</div>'}</div>
     </section><aside class="sidepanel">
-      <div class="planblock"><h3>${esc(p.dayType||'Daily plan')}</h3>
+      <div class="planblock"><h3>${esc(p.dayType||'Your targets')}</h3>
         <div class="macrogrid">
-          <div class="macro"><b>${p.calories||'—'}</b><span>Calories</span></div>
-          <div class="macro"><b>${p.protein||'—'}${p.protein?'g':''}</b><span>Protein</span></div>
-          <div class="macro"><b>${p.carbs||'—'}${p.carbs?'g':''}</b><span>Carbs</span></div>
-          <div class="macro"><b>${p.fat||'—'}${p.fat?'g':''}</b><span>Fat</span></div>
-        </div></div>
+          <div class="macro"><b>${tg.calories||'—'}</b><span>Calories</span></div>
+          <div class="macro"><b>${tg.protein||'—'}${tg.protein?'g':''}</b><span>Protein</span></div>
+        </div>
+        ${S.targets.notes?`<p style="font-size:13px;color:var(--muted);margin-top:10px">${esc(S.targets.notes)}</p>`:''}
+      </div>
+      ${habitsBlock(date)}
+      ${checkinBlock(date)}
       ${p.hydration?`<div class="planblock"><h3>Hydration</h3><p>${esc(p.hydration)}</p></div>`:''}
       ${p.recovery?`<div class="planblock"><h3>Recovery</h3><p>${esc(p.recovery)}</p></div>`:''}
       ${p.coachNote?`<div class="planblock"><h3>Mark’s note</h3><p>${esc(p.coachNote)}</p></div>`:''}
-      ${!p.dayType&&!p.coachNote?'<div class="empty">Mark’s daily targets and notes will appear here.</div>':''}
     </aside></div>${compareNutritionHtml(date,false)}`;
+}
+
+function habitsBlock(date){
+  if(!S.habits.length) return '';
+  const done=S.habitLog[date]||[];
+  const tick='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M5 12l5 5L20 6"/></svg>';
+  return `<div class="planblock"><h3>Habits</h3>
+    ${S.habits.map(h=>`<div class="habitrow ${done.includes(h.id)?'done':''}" data-act="togglehabit" data-id="${esc(h.id)}" data-date="${date}">
+      <span class="hb">${tick}</span><span class="hn">${esc(h.name)}</span><span class="hf">${esc(h.frequency||'daily')}</span>
+    </div>`).join('')}</div>`;
+}
+function checkinBlock(date){
+  const today=S.checkins.find(c=>c.date===date)||{};
+  return `<div class="planblock"><h3>Check in</h3>
+    <div class="checkinrow">
+      <input id="ci_weight" type="number" step="0.1" inputmode="decimal" placeholder="Weight (kg)" value="${esc(today.weight||'')}">
+      <button class="btn sm" data-act="savecheckin" data-date="${date}">Log</button>
+    </div>
+    <div class="checkinrow"><input id="ci_note" placeholder="How are you feeling?" value="${esc(today.note||'')}"></div>
+    <div id="ciMsg"></div></div>`;
 }
 function viewCalendar(){
   const start=startOfWeek(UI.weekOffset), dates=[]; for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);dates.push(localDateISO(d));}
@@ -645,7 +745,7 @@ function viewCalendar(){
       return `<div class="calday ${date===localDateISO(new Date())?'today':''}">
         <div class="caldate">${dateLabel(date,{weekday:'short',day:'numeric'})}</div>
         ${plan.dayType?`<div class="eventtype" style="margin-bottom:7px">${esc(plan.dayType)}</div>`:''}
-        ${sess.map(s=>`<div class="calworkout"><div class="ct">${esc(s.title||'Workout')}</div><div class="cm">Coach workout</div></div>`).join('')}
+        ${sess.map(s=>`<div class="calworkout"><div class="ct">${esc(s.title||s.label||'Workout')}</div><div class="cm">${esc(s.label||'')}${loggedOn(date)?' · done':''}</div></div>`).join('')}
         ${ev.map(e=>`<div class="calevent ${e.createdBy==='coach'?'coach':''}" data-act="editevent" data-id="${esc(e.id)}"><div class="ct">${esc(e.title)}</div><div class="cm">${esc(timeLabel(e.start,e.allDay))} · ${esc(e.type)}</div></div>`).join('')}
         <button class="addday" data-act="addevent" data-date="${date}">+ Add</button>
       </div>`;}).join('')}</div>`;
@@ -695,32 +795,57 @@ function renderNav(){
 
 /* ============ WORKOUTS ============ */
 function viewWorkouts(){
-  let body;
-  if(S.sessions.length){
-    const sorted=[...S.sessions].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-    const upcoming=sorted.filter(s=>!isPastDay(s.date));
-    const past=sorted.filter(s=>isPastDay(s.date)).reverse();
-    const card=s=>{ const sid=s.id||('session_'+(s.date||'')+'_'+(s.title||'').replace(/\W/g,'_'));
-      const lines=(s.exercises||[]).map(e=>{const x=wxById(e.exerciseId);if(!x)return'';
-        return `<div class="wxline" data-act="openwx" data-id="${esc(x.id)}" data-rx="${esc(JSON.stringify(e))}">
-          <span class="wxname">${esc(x.name)}${x.video?' <span class="wxplay">\u25b6</span>':''}</span>
-          <span class="wxrx">${esc(rxText(e))}</span>
-        </div>${e.note?`<div class="wxnote">${esc(e.note)}</div>`:''}`;}).join('');
-      return `<div class="wsess ${isPastDay(s.date)?'past':''} ${isToday(s.date)?'today':''}">
-        <div class="wsesshead">
-          <span class="wsessdate">${isToday(s.date)?'Today':fmtDate(s.date)}</span>
-          <span class="wsesstitle">${esc(s.title||'Session')}</span>
-        </div>${lines||'<div class="wxnote">Rest / details to follow.</div>'}${lines?`<button class="btn startworkout" data-act="startworkout" data-sid="${esc(sid)}">▶ Start workout</button>`:''}</div>`;
-    };
-    body = `<div class="wsesslist">${upcoming.map(card).join('')||'<div class="wsess"><div class="wxnote">No upcoming sessions \u2014 Mark will schedule your next block soon.</div></div>'}</div>`
-      + (past.length?`<div class="pastlabel">Completed</div><div class="wsesslist">${past.slice(0,6).map(card).join('')}</div>`:'');
-  } else {
-    body = `<div class="workout">${S.workoutHtml || '<p>Your programme will appear here once Mark has set it up.</p>'}</div>`;
+  const head=`<div class="head"><div class="eyebrow">Training</div><h1>Your programme</h1>
+    <p class="sub">${S.programmeName?esc(S.programmeName)+'. ':''}Your training days repeat each week. Tap an exercise for the demo and coaching cues.</p></div>`;
+
+  if(!S.days.length){
+    return head+`<div class="workout">${S.workoutHtml || '<p>Your programme will appear here once Mark has set it up.</p>'}</div>`;
   }
-  const notes = (S.sessions.length && S.workoutHtml) ? `<div class="pastlabel">Coach notes</div><div class="workout">${S.workoutHtml}</div>` : '';
-  return `<div class="head"><div class="eyebrow">Training</div><h1>Your programme</h1>
-    <p class="sub">Your sessions, set by Mark. Tap an exercise for the demo and coaching cues.</p></div>
-    ${body}${notes}`;
+
+  // This week: every date gets either its scheduled day or a rest row.
+  const start=startOfWeek(UI.progWeek), dates=[];
+  for(let i=0;i<7;i++){ const d=new Date(start); d.setDate(start.getDate()+i); dates.push(localDateISO(d)); }
+  const label=dateLabel(dates[0],{day:'numeric',month:'short'})+' – '+dateLabel(dates[6],{day:'numeric',month:'short'});
+  const week=dates.map(date=>{
+    const day=dayForDate(date), done=loggedOn(date);
+    if(!day) return `<div class="dayrow rest"><span class="dd">${dateLabel(date,{weekday:'short',day:'numeric'})}</span>
+      <span class="dt">Rest</span></div>`;
+    return `<div class="dayrow ${isToday(date)?'today':''} ${done?'donetick':''}">
+      <span class="dd">${isToday(date)?'Today':dateLabel(date,{weekday:'short',day:'numeric'})}</span>
+      <span class="dt">${esc(day.title||day.label)}</span>
+      <span class="dm">${(day.exercises||[]).length} exercise${(day.exercises||[]).length===1?'':'s'}${done?' · done':''}</span>
+      ${(day.exercises||[]).length?`<button class="btn sm" data-act="startworkout" data-day="${esc(day.id)}" data-date="${date}">${done?'Repeat':'▶ Start'}</button>`:''}
+    </div>`;
+  }).join('');
+
+  // Full programme, so they can look ahead at any day regardless of the week.
+  const card=day=>{
+    const lines=(day.exercises||[]).map(e=>{const x=wxById(e.exerciseId);if(!x)return'';
+      return `<div class="wxline" data-act="openwx" data-id="${esc(x.id)}" data-rx="${esc(JSON.stringify(e))}">
+        <span class="wxname">${esc(x.name)}${x.video?' <span class="wxplay">\u25b6</span>':''}</span>
+        <span class="wxrx">${esc(rxText(e))}</span>
+      </div>${e.note?`<div class="wxnote">${esc(e.note)}</div>`:''}`;}).join('');
+    const on=Object.keys(S.schedule).filter(k=>S.schedule[k]===day.id).map(k=>DAYS[+k]).join(', ');
+    return `<div class="wsess">
+      <div class="wsesshead">
+        <span class="wsessdate">${esc(day.label)}${on?' · '+esc(on):''}</span>
+        <span class="wsesstitle">${esc(day.title||day.label)}</span>
+      </div>${lines||'<div class="wxnote">Details to follow.</div>'}
+      ${lines?`<button class="btn startworkout" data-act="startworkout" data-day="${esc(day.id)}" data-date="${localDateISO(new Date())}">▶ Start this session</button>`:''}</div>`;
+  };
+
+  const recent=S.workoutLogs.slice(0,5).map(l=>`<div class="dayrow"><span class="dd">${esc((l.completedAt||'').slice(0,10))}</span>
+    <span class="dt">${esc(l.title||'Workout')}</span><span class="dm">${Math.round((l.duration||0)/60)} min${l.difficulty?' · RPE '+esc(l.difficulty):''}</span></div>`).join('');
+
+  const notes = S.workoutHtml ? `<div class="proglabel">Coach notes</div><div class="workout">${S.workoutHtml}</div>` : '';
+
+  return head
+    + `<div class="weeknav"><button class="btn ghost sm" data-act="progprev">←</button><strong>${esc(label)}</strong>
+       <button class="btn ghost sm" data-act="progthis">This week</button><button class="btn ghost sm" data-act="prognext">→</button></div>`
+    + week
+    + `<div class="proglabel">Full programme</div><div class="wsesslist">${S.days.map(card).join('')}</div>`
+    + (recent?`<div class="proglabel">Recently completed</div>${recent}`:'')
+    + notes;
 }
 
 /* ============ WEEK ============ */
@@ -728,15 +853,15 @@ function viewWeek(){
   const start=startOfWeek(UI.weekOffset), dates=[];for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);dates.push(localDateISO(d));}
   const grid=dates.map(date=>{
     const ids=mealsForDate(date), meals=ids.map((id,i)=>{const r=byId(id);if(!r)return'';return `<div class="meal"><div class="t" data-act="open" data-id="${r.id}">${esc(r.title)}</div><button class="x" data-act="rmdatedmeal" data-date="${date}" data-i="${i}">×</button></div>`;}).join('');
-    const a=nutritionForDate(date),p=S.dailyPlans[date]||{};
+    const a=nutritionForDate(date),tg=targetForDate(date);
     return `<div class="day ${date===localDateISO(new Date())?'today':''}">
       <div class="dateday">${dateLabel(date,{weekday:'long'})}</div><div class="dname">${dateLabel(date,{day:'numeric',month:'short'})}</div>
-      <div class="dcal">${Math.round(a.calories)||0}${p.calories?' / '+p.calories:''} kcal</div>
+      <div class="dcal">${Math.round(a.calories)||0}${tg.calories?' / '+tg.calories:''} kcal · ${Math.round(a.protein)||0}${tg.protein?' / '+tg.protein:''}g P</div>
       ${compareNutritionHtml(date,true)}${meals}
       <button class="addmeal" data-act="adddatedmeal" data-date="${date}">+ add meal</button>
     </div>`;}).join('');
   return `<div class="head"><div class="eyebrow">Nutrition</div><h1>Meals and targets</h1>
-    <p class="sub">Plan meals against the calorie and macro targets Mark has set for each day.</p></div>
+    <p class="sub">Plan meals against your calorie and protein targets. Pull anything you like from the recipe bank.</p></div>
     <div class="calhead"><button class="btn ghost sm" data-act="prevweek">←</button><strong>${dateLabel(dates[0])} – ${dateLabel(dates[6])}</strong><button class="btn ghost sm" data-act="nextweek">→</button></div>
     <div class="weekgrid">${grid}</div>`;
 }
@@ -900,7 +1025,6 @@ function pickModal(){
 }
 
 
-function sessionByRunnerId(id){return S.sessions.find(s=>(s.id||('session_'+(s.date||'')+'_'+(s.title||'').replace(/\W/g,'_')))===id);}
 function workoutSequence(session){
   const ex=session.exercises||[], groups=[], seen={};
   ex.forEach((e,i)=>{
@@ -915,10 +1039,14 @@ function workoutSequence(session){
   });
   return seq;
 }
-function startWorkout(id){
-  const session=sessionByRunnerId(id);if(!session)return;
+/* The day itself has no date. The date the client actually trains is stamped on
+   at start time, which is what the workout log and the coach's adherence view
+   are keyed on. */
+function startWorkout(dayId,date){
+  const day=S.days.find(d=>d.id===dayId);if(!day)return;
+  const session=Object.assign({},day,{date:date||localDateISO(new Date()),title:day.title||day.label});
   const sequence=workoutSequence(session);if(!sequence.length)return;
-  WORK={session,id,sequence,index:0,startedAt:new Date(),timer:null,running:false,remaining:0,phase:'exercise',results:[],finished:false};
+  WORK={session,id:dayId,sequence,index:0,startedAt:new Date(),timer:null,running:false,remaining:0,phase:'exercise',results:[],finished:false};
   setRunnerTimer();renderWorkout();
 }
 function runnerStep(){return WORK&&WORK.sequence[WORK.index];}
@@ -962,7 +1090,7 @@ function renderWorkout(){
     <button id="finishWorkoutBtn" class="btn" data-act="finishworkout">Save workout</button></div></div></div>`;return;}
   const st=runnerStep(),x=st.item.x||{},rx=st.item.rx||{},groupName=st.group.type==='superset'?'Superset':st.group.type==='circuit'?'Circuit':'Exercise';
   if(WORK.phase==='rest'){root.innerHTML=`<div class="workrunner"><div class="wrhead"><div class="wtitle">${esc(WORK.session.title)}</div><div class="wrprogress">Rest</div></div><div class="wrbody"><div class="wrcard"><div class="wrblock">Recover</div><div class="wrexname">Rest</div><div class="wrtimer">${clock(WORK.remaining)}</div><button class="btn ghost" data-act="skiprest">Skip rest</button></div></div></div>`;return;}
-  root.innerHTML=`<div class="workrunner"><div class="wrhead"><button class="close" style="position:static" data-act="closeworkout">×</button><div class="wtitle">${esc(WORK.session.title)}</div><div class="wrprogress">${WORK.index+1}/${WORK.sequence.length}</div></div>
+  root.innerHTML=`<div class="workrunner"><div class="wrhead"><button class="wrclose" data-act="closeworkout">×</button><div class="wtitle">${esc(WORK.session.title)}</div><div class="wrprogress">${WORK.index+1}/${WORK.sequence.length}</div></div>
     <div class="wrbody"><div class="wrcard"><div class="wrblock">${groupName}${st.group.type!=='straight'?' · Round '+st.round+' of '+st.rounds:''}</div>
       <div class="wrexname">${esc(x.name||'Exercise')}</div><div class="wrset">Set ${st.round} of ${st.rounds}</div>
       <div class="wrrx">${rx.duration?clock(rx.duration):esc(rx.reps||'')} ${rx.duration?'work':'reps'}${rx.note?' · '+esc(rx.note):''}</div>
@@ -1057,7 +1185,28 @@ document.addEventListener('click', async e=>{
     case 'openwx': { let rx={}; try{rx=JSON.parse(t.dataset.rx||'{}');}catch(err){}
       UI.openWx={id:t.dataset.id,rx:rx}; renderModal(); break; }
     case 'cook': startCook(t.dataset.id); break;
-    case 'startworkout': startWorkout(t.dataset.sid); break;
+    case 'startworkout': startWorkout(t.dataset.day,t.dataset.date); break;
+    case 'progprev': UI.progWeek--; render(); break;
+    case 'prognext': UI.progWeek++; render(); break;
+    case 'progthis': UI.progWeek=0; render(); break;
+    case 'togglehabit': {
+      const date=t.dataset.date, id=t.dataset.id;
+      const list=S.habitLog[date]=Array.isArray(S.habitLog[date])?S.habitLog[date]:[];
+      const i=list.indexOf(id);
+      if(i>=0) list.splice(i,1); else list.push(id);
+      save(); render(); break; }
+    case 'savecheckin': {
+      const weight=$('ci_weight').value, note=$('ci_note').value.trim(), date=t.dataset.date;
+      const box=$('ciMsg');
+      if(!weight && !note){ box.innerHTML='<div class="msg err">Add a weight or a note first.</div>'; break; }
+      t.disabled=true; t.textContent='…';
+      const res=await api({action:'save_checkin',session:SESSION,checkin:{date,weight,note}});
+      if(res.ok){
+        const i=S.checkins.findIndex(c=>c.date===date);
+        if(i>=0) S.checkins[i]=res.checkin; else S.checkins.unshift(res.checkin);
+        render();
+      } else { t.disabled=false; t.textContent='Log'; box.innerHTML='<div class="msg err">Could not save that.</div>'; }
+      break; }
     case 'wrtimer': toggleWorkoutTimer(); break;
     case 'completeset': completeRunnerStep(); break;
     case 'skiprest': skipRest(); break;
