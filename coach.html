@@ -237,7 +237,7 @@ const WEEKDAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday',
 
 /* ============ STATE ============ */
 let SESSION = null;
-let S = { name:'', clients:[], templates:[], exercises:[], recipes:[] };
+let S = { name:'', clients:[], templates:[], exercises:[], recipes:[], forms:{intake:[],checkin:[]} };
 let DETAIL = {};           // email -> admin_client_detail payload
 let VIDEO_EDITS = {};      // exerciseId -> pending video url (bulk mode)
 let UI = {
@@ -292,7 +292,7 @@ async function loadData(){
   const res = await api({ action:'admin_data', session: SESSION });
   if(!res || !res.ok) return false;
   S.name = res.name||''; S.clients = res.clients||[]; S.templates = res.templates||[];
-  S.exercises = res.exercises||[]; S.recipes = res.recipes||[];
+  S.exercises = res.exercises||[]; S.recipes = res.recipes||[]; S.forms = res.forms||{intake:[],checkin:[]};
   S.clients.forEach(c=>{
     if(!Array.isArray(c.days)) c.days=[];
     if(!c.schedule||typeof c.schedule!=='object') c.schedule={};
@@ -416,14 +416,16 @@ async function saveClientFields(patch){
 
 /* ============ RENDER ============ */
 function render(){
-  $('nav').innerHTML = [['clients','Clients'],['templates','Programmes'],['calendar','Calendar'],['library','Library']].map(([k,l])=>
+  $('nav').innerHTML = [['clients','Clients'],['templates','Programmes'],['nutrition','Nutrition'],['calendar','Calendar'],['library','Library']].map(([k,l])=>
     `<button class="tab ${UI.view===k?'on':''}" data-act="nav" data-k="${k}">${l}</button>`).join('');
   const v=$('view');
   if(UI.view==='library') v.innerHTML=viewLibrary();
   else if(UI.view==='templates') v.innerHTML=viewTemplates();
+  else if(UI.view==='nutrition') v.innerHTML=viewNutrition();
   else if(UI.view==='calendar') v.innerHTML=viewCoachCalendar();
   else v.innerHTML=viewClients();
   renderModal();
+  const n=$('nutSearch'); if(n){ n.value=UI.nq||''; n.oninput=e=>{UI.nq=e.target.value; render();}; }
   const s=$('libSearch'); if(s){ s.value=UI.q; s.oninput=e=>{UI.q=e.target.value;UI.shown=PAGE;$('exList').innerHTML=exRows();$('exCount').textContent=countText();}; }
 }
 
@@ -520,6 +522,7 @@ function rxText(e){
   const bits=[];
   if(e.sets&&e.reps) bits.push(e.sets+'\u00d7'+e.reps); else if(e.sets) bits.push(e.sets+' sets'); else if(e.reps) bits.push(e.reps+' reps');
   if(e.duration) bits.push(e.duration+'s work');
+  if(e.rpe) bits.push('RPE '+e.rpe);
   if(e.rest) bits.push(e.rest+'s rest');
   return bits.join(' \u00b7 ')||'set rx';
 }
@@ -615,6 +618,10 @@ ${esc(d.medical||p.medical||'Nothing recorded.')}
 ${esc(p.goals||'Nothing recorded.')}</div>`:'<div class="rm">Loading\u2026</div>'}
       </div>
     </div>
+    <div class="card" style="margin-bottom:18px">
+      <h3>Intake form</h3>
+      ${d ? answerBlocks(S.forms.intake, d.profile||{}) : '<div class="rm">Loading\u2026</div>'}
+    </div>
     <div class="card dangerzone">
       <h3>Remove client</h3>
       <p style="font-size:13.5px;color:var(--muted);margin-bottom:12px">Archiving hides them from the active roster and blocks portal access, keeping their programme, invoices and workout history. Deleting removes the row outright and can't be undone.</p>
@@ -661,8 +668,9 @@ function paneProgress(c){
         </div>${l.note?`<div class="count" style="padding:0 12px 4px">\u201c${esc(l.note)}\u201d</div>`:''}`).join('')||'<div class="rm" style="color:var(--muted);font-size:13px">No completed sessions yet.</div>'}</div>
     </div>
     <div class="card"><h3>Check-ins</h3>
-      <div class="rowlist">${checkins.slice(0,10).map(k=>`<div class="rowitem">
-        <span class="rt">${esc(k.date)}</span><span class="rm">${k.weight?esc(k.weight)+' kg':''}${k.note?' \u00b7 '+esc(k.note):''}</span></div>`).join('')
+      <div class="rowlist">${checkins.slice(0,12).map(k=>`<div class="rowitem" ${k.full?`data-act="opencheckin" data-id="${esc(k.id)}" style="cursor:pointer"`:''}>
+        <span class="rt">${esc(k.date)}${k.full?'':' <span class="rm">(weight only)</span>'}</span>
+        <span class="rm">${k.weight?esc(k.weight)+' kg':''}${k.trainingRating?' \u00b7 training '+esc(k.trainingRating)+'/10':''}${String(k.pain).toLowerCase()==='yes'?' \u00b7 pain':''}${k.full?' \u00b7 read \u2192':''}</span></div>`).join('')
         ||'<div class="rm" style="color:var(--muted);font-size:13px">No check-ins logged yet.</div>'}</div>
     </div>`;
 }
@@ -686,8 +694,195 @@ function viewTemplates(){
     : '<div class="empty">Select a template, or create one.</div>';
   return `<div class="head"><div class="eyebrow">Coach</div><h1>Programme templates</h1>
     <p class="sub">Build a programme once and reuse it. Assigning copies the days onto a client, so editing the master here never changes anyone already on it.</p></div>
-    <div class="toolbar"><button class="btn" data-act="newtpl">+ New template</button></div>
+    <div class="toolbar"><button class="btn" data-act="newtpl">+ New template</button>
+      <button class="btn ghost" data-act="pasteprog">Paste a programme</button></div>
     <div class="layout"><div class="clist">${rows||'<div class="empty">No templates yet.</div>'}</div><div>${right}</div></div>`;
+}
+
+
+/* ---- nutrition ---- */
+function viewNutrition(){
+  const q=(UI.nq||'').trim().toLowerCase();
+  let list=S.recipes||[];
+  if(q) list=list.filter(r=>((r.name||'')+' '+((r.tags||[]).join(' '))+' '+(r.description||'')).toLowerCase().includes(q));
+  const tags=[...new Set((S.recipes||[]).flatMap(r=>r.tags||[]))].sort();
+  if(UI.ntag) list=list.filter(r=>(r.tags||[]).includes(UI.ntag));
+  return `<div class="head"><div class="eyebrow">Coach</div><h1>Nutrition</h1>
+    <p class="sub">The recipe bank your clients see, plus the standing calorie and protein targets you set on each client's Profile tab.</p></div>
+    <div class="toolbar">
+      <input class="search" id="nutSearch" placeholder="Search recipes\u2026" value="${esc(UI.nq||'')}">
+      <select data-act="ntag"><option value="">All tags</option>
+        ${tags.map(t=>`<option ${UI.ntag===t?'selected':''}>${esc(t)}</option>`).join('')}</select>
+    </div>
+    <div class="count" style="margin-bottom:10px">${list.length} of ${(S.recipes||[]).length} recipes</div>
+    <div class="exlist">${list.slice(0,80).map(r=>`<div class="exrow">
+      <div class="exmain" data-act="openrecipe" data-id="${esc(r.id)}">
+        <div class="exname">${esc(r.name||'Recipe')}</div>
+        <div class="exmeta">${esc((r.tags||[]).join(', '))}${r.calories?' \u00b7 '+esc(r.calories)+' kcal':''}${r.protein?' \u00b7 '+esc(r.protein)+'g P':''}</div>
+      </div></div>`).join('')||'<div class="empty">No recipes match that.</div>'}</div>`;
+}
+
+function recipeModal(){
+  const r=(S.recipes||[]).find(x=>x.id===UI.openRecipe); if(!r) return '';
+  return `<div class="overlay"><div class="sheet">
+    <div class="sh"><button class="close">\u00d7</button><h2>${esc(r.name||'Recipe')}</h2>
+      <div class="m">${esc((r.tags||[]).join(' \u00b7 '))}</div></div>
+    <div class="sb">
+      <div class="kpi">
+        <div class="kpibox"><b>${esc(r.calories||'\u2014')}</b><span>Calories</span></div>
+        <div class="kpibox"><b>${esc(r.protein||'\u2014')}</b><span>Protein g</span></div>
+        <div class="kpibox"><b>${esc(r.serves||'\u2014')}</b><span>Serves</span></div>
+      </div>
+      ${r.description?`<div class="cuebox">${esc(r.description)}</div>`:''}
+      ${(r.ingredients||[]).length?`<h3 style="font-size:16px;text-transform:uppercase;margin:14px 0 8px">Ingredients</h3>
+        <div class="rowlist">${(r.ingredients||[]).map(i=>`<div class="rowitem"><span class="rt">${esc(typeof i==='string'?i:(i.name||''))}</span>
+        <span class="rm">${esc(typeof i==='string'?'':((i.amount||'')+' '+(i.unit||'')))}</span></div>`).join('')}</div>`:''}
+      ${(r.steps||r.method||[]).length?`<h3 style="font-size:16px;text-transform:uppercase;margin:16px 0 8px">Method</h3>
+        <div class="readonly">${(r.steps||r.method||[]).map((m,i)=>(i+1)+'. '+esc(typeof m==='string'?m:(m.text||''))).join('\n')}</div>`:''}
+    </div></div></div>`;
+}
+
+/* ---- reading client form answers ---- */
+function answerBlocks(steps, values){
+  if(!steps || !steps.length) return '<div class="rm">No form definition loaded.</div>';
+  return steps.map(st=>{
+    const rows=st.fields.map(f=>{
+      let v=values[f.id];
+      if(Array.isArray(v)) v=v.join(', ');
+      if(v===undefined||v===null||String(v).trim()==='') return '';
+      return `<div class="rowitem" style="align-items:flex-start">
+        <span class="rt" style="flex:0 0 44%;font-weight:600">${esc(f.label)}</span>
+        <span style="flex:1;font-size:13.5px;white-space:pre-wrap">${esc(String(v))}</span></div>`;
+    }).filter(Boolean).join('');
+    if(!rows) return '';
+    return `<h3 style="font-size:15px;text-transform:uppercase;margin:16px 0 8px">${esc(st.title)}</h3>
+      <div class="rowlist">${rows}</div>`;
+  }).filter(Boolean).join('')||'<div class="rm">Nothing filled in yet.</div>';
+}
+
+
+function checkinModal(){
+  const d=detail(); if(!d) return '';
+  const k=(d.checkins||[]).find(x=>x.id===UI.checkinOpen); if(!k) return '';
+  return `<div class="overlay"><div class="sheet">
+    <div class="sh"><button class="close">\u00d7</button><h2>Check-in</h2>
+      <div class="m">${esc(k.date)}${k.weight?' \u00b7 '+esc(k.weight)+' kg':''}</div></div>
+    <div class="sb">
+      <div class="kpi">
+        <div class="kpibox"><b>${esc(k.trainingRating||'\u2014')}</b><span>Training</span></div>
+        <div class="kpibox"><b>${esc(k.energy||'\u2014')}</b><span>Energy</span></div>
+        <div class="kpibox"><b>${esc(k.stress||'\u2014')}</b><span>Stress</span></div>
+        <div class="kpibox"><b>${esc(k.confidence||'\u2014')}</b><span>Confidence</span></div>
+      </div>
+      ${answerBlocks(S.forms.checkin, k.answers||{})}
+    </div></div></div>`;
+}
+
+
+/* ============ PASTE A PROGRAMME ============
+   Mark writes programmes in Trainerize, docs or Claude. Rather than retyping 25
+   exercises through the picker, he pastes the text and confirms the matches.
+   Nothing saves until he has seen what it resolved to. */
+function normName(t){
+  return String(t||'').toLowerCase().replace(/\(.*?\)/g,' ').replace(/[^a-z0-9 ]/g,' ')
+    .replace(/\bdb\b/g,'dumbbell').replace(/\bbb\b/g,'barbell').replace(/\bkb\b/g,'kettlebell')
+    .replace(/\s+/g,' ').trim();
+}
+function stemW(w){
+  if(w.length>3&&w.slice(-3)==='ies') return w.slice(0,-3)+'y';
+  if(w.length>3&&w.slice(-2)==='es') return w.slice(0,-2);
+  if(w.length>2&&w.slice(-1)==='s') return w.slice(0,-1);
+  return w;
+}
+function toks(t){ const seen={},out=[]; normName(t).split(' ').filter(Boolean).map(stemW)
+  .forEach(w=>{ if(!seen[w]){seen[w]=1;out.push(w);} }); return out; }
+function scoreName(q,c){
+  const a=toks(q),b=toks(c); if(!a.length||!b.length) return 0;
+  const hit=(w,l)=> l.indexOf(w)>=0?1:(l.some(x=>x.indexOf(w)===0||w.indexOf(x)===0)?0.6:0);
+  let qh=0; a.forEach(w=>qh+=hit(w,b));
+  let ch=0; b.forEach(w=>ch+=hit(w,a));
+  let sc=(qh/a.length)*0.7+(ch/b.length)*0.3;
+  const as=a.join(''),bs=b.join('');
+  if(as===bs) sc=Math.max(sc,0.97);
+  else if(as.indexOf(bs)>=0||bs.indexOf(as)>=0) sc=Math.max(sc,0.9);
+  return sc;
+}
+function bestMatch(name){
+  let best=null,bs=0;
+  S.exercises.forEach(x=>{ const sc=scoreName(name,x.name); if(sc>bs){bs=sc;best=x;} });
+  return {exercise:best,score:bs};
+}
+
+/* Understands a day heading, then rows of "Name | reps | sets | rpe" separated
+   by tabs, pipes, multiple spaces, or the "3x10" shorthand. */
+function parseProgrammeText(text){
+  const lines=String(text||'').split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  const days=[]; let cur=null;
+  const dayRe=/^(day\s*\d+|week\s*\d+\s*day\s*\d+)\s*[:\-\u2013]?\s*(.*)$/i;
+  const headerRe=/^(exercise|movement)\b/i;
+  lines.forEach(line=>{
+    const dm=line.match(dayRe);
+    if(dm){ cur={title:(dm[2]||'').trim()||dm[1].trim(), exercises:[]}; days.push(cur); return; }
+    if(headerRe.test(line)) return;                       // column header row
+    if(!cur){ cur={title:'Day 1',exercises:[]}; days.push(cur); }
+    let cells=line.split(/\t|\s*\|\s*|\s{2,}/).map(c=>c.trim()).filter(Boolean);
+    let name=cells[0]||''; let reps='',sets='',rpe='';
+    if(cells.length>=3){ reps=cells[1]; sets=cells[2]; rpe=cells[3]||''; }
+    else {
+      // "3x10 @ RPE 8" or "Bench Press 4x8"
+      const m=name.match(/^(.*?)[\s\-\u2013]*(\d+)\s*[x\u00d7]\s*([\w\-\/]+)(?:.*?rpe\s*([\d\-\u2013\.]+))?/i);
+      if(m){ name=m[1].trim(); sets=m[2]; reps=m[3]; rpe=m[4]||''; }
+      else if(cells[1]){ reps=cells[1]; }
+    }
+    name=name.replace(/\s*\(s\d\)\s*/i,'').replace(/[\s:\-]+$/,'').trim();
+    if(!name || /^\d+$/.test(name)) return;
+    const group=(cells[0]||line).match(/\(s(\d)\)/i);
+    cur.exercises.push({ raw:name, sets:Number(sets)||3, reps:String(reps||''),
+      rpe:String(rpe||''), group: group?'A':'' });
+  });
+  return days.filter(d=>d.exercises.length);
+}
+
+function pasteModal(){
+  const parsed=UI.pasteParsed;
+  if(!parsed){
+    return `<div class="overlay"><div class="sheet" style="max-width:640px">
+      <div class="sh"><button class="close">\u00d7</button><h2>Paste a programme</h2>
+        <div class="m">From Trainerize, a doc, a spreadsheet or Claude</div></div>
+      <div class="sb">
+        <div class="field"><label>Template name</label><input id="pz_name" placeholder="e.g. 5 Week Upper / Lower"></div>
+        <div class="field"><label>Paste the programme</label>
+          <textarea id="pz_text" style="min-height:220px;font-family:var(--mono);font-size:12.5px" placeholder="Day 1: Upper&#10;Bench Press	8	4	7-9&#10;Single Arm DB Row	12	3	7-9&#10;&#10;Day 2: Lower&#10;Front Squat	8	4	7"></textarea></div>
+        <div class="msg">Put each day on its own line starting with "Day 1", then one exercise per line. Columns can be separated by tabs, pipes or two spaces, in the order name, reps, sets, RPE. "Bench Press 4x8" works too.</div>
+        <div id="pzMsg"></div>
+      </div>
+      <div class="sheetacts"><button class="btn" data-act="pzparse">Match exercises</button><button class="btn ghost close">Cancel</button></div>
+    </div></div>`;
+  }
+  const total=parsed.reduce((a,d)=>a+d.exercises.length,0);
+  const ok=parsed.reduce((a,d)=>a+d.exercises.filter(e=>e.match).length,0);
+  return `<div class="overlay"><div class="sheet" style="max-width:680px">
+    <div class="sh"><button class="close">\u00d7</button><h2>Check the matches</h2>
+      <div class="m">${ok} of ${total} matched \u00b7 ${parsed.length} days</div></div>
+    <div class="sb">
+      ${total>ok?`<div class="msg err">${total-ok} could not be matched. They will be added with the name in the note so you can pick the right movement afterwards.</div>`:'<div class="msg ok">Everything matched.</div>'}
+      ${parsed.map((d,di)=>`<h3 style="font-size:16px;text-transform:uppercase;margin:16px 0 8px">Day ${di+1} \u00b7 ${esc(d.title)}</h3>
+        <div class="rowlist">${d.exercises.map((e,ei)=>`<div class="rowitem">
+          <span class="rt">${esc(e.raw)}</span>
+          <span class="rm">${e.match?esc(e.match.name):'no match'}${e.score?' \u00b7 '+Math.round(e.score*100)+'%':''}</span>
+          <select data-act="pzpick" data-d="${di}" data-e="${ei}" style="max-width:190px;background:var(--raise);border:1px solid var(--line2);border-radius:8px;padding:6px;font-size:12px">
+            <option value="">\u2014 leave empty \u2014</option>
+            ${pzCandidates(e).map(c=>`<option value="${esc(c.id)}" ${e.match&&e.match.id===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}
+          </select></div>`).join('')}</div>`).join('')}
+      <div id="pzMsg"></div>
+    </div>
+    <div class="sheetacts"><button class="btn" data-act="pzsave">Create template</button>
+      <button class="btn ghost" data-act="pzback">Back</button></div>
+  </div></div>`;
+}
+function pzCandidates(e){
+  return S.exercises.map(x=>({x,sc:scoreName(e.raw,x.name)}))
+    .sort((a,b)=>b.sc-a.sc).slice(0,12).map(o=>o.x);
 }
 
 /* ---- calendar ---- */
@@ -727,7 +922,10 @@ function viewCoachCalendar(){
 /* ---- modals ---- */
 function renderModal(){
   const m=$('modal');
-  if(UI.calEvent || UI.calDate) m.innerHTML=coachEventModal();
+  if(UI.openRecipe) m.innerHTML=recipeModal();
+  else if(UI.checkinOpen) m.innerHTML=checkinModal();
+  else if(UI.pasteOpen) m.innerHTML=pasteModal();
+  else if(UI.calEvent || UI.calDate) m.innerHTML=coachEventModal();
   else if(UI.dayPlanDate) m.innerHTML=dayPlanModal();
   else if(UI.invite) m.innerHTML=inviteModal();
   else if(UI.newTpl) m.innerHTML=tplMetaModal();
@@ -747,7 +945,7 @@ function renderModal(){
 function closeModals(){
   UI.openEx=null;UI.editEx=false;UI.addEx=false;UI.addDay=null;UI.invite=false;UI.pickFor=null;UI.pickQ='';
   UI.rxFor=null;UI.calEvent=null;UI.calDate=null;UI.dayPlanDate=null;UI.newTpl=false;UI.assign=false;
-  UI.addHabit=false;UI.confirmRemove=false;
+  UI.addHabit=false;UI.confirmRemove=false;UI.openRecipe=null;UI.checkinOpen=null;UI.pasteOpen=false;
 }
 function exDetailModal(){
   const x=exById(UI.openEx); if(!x)return'';
@@ -896,8 +1094,9 @@ function rxModal(){
     <div class="sh"><button class="close">\u00d7</button><h2 style="font-size:20px">${esc(x?x.name:'Exercise')}</h2></div>
     <div class="sb">
       <div class="rxgrid"><div class="field"><label>Sets / rounds</label><input id="rx_sets" type="number" min="1" value="${esc(e.sets||e.rounds||3)}"></div>
-      <div class="field"><label>Reps</label><input id="rx_reps" value="${esc(e.reps||'')}" placeholder="8-12"></div>
-      <div class="field"><label>Work timer (s)</label><input id="rx_duration" type="number" min="0" value="${esc(e.duration||'')}"></div></div>
+      <div class="field"><label>Reps</label><input id="rx_reps" value="${esc(e.reps||'')}" placeholder="8-12 or 8/8"></div>
+      <div class="field"><label>RPE</label><input id="rx_rpe" value="${esc(e.rpe||'')}" placeholder="7-9"></div></div>
+      <div class="field"><label>Work timer (seconds, for holds and carries)</label><input id="rx_duration" type="number" min="0" value="${esc(e.duration||'')}"></div>
       <div class="fieldrow"><div class="field"><label>Group type</label><select id="rx_gtype">
         ${['straight','superset','triset','circuit'].map(v=>`<option value="${v}" ${(e.groupType||'straight')===v?'selected':''}>${v}</option>`).join('')}
       </select></div><div class="field"><label>Group ID</label><input id="rx_gid" value="${esc(e.groupId||'')}" placeholder="e.g. A"></div></div>
@@ -938,6 +1137,12 @@ document.addEventListener('change', e=>{
   const act=t.dataset.act;
   if(act==='fmuscle'){ UI.muscle=t.value; UI.shown=PAGE; render(); }
   if(act==='fequip'){ UI.equip=t.value; UI.shown=PAGE; render(); }
+  if(act==='ntag'){ UI.ntag=t.value; render(); }
+  if(act==='pzpick'){
+    const e=UI.pasteParsed[+t.dataset.d].exercises[+t.dataset.e];
+    e.match = t.value ? S.exercises.find(x=>x.id===t.value) : null;
+    e.score = e.match ? 1 : 0;
+  }
   if(act==='sched'){ const c=client(); if(!c)return;
     if(t.value) c.schedule[t.dataset.k]=t.value; else delete c.schedule[t.dataset.k];
     saveDays(); }
@@ -1019,6 +1224,39 @@ document.addEventListener('click', async e=>{
 
     /* templates */
     case 'newtpl': UI.newTpl=true; renderModal(); break;
+    case 'pasteprog': UI.pasteOpen=true; UI.pasteParsed=null; UI.pasteName=''; renderModal(); break;
+    case 'pzparse': {
+      const name=$('pz_name').value.trim(), text=$('pz_text').value;
+      if(!name){ $('pzMsg').innerHTML='<div class="msg err">Give the template a name.</div>'; break; }
+      const days=parseProgrammeText(text);
+      if(!days.length){ $('pzMsg').innerHTML='<div class="msg err">Could not find any exercises in that. Check each day starts with "Day 1".</div>'; break; }
+      days.forEach(d=>d.exercises.forEach(e=>{
+        const hit=bestMatch(e.raw);
+        // Same 0.7 floor as the script importer: below that we'd be guessing.
+        e.match = hit.score>=0.7 ? hit.exercise : null;
+        e.score = hit.score;
+      }));
+      UI.pasteName=name; UI.pasteParsed=days; renderModal(); break; }
+    case 'pzback': UI.pasteParsed=null; renderModal(); break;
+    case 'pzsave': {
+      const days=UI.pasteParsed.map((d,i)=>({
+        id:newId('day'), label:'Day '+(i+1), title:d.title||('Day '+(i+1)),
+        exercises:d.exercises.map(e=>({
+          exerciseId: e.match?e.match.id:'',
+          sets:e.sets, rounds:e.sets, reps:e.reps, rpe:e.rpe, duration:0,
+          rest:e.group?30:90, restAfterRound:e.group?30:90,
+          groupId:e.group||'', groupType:e.group?'superset':'straight',
+          note: e.match?'':('Pick a movement for: '+e.raw)
+        }))
+      }));
+      t.disabled=true; t.textContent='Creating\u2026';
+      const res=await api({action:'admin_save_template',session:SESSION,
+        template:{name:UI.pasteName,description:'Pasted '+new Date().toISOString().slice(0,10),days}});
+      if(res.ok){ S.templates.push(res.template); UI.tpl=res.template.id; closeModals(); UI.view='templates'; render(); }
+      else { t.disabled=false; t.textContent='Create template'; $('pzMsg').innerHTML='<div class="msg err">Could not save that.</div>'; }
+      break; }
+    case 'openrecipe': UI.openRecipe=t.dataset.id; renderModal(); break;
+    case 'opencheckin': UI.checkinOpen=t.dataset.id; renderModal(); break;
     case 'edittplmeta': UI.newTpl='edit'; renderModal(); break;
     case 'picktpl': UI.tpl=t.dataset.id; UI.saving=''; render(); break;
     case 'confirmtpl': {
@@ -1082,7 +1320,7 @@ document.addEventListener('click', async e=>{
     case 'addexto': UI.pickFor={ctx,i:+t.dataset.i}; UI.pickQ=''; renderModal(); break;
     case 'confirmpick': {
       const {ctx:pctx,i}=UI.pickFor;
-      ctxDays(pctx)[i].exercises.push({exerciseId:t.dataset.id,sets:3,rounds:3,reps:'10',duration:0,rest:60,note:'',groupId:'',groupType:'straight',restAfterRound:60});
+      ctxDays(pctx)[i].exercises.push({exerciseId:t.dataset.id,sets:3,rounds:3,reps:'10',rpe:'',duration:0,rest:60,note:'',groupId:'',groupType:'straight',restAfterRound:60});
       UI.pickFor=null; UI.pickQ=''; ctxSave(pctx); render(); break; }
     case 'delex': ctxDays(ctx)[+t.dataset.i].exercises.splice(+t.dataset.j,1); ctxSave(ctx); render(); break;
     case 'exup': case 'exdown': {
@@ -1093,6 +1331,7 @@ document.addEventListener('click', async e=>{
     case 'confirmrx': {
       const {ctx:rctx,i,j}=UI.rxFor; const ex=ctxDays(rctx)[i].exercises[j];
       ex.sets=+$('rx_sets').value||1; ex.rounds=ex.sets; ex.reps=$('rx_reps').value.trim();
+      ex.rpe=$('rx_rpe').value.trim();
       ex.duration=+$('rx_duration').value||0; ex.rest=+$('rx_rest').value||0;
       ex.restAfterRound=+$('rx_roundrest').value||0; ex.groupType=$('rx_gtype').value;
       ex.groupId=$('rx_gid').value.trim(); ex.note=$('rx_note').value.trim();

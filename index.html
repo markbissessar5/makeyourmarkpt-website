@@ -105,6 +105,13 @@
   .ba-tag { position: absolute; top: 14px; left: 14px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; padding: 5px 12px; z-index: 2; }
   .ba-tag.before { background: rgba(255,255,255,0.16); color: #fff; }
   .ba-tag.after { background: var(--red); color: #fff; }
+  /* Two angles for one client: front row, back row, one weeks badge for the
+     block so it reads as a single transformation rather than two clients. */
+  .ba-pair.two-angle { grid-template-columns: 1fr 1fr; gap: 3px; }
+  .ba-angle { grid-column: 1 / -1; font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 12px; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(255,255,255,0.32);
+    margin: 14px 0 4px; }
+  .ba-pair.two-angle .ba-angle:first-of-type { margin-top: 22px; }
   .ba-weeks { position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); background: var(--red); color: #fff; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 15px; letter-spacing: 0.18em; text-transform: uppercase; padding: 8px 18px; z-index: 3; white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.55); }
   .transformation-note { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin: 18px 0 0; }
   .testimonials-label { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--red); margin: 72px 0 20px; }
@@ -213,7 +220,7 @@
     #programmes, #about, #coach, #transformation, #contact { padding: 70px 20px; }
     /* "TRANSFORMATION" is one long word and overflowed a 390px viewport at the
        previous minimum size, pushing the whole page sideways. */
-    .section-title { font-size: clamp(34px, 9vw, 64px); }
+    .section-title { font-size: clamp(30px, 8vw, 64px); overflow-wrap: break-word; }
     .testimonial { padding: 26px 24px 26px 26px; }
     .nav-logo-img { height: 24px; }
     footer { padding: 24px 20px; }
@@ -370,7 +377,7 @@
 </section>
 <section id="transformation">
   <div class="section-label">Real Results</div>
-  <h2 class="section-title">8-Week<br>Transformation</h2>
+  <h2 class="section-title">8-Week<br>Transformations</h2>
   <p class="section-sub">Eight weeks apart. Full coaching — training, nutrition, and accountability — not a crash diet.</p>
   <div class="ba-stack">
     <div class="ba-pair">
@@ -381,6 +388,28 @@
       <div class="ba-item">
         <span class="ba-tag after">After</span>
         <img src="images/transformation-after.jpg" loading="lazy" decoding="async" alt="After, week eight">
+      </div>
+      <div class="ba-weeks">8 Weeks</div>
+    </div>
+
+    <div class="ba-pair two-angle">
+      <div class="ba-angle">Front</div>
+      <div class="ba-item">
+        <span class="ba-tag before">Before</span>
+        <img src="images/client2-before-front.jpg" alt="Client transformation, front view before coaching" loading="lazy" decoding="async">
+      </div>
+      <div class="ba-item">
+        <span class="ba-tag after">After</span>
+        <img src="images/client2-after-front.jpg" alt="Client transformation, front view after coaching" loading="lazy" decoding="async">
+      </div>
+      <div class="ba-angle">Back</div>
+      <div class="ba-item">
+        <span class="ba-tag before">Before</span>
+        <img src="images/client2-before-back.jpg" alt="Client transformation, back view before coaching" loading="lazy" decoding="async">
+      </div>
+      <div class="ba-item">
+        <span class="ba-tag after">After</span>
+        <img src="images/client2-after-back.jpg" alt="Client transformation, back view after coaching" loading="lazy" decoding="async">
       </div>
       <div class="ba-weeks">8 Weeks</div>
     </div>
@@ -396,6 +425,13 @@
       <p class="testimonial-body">In person, he's also excellent at quickly identifying and correcting form issues, often fixing them within a single session.</p>
       <p class="testimonial-body">On top of this, Mark is a top, top, top bloke. He's a legend who quickly becomes a mate as well as a coach.</p>
       <div class="testimonial-attr">Eoin O'Dwyer · Online &amp; In-Person Coaching</div>
+    </div>
+
+    <div class="testimonial">
+      <p class="testimonial-lead">Leaner, noticeably faster, and <span>more explosive on the field.</span></p>
+      <p class="testimonial-body">When I started training with Mark, my goal was to get back into rugby after taking a couple of years away from the sport. I had put on some weight and wanted to regain the speed, power and athleticism I'd lost. Through Mark's training programme, nutritional guidance and habit coaching, I saw exactly the results I was hoping for.</p>
+      <p class="testimonial-body">I became leaner, noticeably faster and more explosive on the field, all while building strength in a structured and sustainable way. Mark's coaching went beyond just workouts: he made sure every part of the process supported my goals, even as we were exclusively online and across the world. I'd highly recommend him to anyone looking for a knowledgeable coach who delivers real results.</p>
+      <div class="testimonial-attr">Nicholas Navarro · Online Coaching</div>
     </div>
 
     <div class="testimonial">

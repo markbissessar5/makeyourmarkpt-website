@@ -242,6 +242,65 @@
     box-shadow:0 4px 12px rgba(0,0,0,.3); cursor:pointer; z-index:9999;
   }
 
+  /* quick log: whole session on one screen */
+  .qlwrap{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column}
+  .qlhead{background:var(--black);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:14px;flex:none}
+  .qlhead .wtitle{font-family:var(--display);font-size:20px;font-weight:800;text-transform:uppercase;margin-right:auto}
+  .qlclose{font-size:26px;line-height:1;color:rgba(255,255,255,.7)}
+  .qlclose:hover{color:#fff}
+  .qlbody{flex:1;overflow-y:auto;padding:18px;-webkit-overflow-scrolling:touch}
+  .qlinner{max-width:720px;margin:0 auto}
+  .qlex{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+  .qlexhead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .qlexname{font-family:var(--display);font-weight:700;font-size:19px;text-transform:uppercase;margin-right:auto}
+  .qlexrx{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+  .qlset{display:grid;grid-template-columns:44px 1fr 1fr 34px;gap:8px;align-items:center;margin-bottom:7px}
+  .qlset .n{font-family:var(--mono);font-size:11px;color:var(--faint);text-transform:uppercase}
+  .qlset input{width:100%;background:var(--raise);border:1px solid var(--line2);border-radius:8px;padding:10px;font-size:15px;text-align:center}
+  .qlset input:focus{outline:none;border-color:var(--red)}
+  .qltick{border:1px solid var(--line2);border-radius:8px;height:38px;display:flex;align-items:center;justify-content:center;background:var(--raise)}
+  .qltick.on{background:var(--red);border-color:var(--red);color:#fff}
+  .qlcolhead{display:grid;grid-template-columns:44px 1fr 1fr 34px;gap:8px;margin-bottom:5px;
+    font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);text-align:center}
+  .qlcolhead span:first-child{text-align:left}
+  .qlfoot{flex:none;padding:14px 18px;border-top:1px solid var(--line);display:flex;gap:10px;background:var(--bg)}
+  .qlfoot .btn{flex:1}
+  .startrow{display:flex;gap:8px;flex-wrap:wrap}
+  .startrow .btn{flex:1;min-width:130px}
+  /* generic form engine (intake wizard + weekly check-in) */
+  .fsteps{display:flex;gap:6px;margin-bottom:22px}
+  .fstep{flex:1;height:3px;border-radius:2px;background:var(--line2)}
+  .fstep.done{background:var(--red)}
+  .fstitle{font-family:var(--display);font-weight:800;font-size:26px;text-transform:uppercase;margin-bottom:4px}
+  .fscount{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:20px}
+  .ffield{margin-bottom:20px}
+  .ffield > label{display:block;font-size:15px;font-weight:600;margin-bottom:3px}
+  .fhelp{font-size:13px;color:var(--muted);margin-bottom:8px}
+  .ffield input[type=text],.ffield input[type=tel],.ffield input[type=number],.ffield textarea{
+    width:100%;background:var(--panel);border:1px solid var(--line2);border-radius:9px;padding:11px 13px;font-size:15px}
+  .ffield textarea{min-height:88px;resize:vertical}
+  .ffield input:focus,.ffield textarea:focus{outline:none;border-color:var(--red)}
+  .fchoices{display:flex;flex-wrap:wrap;gap:7px}
+  .fchoice{border:1px solid var(--line2);border-radius:999px;padding:9px 16px;font-size:14px;background:var(--raise);cursor:pointer}
+  .fchoice:hover{border-color:var(--ink)}
+  .fchoice.on{background:var(--red);border-color:var(--red);color:#fff;font-weight:600}
+  /* Ten buttons must stay on one row at 390px or the scale stops reading as a
+     scale. Grid with equal fractions, no wrapping. */
+  .fscale{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
+  .fscale button{border:1px solid var(--line2);border-radius:6px;padding:10px 0;
+    font-family:var(--mono);font-size:12px;background:var(--raise);cursor:pointer;min-width:0}
+  .fscale button.on{background:var(--red);border-color:var(--red);color:#fff}
+  .fscaleends{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-top:5px}
+  .fnav{display:flex;gap:10px;align-items:center;margin-top:26px;padding-top:20px;border-top:1px solid var(--line)}
+  .fnav .sp{flex:1}
+  .freq{color:var(--red)}
+  .fdue{background:var(--panel);border:1px solid var(--red);border-radius:12px;padding:16px 18px;margin-bottom:18px;
+    display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .fdue b{font-family:var(--display);font-size:19px;text-transform:uppercase;display:block}
+  .fdue p{font-size:13.5px;color:var(--muted);margin-top:2px}
+  .fdue .sp{flex:1;min-width:20px}
+
   /* onboarding */
   .onboard{max-width:720px;margin:0 auto;padding:28px 0 60px}
   .oncard{background:var(--raise);border:1px solid var(--line);border-radius:16px;padding:24px;margin-top:18px}
@@ -411,7 +470,7 @@ const FILTER_ORDER = ['keto','high-protein','low-carb','quick'];
 let SESSION = null;
 let S = { name:'', workoutHtml:'', days:[], schedule:{}, programmeName:'', exlib:[], recipes:[],
           week:{}, dateMeals:{}, checked:{}, habitLog:{}, onboarding:{}, events:[], dailyPlans:{},
-          targets:{}, habits:[], workoutLogs:[], checkins:[] };
+          targets:{}, habits:[], workoutLogs:[], checkins:[], forms:{intake:[],checkin:[]} };
 let UI = { view:'today', search:'', filter:'', openId:null, detServings:null, pickDay:null, addRecipe:null, weekOffset:0, eventEdit:null, eventDate:null, progWeek:0 };
 let COOK = null;
 let WORK = null;
@@ -479,6 +538,7 @@ async function loadData(){
   S.targets = res.targets || {};
   S.habits = res.habits || [];
   S.onboarding = res.onboarding || {};
+  S.forms = res.forms || { intake:[], checkin:[] };
   S.events = res.events || [];
   S.dailyPlans = res.dailyPlans || {};
   DAYS.forEach(d=>{ if(!Array.isArray(S.week[d])) S.week[d] = []; });
@@ -581,16 +641,255 @@ function renderOnboarding(){
     return;
   }
   const p=S.onboarding.profile||{};
-  v.innerHTML=`<div class="onboard"><div class="eyebrow">Set up your profile</div><h1>Tell Mark what matters</h1>
-    <p class="sub">This information helps Mark programme safely and tailor your coaching.</p>
+  const steps=(S.forms&&S.forms.intake)||[];
+  if(!steps.length){
+    v.innerHTML='<div class="onboard"><div class="empty">Loading your intake form\u2026</div></div>';
+    return;
+  }
+  openForm('intake', steps, p, {
+    title:'Set up your profile',
+    submitLabel:'Save and enter portal',
+    onDone: saveIntake
+  });
+}
+
+async function saveIntake(values){
+  const box=$('formMsg'); box.innerHTML='<div class="msg">Saving\u2026</div>';
+  // Mirror the fields the coach app and the agreement record already expect, so
+  // the intake feeds the existing columns rather than sitting in a silo.
+  const profile=Object.assign({}, values, {
+    phone: values.phone||'',
+    emergency: values.emergency||'',
+    medical: [values.currentInjuries, values.pastInjuries, values.dietary]
+              .filter(Boolean).join('\n\n'),
+    goals: [(Array.isArray(values.goals)?values.goals.join(', '):''), values.goalsOther,
+            values.specificGoal, values.success36].filter(Boolean).join('\n')
+  });
+  const res=await api({action:'save_profile',session:SESSION,profile});
+  if(!res.ok){box.innerHTML='<div class="msg err">We could not save that. Try again.</div>';return;}
+  S.onboarding.profileRequired=false; S.onboarding.profile=profile; FORM=null; render();
+}
+
+
+/* ============ FORM ENGINE ============
+   One renderer for both the intake wizard and the weekly check-in. The field
+   definitions come from Portal.gs, so a question only ever gets worded once and
+   the coach app can label the answers from the same source. */
+let FORM = null;   // {kind, steps, step, values, onDone, title}
+
+function openForm(kind, steps, values, opts){
+  FORM = Object.assign({ kind, steps, step:0, values: Object.assign({}, values||{}) }, opts||{});
+  renderForm();
+}
+function closeForm(){ FORM=null; render(); }
+
+function formVisible(f){
+  if(!f.showIf) return true;
+  return String(FORM.values[f.showIf.field]||'') === String(f.showIf.equals);
+}
+
+function fieldHtml(f){
+  const v = FORM.values[f.id];
+  const req = f.required ? ' <span class="freq">*</span>' : '';
+  let input='';
+  if(f.type==='choice'){
+    input = `<div class="fchoices">${f.options.map(o=>
+      `<button type="button" class="fchoice ${String(v)===o?'on':''}" data-act="fset" data-f="${esc(f.id)}" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+  } else if(f.type==='multi'){
+    const arr = Array.isArray(v)?v:[];
+    input = `<div class="fchoices">${f.options.map(o=>
+      `<button type="button" class="fchoice ${arr.includes(o)?'on':''}" data-act="ftoggle" data-f="${esc(f.id)}" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+  } else if(f.type==='scale'){
+    let b='';
+    for(let n=1;n<=10;n++) b+=`<button type="button" class="${String(v)===String(n)?'on':''}" data-act="fset" data-f="${esc(f.id)}" data-v="${n}">${n}</button>`;
+    input = `<div class="fscale">${b}</div><div class="fscaleends"><span>${esc(f.lowLabel||'Low')}</span><span>${esc(f.highLabel||'High')}</span></div>`;
+  } else if(f.type==='textarea'){
+    input = `<textarea data-act="finput" data-f="${esc(f.id)}" placeholder="${esc(f.placeholder||'')}">${esc(v||'')}</textarea>`;
+  } else {
+    const t = f.type==='number'?'number':(f.type==='tel'?'tel':'text');
+    input = `<input type="${t}" inputmode="${t==='number'?'decimal':'text'}" data-act="finput" data-f="${esc(f.id)}" value="${esc(v==null?'':v)}">`;
+  }
+  return `<div class="ffield"><label>${esc(f.label)}${req}</label>
+    ${f.help?`<div class="fhelp">${esc(f.help)}</div>`:''}${input}</div>`;
+}
+
+function renderForm(){
+  const st = FORM.steps[FORM.step];
+  const last = FORM.step === FORM.steps.length-1;
+  $('nav').innerHTML='';
+  $('view').innerHTML = `<div class="onboard">
+    <div class="fsteps">${FORM.steps.map((_,i)=>`<span class="fstep ${i<=FORM.step?'done':''}"></span>`).join('')}</div>
+    <div class="eyebrow">${esc(FORM.title||'')}</div>
+    <div class="fstitle">${esc(st.title)}</div>
+    <div class="fscount">Step ${FORM.step+1} of ${FORM.steps.length}</div>
     <div class="oncard">
-      <div class="field"><label>Mobile number</label><input id="p_phone" value="${esc(p.phone||'')}" autocomplete="tel"></div>
-      <div class="field"><label>Date of birth</label><input id="p_dob" type="date" value="${esc(p.dob||'')}"></div>
-      <div class="field"><label>Emergency contact</label><input id="p_emergency" value="${esc(p.emergency||'')}" placeholder="Name and phone number"></div>
-      <div class="field"><label>Injuries, medical considerations or dietary restrictions</label><textarea id="p_medical" placeholder="Include anything Mark should know before programming.">${esc(p.medical||'')}</textarea></div>
-      <div class="field"><label>Primary sport and current goals</label><textarea id="p_goals" placeholder="e.g. rugby, improve speed and strength before next season">${esc(p.goals||'')}</textarea></div>
-      <div id="onMsg"></div><button class="btn" data-act="saveprofile">Save and enter portal</button>
+      ${st.fields.filter(formVisible).map(fieldHtml).join('')}
+      <div id="formMsg"></div>
+      <div class="fnav">
+        ${FORM.step>0?`<button class="btn ghost" data-act="fback">Back</button>`:
+          (FORM.cancellable?`<button class="btn ghost" data-act="fcancel">Cancel</button>`:'')}
+        <span class="sp"></span>
+        <button class="btn" data-act="${last?'fsubmit':'fnext'}">${last?(FORM.submitLabel||'Submit'):'Next'}</button>
+      </div>
     </div></div>`;
+  window.scrollTo(0,0);
+}
+
+/* Required fields are enforced per step, so nobody reaches the end and gets
+   bounced back four screens. Hidden conditional fields are never required. */
+function validateStep(){
+  const st = FORM.steps[FORM.step];
+  const missing = st.fields.filter(formVisible).filter(f=>{
+    if(!f.required) return false;
+    const v = FORM.values[f.id];
+    if(Array.isArray(v)) return !v.length;
+    return v===undefined || v===null || String(v).trim()==='';
+  });
+  if(!missing.length) return true;
+  $('formMsg').innerHTML = `<div class="msg err">Please answer: ${missing.map(f=>esc(f.label)).join(', ')}</div>`;
+  return false;
+}
+
+
+
+/* ============ QUICK LOG ============
+   Mark's actual complaint was picking the phone up between every set. This is
+   the whole session on one screen: do the work, fill the grid whenever, save
+   once. Writes the same workout log as the guided runner. */
+let QL = null;
+
+function startQuickLog(dayId, date){
+  const day=S.days.find(d=>d.id===dayId); if(!day) return;
+  QL={
+    day, date: date||todayISO(), startedAt:new Date(),
+    rows:(day.exercises||[]).map(e=>{
+      const n=Math.max(1, Number(e.sets)||Number(e.rounds)||1);
+      return { rx:e, sets:Array.from({length:n},()=>({reps:'',weight:'',done:false})) };
+    })
+  };
+  renderQuickLog();
+}
+function closeQuickLog(){ QL=null; renderQuickLog(); render(); }
+
+function renderQuickLog(){
+  // Same lazily-created host as the guided runner, so only one of the two can
+  // ever be on screen.
+  let root=$('quickLog');
+  if(!root){ root=document.createElement('div'); root.id='quickLog'; document.body.appendChild(root); }
+  if(!QL){ root.innerHTML=''; document.body.style.overflow=''; return; }
+  document.body.style.overflow='hidden';
+  const total=QL.rows.reduce((a,r)=>a+r.sets.length,0);
+  const done=QL.rows.reduce((a,r)=>a+r.sets.filter(x=>x.done).length,0);
+  root.innerHTML=`<div class="qlwrap"><div class="qlhead">
+      <button class="qlclose" data-act="closequicklog">\u00d7</button>
+      <div class="wtitle">${esc(QL.day.title||QL.day.label)}</div>
+      <div class="wrprogress">${done}/${total}</div>
+    </div>
+    <div class="qlbody"><div class="qlinner">
+      ${QL.rows.map((r,i)=>{
+        const x=wxById(r.rx.exerciseId)||{};
+        return `<div class="qlex">
+          <div class="qlexhead">
+            <span class="qlexname">${esc(x.name||'Exercise')}</span>
+            <span class="qlexrx">${esc(rxText(r.rx))}</span>
+          </div>
+          <div class="qlcolhead"><span>Set</span><span>Reps</span><span>Weight</span><span></span></div>
+          ${r.sets.map((st,j)=>`<div class="qlset">
+            <span class="n">${j+1}</span>
+            <input inputmode="numeric" data-act="qlreps" data-i="${i}" data-j="${j}" value="${esc(st.reps)}" placeholder="${esc(r.rx.reps||'')}">
+            <input inputmode="decimal" data-act="qlweight" data-i="${i}" data-j="${j}" value="${esc(st.weight)}" placeholder="kg">
+            <button class="qltick ${st.done?'on':''}" data-act="qldone" data-i="${i}" data-j="${j}">\u2713</button>
+          </div>`).join('')}
+          ${r.rx.note?`<div class="wxnote">${esc(r.rx.note)}</div>`:''}
+        </div>`;}).join('')}
+    </div></div>
+    <div class="qlfoot">
+      <button class="btn ghost" data-act="closequicklog">Cancel</button>
+      <button class="btn" data-act="qlfinish">Finish and save</button>
+    </div></div>`;
+}
+
+async function finishQuickLog(){
+  const anyEntry=QL.rows.some(r=>r.sets.some(st=>st.done||st.reps||st.weight));
+  if(!anyEntry){ closeQuickLog(); return; }
+  const data={};
+  QL.rows.forEach((r,i)=>{
+    const x=wxById(r.rx.exerciseId)||{};
+    data[i]={ name:x.name||'', rx:rxText(r.rx),
+      sets:r.sets.map(st=>({reps:st.reps,weight:st.weight,done:!!st.done})) };
+  });
+  const log={
+    sessionId:QL.day.id, sessionDate:QL.date, title:QL.day.title||QL.day.label,
+    startedAt:QL.startedAt.toISOString(), completedAt:new Date().toISOString(),
+    status:'completed', duration:Math.round((Date.now()-QL.startedAt.getTime())/1000),
+    data, mode:'quicklog'
+  };
+  const res=await api({action:'save_workout_log',session:SESSION,log});
+  if(res && res.ok) S.workoutLogs.unshift(Object.assign({id:res.id},log));
+  QL=null; renderQuickLog(); render();
+}
+
+/* ---- weekly check-in ---- */
+function lastFullCheckin(){ return S.checkins.find(c=>c.full); }
+function daysSinceCheckin(){
+  const last=lastFullCheckin();
+  if(!last) return 999;
+  return Math.floor((new Date(todayISO()+'T12:00:00') - new Date(last.date+'T12:00:00'))/86400000);
+}
+function checkinDue(){ return daysSinceCheckin() >= 7; }
+
+function sessionsThisWeek(){
+  const start=startOfWeek(0);
+  const from=localDateISO(start);
+  return S.workoutLogs.filter(l=>l.status==='completed' && String(l.sessionDate||'')>=from).length;
+}
+
+function checkinPrompt(){
+  if(!checkinDue() || UI.checkinDismissed) return '';
+  const last=lastFullCheckin();
+  return `<div class="fdue">
+    <div><b>Weekly check-in</b><p>${last?('Last one was '+daysSinceCheckin()+' days ago.'):'You haven\u2019t done one yet.'} Takes about three minutes and shapes next week\u2019s programme.</p></div>
+    <span class="sp"></span>
+    <button class="btn" data-act="startcheckin">Start check-in</button>
+    <button class="btn ghost sm" data-act="dismisscheckin">Later</button>
+  </div>`;
+}
+
+function startCheckin(){
+  const steps=(S.forms&&S.forms.checkin)||[];
+  if(!steps.length) return;
+  const today=todayISO();
+  const existing=S.checkins.find(c=>c.date===today)||{};
+  const seed=Object.assign({}, existing.answers||{}, {
+    weight: existing.weight||'',
+    sessions: existing.sessions||sessionsThisWeek(),
+    trainingRating: existing.trainingRating||'',
+    pain: existing.pain||'', sleep: existing.sleep||'', stress: existing.stress||'',
+    energy: existing.energy||'', confidence: existing.confidence||'',
+    happy: existing.happy||'', note: existing.note||''
+  });
+  openForm('checkin', steps, seed, {
+    title:'Weekly check-in', submitLabel:'Send to Mark', cancellable:true, onDone: saveCheckinForm
+  });
+}
+
+async function saveCheckinForm(values){
+  const box=$('formMsg'); box.innerHTML='<div class="msg">Sending\u2026</div>';
+  // Anything with a `column` in the definition goes to its own sheet column; the
+  // rest travels as answers JSON. One source of truth, no duplicated field list.
+  const cols={}, answers={};
+  (S.forms.checkin||[]).forEach(st=>st.fields.forEach(f=>{
+    const v=values[f.id];
+    if(v===undefined||v===null||String(v)==='') return;
+    if(f.column) cols[f.column]=v; else answers[f.id]=v;
+    answers[f.id]=v;
+  }));
+  const payload=Object.assign({date:todayISO(), answers}, cols);
+  const res=await api({action:'save_checkin',session:SESSION,checkin:payload});
+  if(!res.ok){box.innerHTML='<div class="msg err">Could not send that. Try again.</div>';return;}
+  const i=S.checkins.findIndex(c=>c.date===res.checkin.date);
+  if(i>=0) S.checkins[i]=res.checkin; else S.checkins.unshift(res.checkin);
+  FORM=null; UI.checkinDismissed=false; UI.view='today'; render();
 }
 
 async function acceptAgreement(){
@@ -629,10 +928,16 @@ function embedFor(url){
 function fmtDate(iso){ if(!iso)return''; const d=new Date(iso+'T12:00:00');
   return d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'}); }
 function isPastDay(iso){ const t=new Date(); t.setHours(0,0,0,0); return new Date(iso+'T12:00:00') < t; }
-function isToday(iso){ return iso===new Date().toISOString().slice(0,10); }
+/* toISOString() is UTC. In Sydney that is the previous calendar day until about
+   10am, so "today" was resolving to yesterday for anyone training in the
+   morning. Everything date-related goes through the local helper. */
+function todayISO(){ return localDateISO(new Date()); }
+function isToday(iso){ return iso===todayISO(); }
 function rxText(e){
   const bits=[];
   if(e.sets&&e.reps) bits.push(e.sets+'\u00d7'+e.reps); else if(e.sets) bits.push(e.sets+' sets'); else if(e.reps) bits.push(e.reps+' reps');
+  if(e.duration) bits.push(e.duration+'s');
+  if(e.rpe) bits.push('RPE '+e.rpe);
   if(e.rest) bits.push(e.rest+'s rest');
   return bits.join(' \u00b7 ');
 }
@@ -713,6 +1018,7 @@ function viewToday(){
   timeline.sort((a,b)=>String(a.time).localeCompare(String(b.time)));
   return `<div class="head"><div class="eyebrow">Today</div><h1>Your performance day</h1>
     <p class="sub">Training, sport, nutrition and recovery in one place.</p></div>
+    ${checkinPrompt()}
     <div class="todaygrid"><section class="daypanel">
       <div class="datehero"><div><div class="bigdate">${dateLabel(date,{weekday:'long'})}</div><div class="full">${dateLabel(date,{day:'numeric',month:'long',year:'numeric'})}</div></div>
       <button class="btn sm" data-act="addevent" data-date="${date}">+ Add event</button></div>
@@ -753,7 +1059,8 @@ function checkinBlock(date){
       <button class="btn sm" data-act="savecheckin" data-date="${date}">Log</button>
     </div>
     <div class="checkinrow"><input id="ci_note" placeholder="How are you feeling?" value="${esc(today.note||'')}"></div>
-    <div id="ciMsg"></div></div>`;
+    <div id="ciMsg"></div>
+    <button class="btn ghost sm" data-act="startcheckin" style="margin-top:10px;width:100%">Full weekly check-in</button></div>`;
 }
 function viewCalendar(){
   const start=startOfWeek(UI.weekOffset), dates=[]; for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);dates.push(localDateISO(d));}
@@ -835,7 +1142,8 @@ function viewWorkouts(){
       <span class="dd">${isToday(date)?'Today':dateLabel(date,{weekday:'short',day:'numeric'})}</span>
       <span class="dt">${esc(day.title||day.label)}</span>
       <span class="dm">${(day.exercises||[]).length} exercise${(day.exercises||[]).length===1?'':'s'}${done?' · done':''}</span>
-      ${(day.exercises||[]).length?`<button class="btn sm" data-act="startworkout" data-day="${esc(day.id)}" data-date="${date}">${done?'Repeat':'▶ Start'}</button>`:''}
+      ${(day.exercises||[]).length?`<button class="btn sm" data-act="startworkout" data-day="${esc(day.id)}" data-date="${date}">${done?'Repeat':'▶ Start'}</button>
+      <button class="btn ghost sm" data-act="quicklog" data-day="${esc(day.id)}" data-date="${date}">Log</button>`:''}
     </div>`;
   }).join('');
 
@@ -852,7 +1160,10 @@ function viewWorkouts(){
         <span class="wsessdate">${esc(day.label)}${on?' · '+esc(on):''}</span>
         <span class="wsesstitle">${esc(day.title||day.label)}</span>
       </div>${lines||'<div class="wxnote">Details to follow.</div>'}
-      ${lines?`<button class="btn startworkout" data-act="startworkout" data-day="${esc(day.id)}" data-date="${localDateISO(new Date())}">▶ Start this session</button>`:''}</div>`;
+      ${lines?`<div class="startrow">
+        <button class="btn" data-act="startworkout" data-day="${esc(day.id)}" data-date="${localDateISO(new Date())}">▶ Train with me</button>
+        <button class="btn ghost" data-act="quicklog" data-day="${esc(day.id)}" data-date="${localDateISO(new Date())}">Log workout</button>
+      </div>`:''}</div>`;
   };
 
   const recent=S.workoutLogs.slice(0,5).map(l=>`<div class="dayrow"><span class="dd">${esc((l.completedAt||'').slice(0,10))}</span>
@@ -1152,7 +1463,7 @@ function renderWorkout(){
   root.innerHTML=`<div class="workrunner"><div class="wrhead"><button class="wrclose" data-act="closeworkout">×</button><div class="wtitle">${esc(WORK.session.title)}</div><div class="wrprogress">${WORK.index+1}/${WORK.sequence.length}</div></div>
     <div class="wrbody"><div class="wrcard"><div class="wrblock">${groupName}${st.group.type!=='straight'?' · Round '+st.round+' of '+st.rounds:''}</div>
       <div class="wrexname">${esc(x.name||'Exercise')}</div><div class="wrset">Set ${st.round} of ${st.rounds}</div>
-      <div class="wrrx">${rx.duration?clock(rx.duration):esc(rx.reps||'')} ${rx.duration?'work':'reps'}${rx.note?' · '+esc(rx.note):''}</div>
+      <div class="wrrx">${rx.duration?clock(rx.duration):esc(rx.reps||'')} ${rx.duration?'work':'reps'}${rx.rpe?' · RPE '+esc(rx.rpe):''}${rx.note?' · '+esc(rx.note):''}</div>
       ${exerciseAnim(x,rx)}
       ${cues.short?`<div class="wrshort">${esc(cues.short)}</div>`:''}
       ${cues.rest?`<details class="wrcues"><summary>Full instructions</summary><p>${esc(cues.rest)}</p></details>`:''}
@@ -1214,6 +1525,16 @@ function beep(){ try{ audioCtx=audioCtx||new(window.AudioContext||window.webkitA
     setTimeout(ring,520); }; ring(); }catch(e){} }
 
 /* ============ EVENTS ============ */
+document.addEventListener('input', e=>{
+  const ft=e.target.closest('[data-act="finput"]');
+  if(ft && FORM){ FORM.values[ft.dataset.f]=ft.value; return; }
+  const q=e.target.closest('[data-act="qlreps"],[data-act="qlweight"]');
+  if(q && QL){
+    const st=QL.rows[+q.dataset.i].sets[+q.dataset.j];
+    if(q.dataset.act==='qlreps') st.reps=q.value; else st.weight=q.value;
+    return;
+  }
+});
 document.addEventListener('click', async e=>{
   if(e.target.classList.contains('overlay')||e.target.classList.contains('close')){
     UI.openId=null; UI.pickDay=null; UI.addRecipe=null; UI.openWx=null; UI.eventEdit=null; UI.eventDate=null; renderModal(); return; }
@@ -1247,6 +1568,26 @@ document.addEventListener('click', async e=>{
       UI.openWx={id:t.dataset.id,rx:rx}; renderModal(); break; }
     case 'cook': startCook(t.dataset.id); break;
     case 'startworkout': startWorkout(t.dataset.day,t.dataset.date); break;
+    case 'quicklog': startQuickLog(t.dataset.day,t.dataset.date); break;
+    case 'closequicklog': closeQuickLog(); break;
+    case 'qldone': {
+      const st=QL.rows[+t.dataset.i].sets[+t.dataset.j];
+      st.done=!st.done;
+      if(st.done && !st.reps) st.reps=QL.rows[+t.dataset.i].rx.reps||'';
+      renderQuickLog(); break; }
+    case 'qlfinish': await finishQuickLog(); break;
+    case 'startcheckin': startCheckin(); break;
+    case 'dismisscheckin': UI.checkinDismissed=true; render(); break;
+    case 'fset': FORM.values[t.dataset.f]=t.dataset.v; renderForm(); break;
+    case 'ftoggle': {
+      const cur=Array.isArray(FORM.values[t.dataset.f])?FORM.values[t.dataset.f]:[];
+      const i=cur.indexOf(t.dataset.v);
+      FORM.values[t.dataset.f] = i>=0 ? cur.filter(x=>x!==t.dataset.v) : cur.concat([t.dataset.v]);
+      renderForm(); break; }
+    case 'fnext': if(validateStep()){ FORM.step++; renderForm(); } break;
+    case 'fback': FORM.step--; renderForm(); break;
+    case 'fcancel': closeForm(); break;
+    case 'fsubmit': if(validateStep()) await FORM.onDone(FORM.values); break;
     case 'progprev': UI.progWeek--; render(); break;
     case 'prognext': UI.progWeek++; render(); break;
     case 'progthis': UI.progWeek=0; render(); break;
