@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8 Week Challenge — Make Your Mark Performance Coaching</title>
+<meta name="description" content="Eight weeks, a structured programme, a recipe bank and a weekly meetup. Train with a group, not on your own.">
+<link rel="icon" href="images/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --red:#c8102e; --red-dark:#a00d24; --black:#000; --off-black:#0d0d0d; --dark:#111;
+         --mid:#1a1a1a; --white:#fff; --gray:#888; --light-gray:#ccc; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{overflow-x:hidden;scroll-behavior:smooth}
+  body{background:var(--black);color:var(--white);font-family:'Barlow',system-ui,sans-serif;
+       font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  h1,h2,h3,.cd{font-family:'Barlow Condensed',system-ui,sans-serif;text-transform:uppercase;line-height:.95}
+  ::selection{background:var(--red);color:#fff}
+
+  nav{position:sticky;top:0;z-index:40;background:rgba(0,0,0,.92);backdrop-filter:blur(8px);
+      border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:16px;padding:0 32px;height:70px}
+  .nav-logo{display:flex;align-items:center;margin-right:auto}
+  .nav-logo img{height:40px}
+  .nav-actions{display:flex;align-items:center;gap:22px}
+  .nav-login{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:.12em;
+      text-transform:uppercase;color:rgba(255,255,255,.7);text-decoration:none;white-space:nowrap}
+  .nav-login:hover{color:#fff}
+  .nav-cta{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:.12em;
+      text-transform:uppercase;background:var(--red);color:#fff;border:none;padding:10px 24px;
+      cursor:pointer;text-decoration:none;transition:background .2s}
+  .nav-cta:hover{background:var(--red-dark)}
+
+  section{padding:96px 32px}
+  .wrap{max-width:1080px;margin:0 auto}
+  .eyebrow{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.3em;
+      text-transform:uppercase;color:var(--red);margin-bottom:12px}
+  h1{font-weight:900;font-size:clamp(46px,9vw,110px)}
+  h1 .thin{display:block;font-weight:700;font-size:.42em;letter-spacing:.02em;color:var(--light-gray);margin-top:14px}
+  h2{font-weight:900;font-size:clamp(30px,5vw,54px);margin-bottom:18px}
+  .lede{font-size:clamp(17px,2vw,20px);color:var(--light-gray);max-width:60ch;margin-top:22px}
+
+  .hero{background:linear-gradient(180deg,#141414 0%,var(--black) 100%);padding-top:80px}
+  .price{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:34px 0 8px}
+  .price b{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:64px;line-height:.9}
+  .price span{color:var(--gray);font-size:15px}
+  .startline{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.2em;
+      text-transform:uppercase;font-size:14px;color:var(--red)}
+  .herobtns{display:flex;gap:12px;flex-wrap:wrap;margin-top:34px}
+  .btn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;letter-spacing:.1em;
+      text-transform:uppercase;background:var(--red);color:#fff;border:none;padding:16px 34px;
+      cursor:pointer;text-decoration:none;display:inline-block;transition:background .2s}
+  .btn:hover{background:var(--red-dark)}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.25)}
+  .btn.ghost:hover{background:rgba(255,255,255,.07)}
+  .btn:disabled{opacity:.5;cursor:default}
+
+  .grid{display:grid;gap:3px;margin-top:44px}
+  @media(min-width:760px){.grid.c2{grid-template-columns:1fr 1fr}.grid.c4{grid-template-columns:repeat(4,1fr)}}
+  .card{background:var(--off-black);padding:34px 32px;border-top:2px solid var(--red)}
+  .card h3{font-weight:700;font-size:23px;margin-bottom:10px}
+  .card p{color:var(--light-gray);font-size:15.5px}
+  .num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:46px;color:var(--red);line-height:1}
+  .num+span{display:block;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);margin-top:6px}
+
+  .weeks{border-left:2px solid rgba(255,255,255,.12);padding-left:28px;margin-top:40px}
+  .wk{padding:18px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+  .wk b{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+      font-size:12px;color:var(--red);display:block;margin-bottom:3px}
+  .wk span{color:var(--light-gray)}
+
+  #join{background:var(--off-black)}
+  .form{max-width:520px;margin-top:32px}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;
+      letter-spacing:.18em;text-transform:uppercase;color:var(--gray);margin-bottom:7px}
+  .field input{width:100%;background:var(--mid);border:1px solid rgba(255,255,255,.14);color:#fff;
+      padding:15px 17px;font-size:16px;font-family:inherit}
+  .field input:focus{outline:none;border-color:var(--red)}
+  .msg{margin-top:18px;padding:15px 18px;font-size:15px;border-left:3px solid}
+  .msg.ok{background:rgba(40,120,40,.12);border-color:#3a8f3a;color:#bfe6bf}
+  .msg.err{background:rgba(200,16,46,.1);border-color:var(--red);color:#f0b8c0}
+  .small{font-size:13.5px;color:var(--gray);margin-top:14px}
+
+  footer{border-top:1px solid rgba(255,255,255,.08);padding:30px 32px;display:flex;
+      align-items:center;gap:22px;flex-wrap:wrap}
+  footer img{height:46px;opacity:.85}
+  .flinks{display:flex;gap:24px;margin-left:auto;flex-wrap:wrap}
+  .flinks a{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.14em;
+      text-transform:uppercase;color:rgba(255,255,255,.45);text-decoration:none}
+  .flinks a:hover{color:var(--red)}
+  .fcopy{font-size:13px;color:rgba(255,255,255,.25);width:100%}
+
+  @media(max-width:760px){
+    nav{padding:0 14px;gap:10px}
+    .nav-logo img{height:24px}
+    .nav-actions{gap:12px}
+    .nav-login{font-size:13px;letter-spacing:.06em}
+    .nav-cta{font-size:13px;letter-spacing:.06em;padding:9px 14px}
+    section{padding:64px 20px}
+    footer{padding:24px 20px}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="/"><img src="images/logo-lockup.png" alt="Make Your Mark Performance Coaching"></a>
+  <div class="nav-actions">
+    <a class="nav-login" href="/portal.html">Log In</a>
+    <a class="nav-cta" href="#join">Join</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Make Your Mark</div>
+    <h1>8 Week<br>Challenge<span class="thin">Train with a group, not on your own.</span></h1>
+    <p class="lede">A structured eight-week programme, the full recipe bank, a leaderboard, and a
+      session outdoors together every week. Built for people who train better with other people around.</p>
+    <div class="price"><b>$20</b><span>per week &middot; eight weeks</span></div>
+    <div class="startline" id="startLine">Next cohort starting soon</div>
+    <div class="herobtns">
+      <a class="btn" href="#join">Join the next cohort</a>
+      <a class="btn ghost" href="#what">What you get</a>
+    </div>
+  </div>
+</section>
+
+<section id="what">
+  <div class="wrap">
+    <div class="eyebrow">What you get</div>
+    <h2>Everything you need,<br>nothing you don't</h2>
+    <div class="grid c2">
+      <div class="card"><h3>A real programme</h3>
+        <p>Eight weeks of progressive training in the app, with video demos and coaching cues on every
+        movement. Log your sets as you go, or follow along set by set.</p></div>
+      <div class="card"><h3>The recipe bank</h3>
+        <p>Every recipe Mark uses with his coaching clients, with calories and protein per serving, plus
+        a weekly planner and a shopping list that builds itself.</p></div>
+      <div class="card"><h3>The leaderboard</h3>
+        <p>Points for completed workouts and daily steps. Workouts count for more, because turning up is
+        the thing that actually moves the needle.</p></div>
+      <div class="card"><h3>A weekly meetup</h3>
+        <p>Something different every week. Beach volleyball, an outdoor session, yoga in the park. Come
+        for the training, stay because you know people.</p></div>
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--off-black)">
+  <div class="wrap">
+    <div class="grid c4">
+      <div class="card"><div class="num">8</div><span>Weeks</span></div>
+      <div class="card"><div class="num">$20</div><span>Per week</span></div>
+      <div class="card"><div class="num">4</div><span>Sessions a week</span></div>
+      <div class="card"><div class="num">8</div><span>Meetups</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">How it runs</div>
+    <h2>Eight weeks,<br>one group</h2>
+    <div class="weeks">
+      <div class="wk"><b>Before you start</b><span>You get portal access, your programme is loaded, and you meet the group.</span></div>
+      <div class="wk"><b>Weeks 1 to 3</b><span>Build the habit. Four sessions a week, learn the movements properly, get your food sorted.</span></div>
+      <div class="wk"><b>Weeks 4 to 6</b><span>Load goes up. This is where the leaderboard starts to matter and the group carries you.</span></div>
+      <div class="wk"><b>Weeks 7 and 8</b><span>Push to the end, and decide where you take it next.</span></div>
+    </div>
+    <p class="small">Everyone starts on the same day, so you're going through it alongside the same people
+      the whole way. If you sign up after a cohort has begun, you go on the list for the next one.</p>
+  </div>
+</section>
+
+<section id="join">
+  <div class="wrap">
+    <div class="eyebrow">Join</div>
+    <h2>Sign up for<br>the next cohort</h2>
+    <p class="lede">Pop your details in and Mark will be in touch to sort payment and get you set up
+      before the start date.</p>
+    <div class="form">
+      <div class="field"><label for="cName">Full name</label>
+        <input id="cName" autocomplete="name" placeholder="Your name"></div>
+      <div class="field"><label for="cEmail">Email address</label>
+        <input id="cEmail" type="email" autocomplete="email" placeholder="you@email.com"></div>
+      <button class="btn" id="joinBtn">Sign me up</button>
+      <div id="joinMsg"></div>
+      <p class="small">No payment taken here. Mark confirms your spot and sorts payment directly with you.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <img src="images/logo-badge.png" alt="Make Your Mark Performance Coaching">
+  <div class="flinks">
+    <a href="/">Coaching</a>
+    <a href="/portal.html">Client Login</a>
+    <a href="/#contact">Contact</a>
+  </div>
+  <div class="fcopy">&copy; 2026 makeyourmarkpt.com &middot; Sydney, Australia</div>
+</footer>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbyD8fPljDiT_HGMfxRGbPK7lQTyM82iWnu6s2hmu7CzmGgFfopLZ6DCwOn4Nf5ylKAEkg/exec';
+const $ = id => document.getElementById(id);
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function api(p){ const r = await fetch(API,{method:'POST',body:JSON.stringify(p)}); return await r.json(); }
+
+/* The start date is read from the Challenges sheet so Mark changes it in one
+   place and the page follows, rather than it being hardcoded here. */
+(async function loadChallenge(){
+  try{
+    const res = await api({ action:'challenge_info' });
+    if(res && res.ok && res.challenge && res.challenge.startDate){
+      const c = res.challenge;
+      const d = new Date(c.startDate + 'T12:00:00');
+      const nice = d.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long'});
+      const days = Math.ceil((d - new Date())/86400000);
+      $('startLine').textContent = c.week > 0
+        ? (c.name + ' is under way \u00b7 week ' + c.week + ' of ' + c.weeks + ' \u00b7 join the next cohort')
+        : (days > 0 ? ('Starts ' + nice + ' \u00b7 ' + days + ' day' + (days===1?'':'s') + ' to go')
+                    : ('Starts ' + nice));
+    }
+  }catch(e){}
+})();
+
+async function join(){
+  const name = $('cName').value.trim();
+  const email = $('cEmail').value.trim();
+  const box = $('joinMsg'), btn = $('joinBtn');
+  if(name.length < 2 || email.indexOf('@') < 1){
+    box.innerHTML = '<div class="msg err">Enter your name and a valid email address.</div>'; return;
+  }
+  btn.disabled = true; btn.textContent = 'Sending\u2026';
+  try{
+    const res = await api({ action:'challenge_signup', name, email });
+    if(res && res.ok){
+      box.innerHTML = '<div class="msg ok">You\u2019re on the list. Mark will email you to confirm your spot and sort payment before the cohort starts.</div>';
+      $('cName').value = ''; $('cEmail').value = '';
+      btn.textContent = 'Sent';
+      return;
+    }
+    box.innerHTML = '<div class="msg err">' +
+      (res && res.error === 'no_challenge'
+        ? 'There\u2019s no cohort open right now. Email mark@makeyourmarkpt.com and he\u2019ll add you to the list.'
+        : 'That didn\u2019t go through. Try again, or email mark@makeyourmarkpt.com.') + '</div>';
+  }catch(e){
+    box.innerHTML = '<div class="msg err">That didn\u2019t go through. Try again, or email mark@makeyourmarkpt.com.</div>';
+  }
+  btn.disabled = false; btn.textContent = 'Sign me up';
+}
+$('joinBtn').addEventListener('click', join);
+$('cEmail').addEventListener('keydown', e => { if(e.key === 'Enter') join(); });
+</script>
+</body>
+</html>

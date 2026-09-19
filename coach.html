@@ -238,10 +238,13 @@ const WEEKDAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday',
 /* ============ STATE ============ */
 let SESSION = null;
 let S = { name:'', clients:[], templates:[], exercises:[], recipes:[], forms:{intake:[],checkin:[]} };
-let DETAIL = {};           // email -> admin_client_detail payload
+let DETAIL = {};
+let ACTIVITY = null;
+let CHALLENGE = null;
+let CHLB = null;           // email -> admin_client_detail payload
 let VIDEO_EDITS = {};      // exerciseId -> pending video url (bulk mode)
 let UI = {
-  view:'clients', ctab:'programme', q:'', muscle:'', equip:'', shown:PAGE, bulk:false,
+  view:'activity', ctab:'programme', q:'', muscle:'', equip:'', shown:PAGE, bulk:false,
   client:null, tpl:null, invite:false, weekOffset:0,
   calEvent:null, calDate:null, dayPlanDate:null,
   openEx:null, editEx:false, addEx:false,
@@ -267,7 +270,7 @@ async function api(p){ const r = await fetch(API,{method:'POST',body:JSON.string
       if(res.ok && res.admin){
         SESSION = res.session;
         try{ localStorage.setItem('mym_coach_session', SESSION); }catch(e){}
-        if(await loadData()){ showApp(); return; }
+        if(await loadData()){ showApp(); loadActivity(); loadChallenge(); return; }
       } else if(res.ok){
         // Valid login, but not a coach account: hand them to the client portal
         // with the session already stored so they don't burn a second link.
@@ -281,7 +284,7 @@ async function api(p){ const r = await fetch(API,{method:'POST',body:JSON.string
   }
   try{ SESSION = localStorage.getItem('mym_coach_session') || localStorage.getItem('mym_session'); }catch(e){}
   if(SESSION){
-    try{ if(await loadData()){ showApp(); return; } }catch(e){}
+    try{ if(await loadData()){ showApp(); loadActivity(); loadChallenge(); return; } }catch(e){}
     try{ localStorage.removeItem('mym_coach_session'); }catch(e){}
     SESSION = null;
   }
@@ -301,6 +304,24 @@ async function loadData(){
   });
   S.templates.forEach(t=>{ if(!Array.isArray(t.days)) t.days=[]; });
   return true;
+}
+
+
+async function loadChallenge(){
+  try{
+    const info=await api({action:'challenge_info'});
+    if(info && info.ok) CHALLENGE=info.challenge;
+    const lb=await api({action:'leaderboard',session:SESSION});
+    if(lb && lb.ok) CHLB=lb.board||[];
+    if(UI.view==='challenge') render();
+  }catch(e){}
+}
+
+async function loadActivity(){
+  try{
+    const res=await api({action:'admin_activity',session:SESSION});
+    if(res && res.ok){ ACTIVITY=res.activity||[]; if(UI.view==='activity') render(); }
+  }catch(e){ ACTIVITY=[]; }
 }
 
 async function loadDetail(email){
@@ -352,7 +373,7 @@ async function verifyCode(){
     const res=await api({action:'verify_code',email,code});
     if(res.ok && res.admin){
       SESSION=res.session; try{localStorage.setItem('mym_coach_session',SESSION);}catch(e){}
-      if(await loadData()){ showApp(); return; }
+      if(await loadData()){ showApp(); loadActivity(); loadChallenge(); return; }
     } else if(res.ok){
       box.innerHTML='<div class="msg err">That account doesn\u2019t have coach access.</div>'; return;
     }
@@ -416,11 +437,13 @@ async function saveClientFields(patch){
 
 /* ============ RENDER ============ */
 function render(){
-  $('nav').innerHTML = [['clients','Clients'],['templates','Programmes'],['nutrition','Nutrition'],['calendar','Calendar'],['library','Library']].map(([k,l])=>
+  $('nav').innerHTML = [['activity','Activity'],['clients','Clients'],['challenge','Challenge'],['templates','Programmes'],['nutrition','Nutrition'],['calendar','Calendar'],['library','Library']].map(([k,l])=>
     `<button class="tab ${UI.view===k?'on':''}" data-act="nav" data-k="${k}">${l}</button>`).join('');
   const v=$('view');
   if(UI.view==='library') v.innerHTML=viewLibrary();
   else if(UI.view==='templates') v.innerHTML=viewTemplates();
+  else if(UI.view==='activity') v.innerHTML=viewActivity();
+  else if(UI.view==='challenge') v.innerHTML=viewChallenge();
   else if(UI.view==='nutrition') v.innerHTML=viewNutrition();
   else if(UI.view==='calendar') v.innerHTML=viewCoachCalendar();
   else v.innerHTML=viewClients();
@@ -499,7 +522,7 @@ function dayList(days, ctx){
       const x=exById(e.exerciseId);
       return `<div class="exline">
         <span class="en">${esc(x?x.name:'(missing exercise)')}</span>
-        ${e.groupId?`<span class="groupbadge">${esc(e.groupType||'group')} ${esc(e.groupId)}</span>`:''}
+        ${e.groupId&&(e.groupType||'straight')!=='straight'?`<span class="groupbadge">${esc(e.groupType)} ${esc(e.groupId)}</span>`:''}
         <button class="ord" data-act="exup" data-ctx="${ctx}" data-i="${i}" data-j="${j}" title="Move up">\u2191</button>
         <button class="ord" data-act="exdown" data-ctx="${ctx}" data-i="${i}" data-j="${j}" title="Move down">\u2193</button>
         <button class="rx" data-act="editrx" data-ctx="${ctx}" data-i="${i}" data-j="${j}">${esc(rxText(e))}</button>
@@ -549,7 +572,8 @@ function viewClients(){
 
 function clientPane(){
   const c=client(); if(!c) return '';
-  const tabs=[['programme','Programme'],['profile','Profile'],['progress','Progress']];
+  const tabs=[['programme','Programme'],['profile','Profile'],['progress','Progress'],
+              ['forms','Forms'],['subs','Submissions']];
   const accepted=c.agreementAcceptedAt?'Agreement signed':'Agreement pending';
   return `<div class="clientbar">
       <h2>${esc(c.name||c.email)}</h2>
@@ -559,7 +583,8 @@ function clientPane(){
     </div>
     <div class="count" style="margin-bottom:14px">${esc(c.email)}</div>
     <div class="subtabs">${tabs.map(([k,l])=>`<button class="subtab ${UI.ctab===k?'on':''}" data-act="ctab" data-k="${k}">${l}</button>`).join('')}</div>
-    ${UI.ctab==='profile'?paneProfile(c):UI.ctab==='progress'?paneProgress(c):paneProgramme(c)}`;
+    ${UI.ctab==='profile'?paneProfile(c):UI.ctab==='progress'?paneProgress(c)
+      :UI.ctab==='forms'?paneForms(c):UI.ctab==='subs'?paneSubmissions(c):paneProgramme(c)}`;
 }
 
 function paneProgramme(c){
@@ -618,10 +643,6 @@ ${esc(d.medical||p.medical||'Nothing recorded.')}
 ${esc(p.goals||'Nothing recorded.')}</div>`:'<div class="rm">Loading\u2026</div>'}
       </div>
     </div>
-    <div class="card" style="margin-bottom:18px">
-      <h3>Intake form</h3>
-      ${d ? answerBlocks(S.forms.intake, d.profile||{}) : '<div class="rm">Loading\u2026</div>'}
-    </div>
     <div class="card dangerzone">
       <h3>Remove client</h3>
       <p style="font-size:13.5px;color:var(--muted);margin-bottom:12px">Archiving hides them from the active roster and blocks portal access, keeping their programme, invoices and workout history. Deleting removes the row outright and can't be undone.</p>
@@ -662,10 +683,12 @@ function paneProgress(c){
         return `<i style="height:${h}%" title="${esc(w.date)} \u00b7 ${v}"></i>`;}).join('')}</div>
       <div class="count" style="margin-top:6px">${esc(weights[0].date)} \u2192 ${esc(weights[weights.length-1].date)}</div></div>`:''}
     <div class="card" style="margin-bottom:16px"><h3>Recent sessions</h3>
-      <div class="rowlist">${logs.slice(0,10).map(l=>`<div class="rowitem">
+      <div class="rowlist">${logs.slice(0,12).map(l=>`<div class="rowitem" data-act="togglelog" data-id="${esc(l.id)}" style="cursor:pointer;flex-wrap:wrap">
         <span class="rt">${esc(l.title||'Workout')}</span>
-        <span class="rm">${esc((l.completedAt||'').slice(0,10))} \u00b7 ${Math.round((l.duration||0)/60)} min${l.difficulty?' \u00b7 RPE '+esc(l.difficulty):''}${String(l.pain).toLowerCase()==='yes'?' \u00b7 pain':''}</span>
-        </div>${l.note?`<div class="count" style="padding:0 12px 4px">\u201c${esc(l.note)}\u201d</div>`:''}`).join('')||'<div class="rm" style="color:var(--muted);font-size:13px">No completed sessions yet.</div>'}</div>
+        <span class="rm">${esc((l.completedAt||l.sessionDate||'').slice(0,10))} \u00b7 ${Math.round((l.duration||0)/60)} min${l.difficulty?' \u00b7 RPE '+esc(l.difficulty):''}${String(l.pain).toLowerCase()==='yes'?' \u00b7 pain':''}</span>
+        <span class="rm">${UI.openLog===l.id?'\u2212':'+'}</span>
+        ${UI.openLog===l.id?`<div style="flex-basis:100%">${logSetsHtml(l)}${l.note?`<div class="count" style="margin-top:6px">\u201c${esc(l.note)}\u201d</div>`:''}</div>`:''}
+        </div>`).join('')||'<div class="rm" style="color:var(--muted);font-size:13px">No completed sessions yet.</div>'}</div>
     </div>
     <div class="card"><h3>Check-ins</h3>
       <div class="rowlist">${checkins.slice(0,12).map(k=>`<div class="rowitem" ${k.full?`data-act="opencheckin" data-id="${esc(k.id)}" style="cursor:pointer"`:''}>
@@ -700,11 +723,168 @@ function viewTemplates(){
 }
 
 
+
+
+function paneForms(c){
+  const d=detail(); if(!d) return '<div class="empty">Loading\u2026</div>';
+  const checkins=(d.checkins||[]).filter(k=>k.full);
+  return `<div class="card" style="margin-bottom:18px">
+      <h3>Intake form</h3>
+      ${Object.keys(d.profile||{}).length?answerBlocks(S.forms.intake, d.profile):'<div class="rm">Not completed yet.</div>'}
+    </div>
+    <div class="card"><h3>Weekly check-ins</h3>
+      ${checkins.length?`<div class="rowlist">${checkins.map(k=>`<div class="rowitem" data-act="opencheckin" data-id="${esc(k.id)}" style="cursor:pointer">
+        <span class="rt">${esc(k.date)}</span>
+        <span class="rm">${k.weight?esc(k.weight)+' kg':''}${k.trainingRating?' \u00b7 training '+esc(k.trainingRating)+'/10':''}${String(k.pain).toLowerCase()==='yes'?' \u00b7 pain':''} \u00b7 read \u2192</span>
+      </div>`).join('')}</div>`:'<div class="rm">None submitted yet.</div>'}
+    </div>`;
+}
+
+/* ---- activity feed ---- */
+function relDay(when){
+  const d=String(when||'').slice(0,10); if(!d) return '';
+  const days=Math.round((new Date(todayISO()+'T12:00:00')-new Date(d+'T12:00:00'))/86400000);
+  if(days<=0) return 'Today';
+  if(days===1) return 'Yesterday';
+  if(days<7) return days+' days ago';
+  return d;
+}
+function viewActivity(){
+  if(!ACTIVITY) return `<div class="head"><div class="eyebrow">Coach</div><h1>Activity</h1></div><div class="empty">Loading\u2026</div>`;
+  if(!ACTIVITY.length) return `<div class="head"><div class="eyebrow">Coach</div><h1>Activity</h1></div><div class="empty">Nothing logged yet.</div>`;
+  const icon={workout:'\u25b6',checkin:'\u2714',weight:'\u2696',submission:'\u25a3'};
+  let lastDay='';
+  return `<div class="head"><div class="eyebrow">Coach</div><h1>Activity</h1>
+    <p class="sub">Everything your clients have done recently, newest first. Tap a name to open them.</p></div>
+    <div class="rowlist" style="max-width:820px">${ACTIVITY.map(a=>{
+      const day=relDay(a.when); const head = day!==lastDay ? (lastDay=day, `<div class="count" style="margin:14px 0 6px">${esc(day)}</div>`) : '';
+      return head+`<div class="rowitem" data-act="openfromfeed" data-e="${esc(a.email)}" style="cursor:pointer">
+        <span class="rm" style="width:18px">${icon[a.kind]||'\u00b7'}</span>
+        <span class="rt">${esc(a.name)} <span style="font-weight:400;color:var(--muted)">${esc(a.text)}</span></span>
+        <span class="rm">${esc(a.meta||'')}</span></div>`;
+    }).join('')}</div>`;
+}
+
+/* ---- session detail ---- */
+function logSetsHtml(l){
+  if(!l.data) return '<div class="rm" style="font-size:12.5px">Detail not kept for older sessions.</div>';
+  const entries=Object.keys(l.data).map(k=>l.data[k]).filter(Boolean);
+  if(!entries.length) return '<div class="rm" style="font-size:12.5px">No sets recorded.</div>';
+  return `<div style="margin-top:8px">${entries.map(e=>`<div style="margin-bottom:8px">
+    <b style="font-size:13.5px">${esc(e.name||'Exercise')}</b>
+    <div class="rm" style="margin-top:2px">${(e.sets||[]).length
+      ? (e.sets||[]).map((st,i)=>`${i+1}: ${esc(st.reps||'\u2013')}${st.weight?' \u00d7 '+esc(st.weight):''}`).join('   ')
+      : esc(e.rx||'')}</div></div>`).join('')}</div>`;
+}
+
+/* ---- submissions review ---- */
+function paneSubmissions(c){
+  const d=detail(); if(!d) return '<div class="empty">Loading\u2026</div>';
+  const subs=d.submissions||[];
+  if(!subs.length) return '<div class="empty">Nothing sent yet.</div>';
+  return `<div class="cards">${subs.map(x=>`<div class="card">
+    <h3>${esc(x.title||(x.type==='meal'?'Meal photo':'Technique video'))}</h3>
+    <div class="count" style="margin-bottom:10px">${esc(x.date)} \u00b7 ${esc(x.status==='reviewed'?'Reviewed':'New')}</div>
+    ${x.url?`<iframe src="${esc(x.url)}" style="width:100%;aspect-ratio:4/3;border:none;border-radius:10px;background:var(--panel2)" allowfullscreen></iframe>`:''}
+    ${x.note?`<p style="font-size:13.5px;color:var(--muted);margin-top:10px">${esc(x.note)}</p>`:''}
+    <div class="field" style="margin-top:12px"><label>Your feedback</label>
+      <textarea id="rep_${esc(x.id)}">${esc(x.reply||'')}</textarea></div>
+    <button class="btn sm" data-act="savereply" data-id="${esc(x.id)}">Send feedback</button>
+  </div>`).join('')}</div>`;
+}
+
+
+/* ---- challenge ---- */
+function viewChallenge(){
+  const ch=CHALLENGE, lb=CHLB;
+  const members=S.clients.filter(c=>c.role==='challenge');
+  const pending=members.filter(c=>String(c.status).toLowerCase()!=='active');
+  const head=`<div class="head"><div class="eyebrow">Coach</div><h1>8 Week Challenge</h1>
+    <p class="sub">One cohort at a time. Signups arrive as Pending; take payment, then set them Active to let them in.</p></div>`;
+  if(!ch) return head+`<div class="empty">No cohort set up yet.</div>
+    <div class="toolbar"><button class="btn" data-act="editchallenge">Create a cohort</button></div>`;
+  return head
+    + `<div class="toolbar">
+        <button class="btn ghost" data-act="editchallenge">Edit cohort</button>
+        <span class="count">${esc(ch.name)} \u00b7 ${ch.week?('week '+ch.week+' of '+ch.weeks):('starts '+esc(ch.startDate))} \u00b7 ${esc(ch.status)}</span>
+      </div>`
+    + (pending.length?`<div class="card dangerzone" style="margin-bottom:18px">
+        <h3>${pending.length} waiting to be activated</h3>
+        <p style="font-size:13.5px;color:var(--muted);margin-bottom:12px">They've signed up but can't log in yet. Take payment, then activate.</p>
+        <div class="rowlist">${pending.map(c=>`<div class="rowitem">
+          <span class="rt">${esc(c.name)}</span><span class="rm">${esc(c.email)}</span>
+          <button class="btn sm" data-act="activatemember" data-e="${esc(c.email)}">Activate</button>
+        </div>`).join('')}</div></div>`:'')
+    + `<div class="kpi">
+        <div class="kpibox"><b>${members.filter(c=>String(c.status).toLowerCase()==='active').length}</b><span>Active members</span></div>
+        <div class="kpibox"><b>${pending.length}</b><span>Awaiting payment</span></div>
+        <div class="kpibox"><b>${ch.week||0}</b><span>Current week</span></div>
+        <div class="kpibox"><b>$${(members.filter(c=>String(c.status).toLowerCase()==='active').length*20)}</b><span>Per week</span></div>
+      </div>`
+    + `<div class="card" style="margin-bottom:18px"><h3>Leaderboard</h3>
+        ${lb&&lb.length?`<div class="rowlist">${lb.map(m=>`<div class="rowitem">
+          <span class="rm" style="width:26px">${m.rank}</span>
+          <span class="rt">${esc(m.name)}</span>
+          <span class="rm">${m.workouts} workouts \u00b7 ${Number(m.steps).toLocaleString()} steps${m.verified&&m.steps?' \u2713':''}</span>
+          <span class="rm" style="font-weight:700;color:var(--ink)">${m.points}</span>
+        </div>`).join('')}</div>`:'<div class="rm">Nothing logged yet.</div>'}
+      </div>`
+    + `<div class="card"><h3>Weekly meetups</h3>
+        <div class="rowlist">${(ch.meetups||[]).length?(ch.meetups||[]).sort((a,b)=>a.week-b.week).map(m=>`<div class="rowitem">
+          <span class="rm" style="width:60px">Week ${esc(m.week)}</span>
+          <span class="rt">${esc(m.title||'')}</span>
+          <span class="rm">${esc(m.when||'')}${m.where?' \u00b7 '+esc(m.where):''}</span>
+          <button class="del" data-act="delmeetup" data-w="${esc(m.week)}">\u00d7</button>
+        </div>`).join(''):'<div class="rm">None planned yet.</div>'}</div>
+        <button class="btn ghost sm" data-act="addmeetup" style="margin-top:10px">+ Add meetup</button>
+      </div>`;
+}
+
+function challengeModal(){
+  const ch=CHALLENGE||{name:'8 Week Challenge',weeks:8,status:'open',startDate:'',templateId:'',meetups:[]};
+  return `<div class="overlay"><div class="sheet" style="max-width:520px">
+    <div class="sh"><button class="close">\u00d7</button><h2>${CHALLENGE?'Edit cohort':'Create cohort'}</h2></div>
+    <div class="sb">
+      <div class="field"><label>Name</label><input id="ch_name" value="${esc(ch.name||'')}" placeholder="Spring 8 Week Challenge"></div>
+      <div class="fieldrow">
+        <div class="field"><label>Start date</label><input id="ch_start" type="date" value="${esc(ch.startDate||'')}"></div>
+        <div class="field"><label>Weeks</label><input id="ch_weeks" type="number" min="1" value="${esc(ch.weeks||8)}"></div>
+      </div>
+      <div class="field"><label>Programme template</label><select id="ch_tpl">
+        <option value="">\u2014 none yet \u2014</option>
+        ${S.templates.map(t=>`<option value="${esc(t.id)}" ${ch.templateId===t.id?'selected':''}>${esc(t.name)}</option>`).join('')}
+      </select></div>
+      <div class="field"><label>Status</label><select id="ch_status">
+        ${['open','running','closed','archived'].map(x=>`<option ${ch.status===x?'selected':''}>${x}</option>`).join('')}
+      </select></div>
+      <div class="msg">Open means the signup page accepts people. Assign the template to each member from their Programme tab once they're active.</div>
+    </div>
+    <div class="sheetacts"><button class="btn" data-act="savechallenge">Save cohort</button></div>
+  </div></div>`;
+}
+
+function meetupModal(){
+  const ch=CHALLENGE||{weeks:8};
+  return `<div class="overlay"><div class="sheet" style="max-width:480px">
+    <div class="sh"><button class="close">\u00d7</button><h2>Add meetup</h2></div>
+    <div class="sb">
+      <div class="fieldrow">
+        <div class="field"><label>Week</label><input id="mu_week" type="number" min="1" max="${esc(ch.weeks||8)}" value="${esc((CHALLENGE&&CHALLENGE.week)||1)}"></div>
+        <div class="field"><label>When</label><input id="mu_when" placeholder="Saturday 9am"></div>
+      </div>
+      <div class="field"><label>What</label><input id="mu_title" placeholder="Beach volleyball"></div>
+      <div class="field"><label>Where</label><input id="mu_where" placeholder="Bondi, north end"></div>
+      <div class="field"><label>Note</label><input id="mu_note" placeholder="Bring water and a towel"></div>
+    </div>
+    <div class="sheetacts"><button class="btn" data-act="savemeetup">Add</button></div>
+  </div></div>`;
+}
+
 /* ---- nutrition ---- */
 function viewNutrition(){
   const q=(UI.nq||'').trim().toLowerCase();
   let list=S.recipes||[];
-  if(q) list=list.filter(r=>((r.name||'')+' '+((r.tags||[]).join(' '))+' '+(r.description||'')).toLowerCase().includes(q));
+  if(q) list=list.filter(r=>((r.title||'')+' '+((r.tags||[]).join(' '))+' '+(r.description||'')).toLowerCase().includes(q));
   const tags=[...new Set((S.recipes||[]).flatMap(r=>r.tags||[]))].sort();
   if(UI.ntag) list=list.filter(r=>(r.tags||[]).includes(UI.ntag));
   return `<div class="head"><div class="eyebrow">Coach</div><h1>Nutrition</h1>
@@ -715,23 +895,26 @@ function viewNutrition(){
         ${tags.map(t=>`<option ${UI.ntag===t?'selected':''}>${esc(t)}</option>`).join('')}</select>
     </div>
     <div class="count" style="margin-bottom:10px">${list.length} of ${(S.recipes||[]).length} recipes</div>
-    <div class="exlist">${list.slice(0,80).map(r=>`<div class="exrow">
+    <div class="exlist">${list.slice(0,80).map(r=>{const n=r.nutrition||{};
+      return `<div class="exrow">
       <div class="exmain" data-act="openrecipe" data-id="${esc(r.id)}">
-        <div class="exname">${esc(r.name||'Recipe')}</div>
-        <div class="exmeta">${esc((r.tags||[]).join(', '))}${r.calories?' \u00b7 '+esc(r.calories)+' kcal':''}${r.protein?' \u00b7 '+esc(r.protein)+'g P':''}</div>
-      </div></div>`).join('')||'<div class="empty">No recipes match that.</div>'}</div>`;
+        <div class="exname">${esc(r.title||'Recipe')}</div>
+        <div class="exmeta">${esc((r.tags||[]).join(', '))}${n.calories?' \u00b7 '+esc(n.calories)+' kcal':''}${n.protein?' \u00b7 '+esc(n.protein)+'g P':''}</div>
+      </div></div>`;}).join('')||'<div class="empty">No recipes match that.</div>'}</div>`;
 }
 
 function recipeModal(){
   const r=(S.recipes||[]).find(x=>x.id===UI.openRecipe); if(!r) return '';
+  const n=r.nutrition||{};
   return `<div class="overlay"><div class="sheet">
-    <div class="sh"><button class="close">\u00d7</button><h2>${esc(r.name||'Recipe')}</h2>
+    <div class="sh"><button class="close">\u00d7</button><h2>${esc(r.title||'Recipe')}</h2>
       <div class="m">${esc((r.tags||[]).join(' \u00b7 '))}</div></div>
     <div class="sb">
       <div class="kpi">
-        <div class="kpibox"><b>${esc(r.calories||'\u2014')}</b><span>Calories</span></div>
-        <div class="kpibox"><b>${esc(r.protein||'\u2014')}</b><span>Protein g</span></div>
-        <div class="kpibox"><b>${esc(r.serves||'\u2014')}</b><span>Serves</span></div>
+        <div class="kpibox"><b>${esc(n.calories||'\u2014')}</b><span>Calories</span></div>
+        <div class="kpibox"><b>${esc(n.protein||'\u2014')}</b><span>Protein g</span></div>
+        <div class="kpibox"><b>${esc(n.carbs||'\u2014')}</b><span>Carbs g</span></div>
+        <div class="kpibox"><b>${esc(r.servings||'\u2014')}</b><span>Servings</span></div>
       </div>
       ${r.description?`<div class="cuebox">${esc(r.description)}</div>`:''}
       ${(r.ingredients||[]).length?`<h3 style="font-size:16px;text-transform:uppercase;margin:14px 0 8px">Ingredients</h3>
@@ -922,7 +1105,9 @@ function viewCoachCalendar(){
 /* ---- modals ---- */
 function renderModal(){
   const m=$('modal');
-  if(UI.openRecipe) m.innerHTML=recipeModal();
+  if(UI.challengeEdit) m.innerHTML=challengeModal();
+  else if(UI.meetupAdd) m.innerHTML=meetupModal();
+  else if(UI.openRecipe) m.innerHTML=recipeModal();
   else if(UI.checkinOpen) m.innerHTML=checkinModal();
   else if(UI.pasteOpen) m.innerHTML=pasteModal();
   else if(UI.calEvent || UI.calDate) m.innerHTML=coachEventModal();
@@ -945,7 +1130,7 @@ function renderModal(){
 function closeModals(){
   UI.openEx=null;UI.editEx=false;UI.addEx=false;UI.addDay=null;UI.invite=false;UI.pickFor=null;UI.pickQ='';
   UI.rxFor=null;UI.calEvent=null;UI.calDate=null;UI.dayPlanDate=null;UI.newTpl=false;UI.assign=false;
-  UI.addHabit=false;UI.confirmRemove=false;UI.openRecipe=null;UI.checkinOpen=null;UI.pasteOpen=false;
+  UI.addHabit=false;UI.confirmRemove=false;UI.openRecipe=null;UI.checkinOpen=null;UI.pasteOpen=false;UI.challengeEdit=false;UI.meetupAdd=false;
 }
 function exDetailModal(){
   const x=exById(UI.openEx); if(!x)return'';
@@ -1256,6 +1441,53 @@ document.addEventListener('click', async e=>{
       else { t.disabled=false; t.textContent='Create template'; $('pzMsg').innerHTML='<div class="msg err">Could not save that.</div>'; }
       break; }
     case 'openrecipe': UI.openRecipe=t.dataset.id; renderModal(); break;
+    case 'editchallenge': UI.challengeEdit=true; renderModal(); break;
+    case 'savechallenge': {
+      const payload={ id:CHALLENGE?CHALLENGE.id:'', name:$('ch_name').value.trim(),
+        startDate:$('ch_start').value, weeks:+$('ch_weeks').value||8,
+        templateId:$('ch_tpl').value, status:$('ch_status').value,
+        meetups:CHALLENGE?CHALLENGE.meetups:[] };
+      if(!payload.name) break;
+      t.disabled=true; t.textContent='Saving\u2026';
+      const res=await api({action:'admin_save_challenge',session:SESSION,challenge:payload});
+      if(res.ok){ CHALLENGE=res.challenge; closeModals(); await loadChallenge(); render(); }
+      else { t.disabled=false; t.textContent='Save cohort'; }
+      break; }
+    case 'addmeetup': UI.meetupAdd=true; renderModal(); break;
+    case 'savemeetup': {
+      const m={ week:+$('mu_week').value||1, title:$('mu_title').value.trim(),
+        when:$('mu_when').value.trim(), where:$('mu_where').value.trim(), note:$('mu_note').value.trim() };
+      if(!m.title) break;
+      const meetups=(CHALLENGE.meetups||[]).filter(x=>Number(x.week)!==m.week).concat([m]);
+      const res=await api({action:'admin_save_challenge',session:SESSION,
+        challenge:Object.assign({},CHALLENGE,{meetups})});
+      if(res.ok){ CHALLENGE=res.challenge; closeModals(); render(); }
+      break; }
+    case 'delmeetup': {
+      const meetups=(CHALLENGE.meetups||[]).filter(x=>Number(x.week)!==Number(t.dataset.w));
+      const res=await api({action:'admin_save_challenge',session:SESSION,
+        challenge:Object.assign({},CHALLENGE,{meetups})});
+      if(res.ok){ CHALLENGE=res.challenge; render(); }
+      break; }
+    case 'activatemember': {
+      t.disabled=true; t.textContent='\u2026';
+      const res=await api({action:'admin_save_client',session:SESSION,email:t.dataset.e,status:'Active'});
+      if(res.ok){ const c=S.clients.find(x=>x.email===t.dataset.e); if(c)c.status='Active'; render(); }
+      else { t.disabled=false; t.textContent='Activate'; }
+      break; }
+    case 'togglelog': UI.openLog = UI.openLog===t.dataset.id ? null : t.dataset.id; render(); break;
+    case 'openfromfeed': {
+      UI.view='clients'; UI.client=t.dataset.e; UI.ctab='progress'; render();
+      const d=await loadDetail(UI.client); if(d) render(); break; }
+    case 'savereply': {
+      const box=$('rep_'+t.dataset.id); if(!box) break;
+      t.disabled=true; t.textContent='Sending\u2026';
+      const res=await api({action:'admin_reply_submission',session:SESSION,id:t.dataset.id,reply:box.value});
+      const d=detail();
+      if(res.ok && d){ const sub=(d.submissions||[]).find(x=>x.id===t.dataset.id);
+        if(sub){ sub.reply=box.value; sub.status='reviewed'; } render(); }
+      else { t.disabled=false; t.textContent='Send feedback'; }
+      break; }
     case 'opencheckin': UI.checkinOpen=t.dataset.id; renderModal(); break;
     case 'edittplmeta': UI.newTpl='edit'; renderModal(); break;
     case 'picktpl': UI.tpl=t.dataset.id; UI.saving=''; render(); break;
