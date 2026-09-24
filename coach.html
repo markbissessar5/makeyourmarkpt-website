@@ -166,6 +166,27 @@
   .spark{justify-content:flex-start}
   .dangerzone{border-color:#eccdd2;background:#fdf7f8}
 
+  /* set tables and strength charts */
+  .settab{width:100%;border-collapse:collapse;margin-top:6px;font-size:13px}
+  .settab th{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--faint);font-weight:400;text-align:right;padding:3px 8px;border-bottom:1px solid var(--line)}
+  .settab th:first-child{text-align:left;width:38px}
+  .settab td{padding:4px 8px;text-align:right;font-family:var(--mono);font-size:12.5px}
+  .settab td:first-child{text-align:left;color:var(--faint)}
+  .settab tr.best td{color:var(--red);font-weight:700}
+  .settab tfoot td{border-top:1px solid var(--line);color:var(--muted);font-size:11px}
+  .exblock{margin-bottom:14px}
+  .exblock > b{font-size:14px}
+  .chartwrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:16px}
+  .chartwrap h3{font-size:17px;text-transform:uppercase;margin-bottom:2px}
+  .chartsub{font-size:13px;color:var(--muted);margin-bottom:12px}
+  .chartwrap select{background:var(--raise);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font-size:13px;margin-bottom:12px}
+  .chartsvg{width:100%;height:190px;display:block;overflow:visible}
+  .chartsvg .ln{fill:none;stroke:var(--red);stroke-width:2.5;stroke-linejoin:round}
+  .chartsvg .dt{fill:var(--red)}
+  .chartsvg .gr{stroke:var(--line2);stroke-width:1}
+  .chartsvg text{font-family:var(--mono);font-size:9px;fill:var(--faint)}
+  .chartlegend{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:8px}
   /* modal */
   .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
   @media(min-width:640px){.overlay{align-items:center}}
@@ -241,7 +262,8 @@ let S = { name:'', clients:[], templates:[], exercises:[], recipes:[], forms:{in
 let DETAIL = {};
 let ACTIVITY = null;
 let CHALLENGE = null;
-let CHLB = null;           // email -> admin_client_detail payload
+let CHLB = null;
+let BILLING = null;           // email -> admin_client_detail payload
 let VIDEO_EDITS = {};      // exerciseId -> pending video url (bulk mode)
 let UI = {
   view:'activity', ctab:'programme', q:'', muscle:'', equip:'', shown:PAGE, bulk:false,
@@ -270,7 +292,7 @@ async function api(p){ const r = await fetch(API,{method:'POST',body:JSON.string
       if(res.ok && res.admin){
         SESSION = res.session;
         try{ localStorage.setItem('mym_coach_session', SESSION); }catch(e){}
-        if(await loadData()){ showApp(); loadActivity(); loadChallenge(); return; }
+        if(await loadData()){ showApp(); loadActivity(); loadChallenge(); loadBilling(); return; }
       } else if(res.ok){
         // Valid login, but not a coach account: hand them to the client portal
         // with the session already stored so they don't burn a second link.
@@ -284,7 +306,7 @@ async function api(p){ const r = await fetch(API,{method:'POST',body:JSON.string
   }
   try{ SESSION = localStorage.getItem('mym_coach_session') || localStorage.getItem('mym_session'); }catch(e){}
   if(SESSION){
-    try{ if(await loadData()){ showApp(); loadActivity(); loadChallenge(); return; } }catch(e){}
+    try{ if(await loadData()){ showApp(); loadActivity(); loadChallenge(); loadBilling(); return; } }catch(e){}
     try{ localStorage.removeItem('mym_coach_session'); }catch(e){}
     SESSION = null;
   }
@@ -306,6 +328,13 @@ async function loadData(){
   return true;
 }
 
+
+async function loadBilling(){
+  try{
+    const res=await api({action:'admin_billing',session:SESSION});
+    BILLING = (res && res.ok) ? res.rows : [];
+  }catch(e){ BILLING=[]; }
+}
 
 async function loadChallenge(){
   try{
@@ -373,7 +402,7 @@ async function verifyCode(){
     const res=await api({action:'verify_code',email,code});
     if(res.ok && res.admin){
       SESSION=res.session; try{localStorage.setItem('mym_coach_session',SESSION);}catch(e){}
-      if(await loadData()){ showApp(); loadActivity(); loadChallenge(); return; }
+      if(await loadData()){ showApp(); loadActivity(); loadChallenge(); loadBilling(); return; }
     } else if(res.ok){
       box.innerHTML='<div class="msg err">That account doesn\u2019t have coach access.</div>'; return;
     }
@@ -437,13 +466,14 @@ async function saveClientFields(patch){
 
 /* ============ RENDER ============ */
 function render(){
-  $('nav').innerHTML = [['activity','Activity'],['clients','Clients'],['challenge','Challenge'],['templates','Programmes'],['nutrition','Nutrition'],['calendar','Calendar'],['library','Library']].map(([k,l])=>
+  $('nav').innerHTML = [['activity','Activity'],['clients','Clients'],['challenge','Challenge'],['templates','Programmes'],['nutrition','Nutrition'],['calendar','Calendar'],['library','Library'],['billing','Invoicing']].map(([k,l])=>
     `<button class="tab ${UI.view===k?'on':''}" data-act="nav" data-k="${k}">${l}</button>`).join('');
   const v=$('view');
   if(UI.view==='library') v.innerHTML=viewLibrary();
   else if(UI.view==='templates') v.innerHTML=viewTemplates();
   else if(UI.view==='activity') v.innerHTML=viewActivity();
   else if(UI.view==='challenge') v.innerHTML=viewChallenge();
+  else if(UI.view==='billing') v.innerHTML=viewBilling();
   else if(UI.view==='nutrition') v.innerHTML=viewNutrition();
   else if(UI.view==='calendar') v.innerHTML=viewCoachCalendar();
   else v.innerHTML=viewClients();
@@ -682,6 +712,7 @@ function paneProgress(c){
       <div class="spark">${weights.map(w=>{const v=Number(w.weight);const h=max===min?50:Math.round((v-min)/(max-min)*90)+5;
         return `<i style="height:${h}%" title="${esc(w.date)} \u00b7 ${v}"></i>`;}).join('')}</div>
       <div class="count" style="margin-top:6px">${esc(weights[0].date)} \u2192 ${esc(weights[weights.length-1].date)}</div></div>`:''}
+    ${strengthPanel(logs, d.lifts)}
     <div class="card" style="margin-bottom:16px"><h3>Recent sessions</h3>
       <div class="rowlist">${logs.slice(0,12).map(l=>`<div class="rowitem" data-act="togglelog" data-id="${esc(l.id)}" style="cursor:pointer;flex-wrap:wrap">
         <span class="rt">${esc(l.title||'Workout')}</span>
@@ -766,16 +797,123 @@ function viewActivity(){
 }
 
 /* ---- session detail ---- */
+/* A set line of "1: 10 × 97.5" was being read as one number when the spacing
+   collapsed. Columns remove the ambiguity: set, reps, weight, volume. */
+function setTable(e){
+  const sets=(e.sets||[]).filter(st=>st && (st.reps||st.weight));
+  if(!sets.length) return `<div class="rm" style="margin-top:2px">${esc(e.rx||'Not logged')}</div>`;
+  const load=st=>(Number(st.weight)||0)*(Number(st.reps)||0);
+  const best=sets.reduce((b,st,i)=>load(st)>load(sets[b])?i:b,0);
+  const volume=sets.reduce((a,st)=>a+load(st),0);
+  const top=Math.max(...sets.map(st=>Number(st.weight)||0));
+  return `<table class="settab">
+    <thead><tr><th>Set</th><th>Reps</th><th>Weight</th><th>Volume</th></tr></thead>
+    <tbody>${sets.map((st,i)=>`<tr class="${i===best&&volume?'best':''}">
+      <td>${i+1}</td><td>${esc(st.reps||'\u2013')}</td>
+      <td>${st.weight?esc(st.weight)+' kg':'\u2013'}</td>
+      <td>${load(st)?Math.round(load(st))+' kg':'\u2013'}</td></tr>`).join('')}</tbody>
+    ${volume?`<tfoot><tr><td colspan="2">Top ${top} kg</td><td colspan="2">Total ${Math.round(volume)} kg</td></tr></tfoot>`:''}
+  </table>`;
+}
+
 function logSetsHtml(l){
   if(!l.data) return '<div class="rm" style="font-size:12.5px">Detail not kept for older sessions.</div>';
   const entries=Object.keys(l.data).map(k=>l.data[k]).filter(Boolean);
   if(!entries.length) return '<div class="rm" style="font-size:12.5px">No sets recorded.</div>';
-  return `<div style="margin-top:8px">${entries.map(e=>`<div style="margin-bottom:8px">
-    <b style="font-size:13.5px">${esc(e.name||'Exercise')}</b>
-    <div class="rm" style="margin-top:2px">${(e.sets||[]).length
-      ? (e.sets||[]).map((st,i)=>`${i+1}: ${esc(st.reps||'\u2013')}${st.weight?' \u00d7 '+esc(st.weight):''}`).join('   ')
-      : esc(e.rx||'')}</div></div>`).join('')}</div>`;
+  return `<div style="margin-top:10px">${entries.map(e=>`<div class="exblock">
+    <b>${esc(e.name||'Exercise')}</b>${setTable(e)}</div>`).join('')}</div>`;
 }
+
+/* ---- strength progression ----
+   Estimated 1RM via Epley (weight x (1 + reps/30)) so a 10x60 and a 5x70 sit on
+   the same scale. Plotting top weight alone would hide progress made by adding
+   reps before adding load, which is most of what happens early on. */
+function epley(w,r){ w=Number(w)||0; r=Number(r)||0; if(!w||!r) return 0; return w*(1+r/30); }
+
+function strengthSeries(logs, exName, lifts){
+  // The rollup sheet holds every session ever; raw logs only keep recent detail.
+  if(lifts && lifts.length){
+    return lifts.filter(l=>l.name===exName)
+      .map(l=>({date:l.date, e1rm:l.e1rm, top:l.top, volume:l.volume}))
+      .sort((a,b)=>a.date.localeCompare(b.date));
+  }
+  const pts=[];
+  (logs||[]).forEach(l=>{
+    if(!l.data) return;
+    const date=(l.completedAt||l.sessionDate||'').slice(0,10);
+    if(!date) return;
+    Object.keys(l.data).forEach(k=>{
+      const e=l.data[k]; if(!e || e.name!==exName) return;
+      let best=0, topW=0, vol=0;
+      (e.sets||[]).forEach(st=>{
+        best=Math.max(best, epley(st.weight, st.reps));
+        topW=Math.max(topW, Number(st.weight)||0);
+        vol+=(Number(st.weight)||0)*(Number(st.reps)||0);
+      });
+      if(best>0) pts.push({date, e1rm:Math.round(best*10)/10, top:topW, volume:Math.round(vol)});
+    });
+  });
+  return pts.sort((a,b)=>a.date.localeCompare(b.date));
+}
+
+function loggedExercises(logs, lifts){
+  const names={};
+  if(lifts && lifts.length){
+    lifts.forEach(l=>{ if(l.e1rm>0) names[l.name]=(names[l.name]||0)+1; });
+  } else {
+    (logs||[]).forEach(l=>{ if(!l.data) return;
+      Object.keys(l.data).forEach(k=>{ const e=l.data[k];
+        if(!e||!e.name) return;
+        if((e.sets||[]).some(st=>Number(st.weight)>0 && Number(st.reps)>0)) names[e.name]=(names[e.name]||0)+1;
+      });
+    });
+  }
+  // Two sessions minimum, or there is no trend to draw.
+  return Object.keys(names).filter(n=>names[n]>=2).sort();
+}
+
+function lineChart(pts, key, unit){
+  if(pts.length<2) return '<div class="rm">Not enough sessions yet.</div>';
+  const W=560,H=170,PL=38,PR=10,PT=12,PB=22;
+  const vals=pts.map(p=>p[key]);
+  let lo=Math.min(...vals), hi=Math.max(...vals);
+  if(hi===lo){ hi=lo+1; lo=Math.max(0,lo-1); }
+  const pad=(hi-lo)*0.15; lo=Math.max(0,lo-pad); hi=hi+pad;
+  const x=i=>PL+(i/(pts.length-1))*(W-PL-PR);
+  const y=v=>PT+(1-(v-lo)/(hi-lo))*(H-PT-PB);
+  const d=pts.map((p,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(p[key]).toFixed(1)).join(' ');
+  const ticks=[lo,(lo+hi)/2,hi];
+  return `<svg class="chartsvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
+    ${ticks.map(t=>`<line class="gr" x1="${PL}" y1="${y(t).toFixed(1)}" x2="${W-PR}" y2="${y(t).toFixed(1)}"></line>
+      <text x="0" y="${(y(t)+3).toFixed(1)}">${Math.round(t)}</text>`).join('')}
+    <path class="ln" d="${d}"></path>
+    ${pts.map((p,i)=>`<circle class="dt" cx="${x(i).toFixed(1)}" cy="${y(p[key]).toFixed(1)}" r="3.5"><title>${esc(p.date)} \u00b7 ${p[key]}${unit}</title></circle>`).join('')}
+    <text x="${PL}" y="${H-4}">${esc(pts[0].date.slice(5))}</text>
+    <text x="${W-PR}" y="${H-4}" text-anchor="end">${esc(pts[pts.length-1].date.slice(5))}</text>
+  </svg>`;
+}
+
+function strengthPanel(logs, lifts){
+  const names=loggedExercises(logs, lifts);
+  if(!names.length) return `<div class="chartwrap"><h3>Strength progress</h3>
+    <div class="chartsub">Once a lift has been logged with weight on two separate sessions, its trend appears here.</div></div>`;
+  const pick=names.includes(UI.chartEx)?UI.chartEx:names[0];
+  const pts=strengthSeries(logs,pick,lifts);
+  const first=pts[0], last=pts[pts.length-1];
+  const delta=(first&&last)?Math.round((last.e1rm-first.e1rm)*10)/10:0;
+  return `<div class="chartwrap">
+    <h3>Strength progress</h3>
+    <div class="chartsub">Estimated one-rep max, so adding reps at the same weight still shows as progress.</div>
+    <select data-act="chartex">${names.map(n=>`<option ${n===pick?'selected':''}>${esc(n)}</option>`).join('')}</select>
+    ${lineChart(pts,'e1rm','kg')}
+    <div class="chartlegend">
+      <span>${pts.length} session${pts.length===1?'':'s'}</span>
+      ${last?`<span>Now ${last.e1rm} kg est. 1RM</span>`:''}
+      ${delta?`<span style="color:${delta>0?'#2e6b2e':'var(--red-d)'}">${delta>0?'+':''}${delta} kg since ${esc(first.date)}</span>`:''}
+      ${last?`<span>Top set ${last.top} kg</span>`:''}
+    </div></div>`;
+}
+
 
 /* ---- submissions review ---- */
 function paneSubmissions(c){
@@ -877,6 +1015,67 @@ function meetupModal(){
       <div class="field"><label>Note</label><input id="mu_note" placeholder="Bring water and a towel"></div>
     </div>
     <div class="sheetacts"><button class="btn" data-act="savemeetup">Add</button></div>
+  </div></div>`;
+}
+
+
+/* ---- invoicing ---- */
+function viewBilling(){
+  const head=`<div class="head"><div class="eyebrow">Coach</div><h1>Invoicing</h1>
+    <p class="sub">Four-week cycles run automatically. These buttons do the same jobs on demand, and the form sends a one-off without touching anyone's schedule.</p></div>`;
+  const rows=BILLING;
+  const overdue=(rows||[]).filter(r=>!r.paid && r.daysOutstanding>=7);
+  const dueSoon=(rows||[]).filter(r=>r.dueInDays!==null && r.dueInDays<=7 && r.dueInDays>=0);
+  return head
+    + `<div class="toolbar">
+        <button class="btn" data-act="runjob" data-what="due">Send due invoices</button>
+        <button class="btn ghost" data-act="runjob" data-what="reminders">Send overdue reminders</button>
+        <button class="btn ghost" data-act="runjob" data-what="checkins">Send check-in reminders</button>
+        <button class="btn ghost" data-act="custominvoice">One-off invoice</button>
+      </div>
+      ${UI.jobMsg?`<div class="msg ${UI.jobMsgOk?'ok':'err'}" id="jobMsg">${esc(UI.jobMsg)}</div>`:'<div id="jobMsg"></div>'}`
+    + (rows?`<div class="kpi">
+        <div class="kpibox"><b>${rows.length}</b><span>On billing</span></div>
+        <div class="kpibox"><b>${dueSoon.length}</b><span>Due within 7 days</span></div>
+        <div class="kpibox"><b>${overdue.length}</b><span>Overdue 7+ days</span></div>
+        <div class="kpibox"><b>${rows.filter(r=>r.paid).length}</b><span>Paid this cycle</span></div>
+      </div>`:'')
+    + (rows?`<div class="card"><h3>Billing schedule</h3>
+        <div class="rowlist">${rows.map(r=>`<div class="rowitem" style="flex-wrap:wrap">
+          <span class="rt">${esc(r.client)}</span>
+          <span class="rm">${esc(r.amount)}${r.service?' \u00b7 '+esc(r.service):''}</span>
+          <span class="rm">${r.nextInvoice?('next '+esc(r.nextInvoice)+(r.dueInDays!==null&&r.dueInDays<=7?' \u00b7 due soon':'')):'no schedule'}</span>
+          <span class="pill ${r.paid?'good':(r.daysOutstanding>=7?'warn':'')}">${r.paid?'Paid':(r.lastInvoice?(r.daysOutstanding+'d unpaid'):'\u2014')}</span>
+        </div>`).join('')}</div></div>`
+      :'<div class="empty">Loading billing\u2026</div>');
+}
+
+function customInvoiceModal(){
+  const clients=S.clients.filter(c=>c.status.toLowerCase()!=='archived');
+  return `<div class="overlay"><div class="sheet" style="max-width:520px">
+    <div class="sh"><button class="close">\u00d7</button><h2>One-off invoice</h2>
+      <div class="m">Sends immediately. Does not change any four-week cycle.</div></div>
+    <div class="sb">
+      <div class="field"><label>Client</label><select id="ci_pick" data-act="cipick">
+        <option value="">\u2014 type details manually \u2014</option>
+        ${clients.map(c=>`<option value="${esc(c.email)}" data-name="${esc(c.name)}">${esc(c.name)}</option>`).join('')}
+      </select></div>
+      <div class="fieldrow">
+        <div class="field"><label>Name on invoice</label><input id="ci_name" placeholder="Client name"></div>
+        <div class="field"><label>Email</label><input id="ci_email" type="email" placeholder="client@email.com"></div>
+      </div>
+      <div class="field"><label>Description</label><input id="ci_desc" placeholder="e.g. Single in-person session"></div>
+      <div class="rxgrid">
+        <div class="field"><label>Qty</label><input id="ci_qty" type="number" min="1" value="1"></div>
+        <div class="field"><label>Rate</label><input id="ci_rate" type="number" min="0" step="0.01" placeholder="120"></div>
+        <div class="field"><label>Currency</label><select id="ci_cur">
+          ${['AUD','USD','GBP','EUR','NZD'].map(c=>`<option>${c}</option>`).join('')}
+        </select></div>
+      </div>
+      <div id="ciMsg"></div>
+    </div>
+    <div class="sheetacts"><button class="btn" data-act="sendcustominvoice">Send invoice</button>
+      <button class="btn ghost close">Cancel</button></div>
   </div></div>`;
 }
 
@@ -1105,7 +1304,8 @@ function viewCoachCalendar(){
 /* ---- modals ---- */
 function renderModal(){
   const m=$('modal');
-  if(UI.challengeEdit) m.innerHTML=challengeModal();
+  if(UI.customInvoice) m.innerHTML=customInvoiceModal();
+  else if(UI.challengeEdit) m.innerHTML=challengeModal();
   else if(UI.meetupAdd) m.innerHTML=meetupModal();
   else if(UI.openRecipe) m.innerHTML=recipeModal();
   else if(UI.checkinOpen) m.innerHTML=checkinModal();
@@ -1130,7 +1330,7 @@ function renderModal(){
 function closeModals(){
   UI.openEx=null;UI.editEx=false;UI.addEx=false;UI.addDay=null;UI.invite=false;UI.pickFor=null;UI.pickQ='';
   UI.rxFor=null;UI.calEvent=null;UI.calDate=null;UI.dayPlanDate=null;UI.newTpl=false;UI.assign=false;
-  UI.addHabit=false;UI.confirmRemove=false;UI.openRecipe=null;UI.checkinOpen=null;UI.pasteOpen=false;UI.challengeEdit=false;UI.meetupAdd=false;
+  UI.addHabit=false;UI.confirmRemove=false;UI.openRecipe=null;UI.checkinOpen=null;UI.pasteOpen=false;UI.challengeEdit=false;UI.meetupAdd=false;UI.customInvoice=false;
 }
 function exDetailModal(){
   const x=exById(UI.openEx); if(!x)return'';
@@ -1323,6 +1523,11 @@ document.addEventListener('change', e=>{
   if(act==='fmuscle'){ UI.muscle=t.value; UI.shown=PAGE; render(); }
   if(act==='fequip'){ UI.equip=t.value; UI.shown=PAGE; render(); }
   if(act==='ntag'){ UI.ntag=t.value; render(); }
+  if(act==='chartex'){ UI.chartEx=t.value; render(); }
+  if(act==='cipick'){
+    const opt=t.options[t.selectedIndex];
+    if(t.value){ $('ci_email').value=t.value; $('ci_name').value=opt.dataset.name||''; }
+  }
   if(act==='pzpick'){
     const e=UI.pasteParsed[+t.dataset.d].exercises[+t.dataset.e];
     e.match = t.value ? S.exercises.find(x=>x.id===t.value) : null;
@@ -1358,7 +1563,7 @@ document.addEventListener('click', async e=>{
     case 'sendlink': sendLink(); break;
     case 'verifycode': verifyCode(); break;
     case 'logout': logout(); break;
-    case 'nav': UI.view=t.dataset.k; render(); window.scrollTo(0,0); break;
+    case 'nav': UI.view=t.dataset.k; UI.jobMsg=''; render(); window.scrollTo(0,0); break;
 
     /* clients */
     case 'pickclient': case 'pickcalclient': {
@@ -1442,6 +1647,32 @@ document.addEventListener('click', async e=>{
       break; }
     case 'openrecipe': UI.openRecipe=t.dataset.id; renderModal(); break;
     case 'editchallenge': UI.challengeEdit=true; renderModal(); break;
+    case 'runjob': {
+      const box=$('jobMsg'); const label=t.textContent;
+      t.disabled=true; t.textContent='Running\u2026';
+      const res=await api({action:'admin_run_invoices',session:SESSION,what:t.dataset.what});
+      t.disabled=false; t.textContent=label;
+      // Held in UI state: the reload below re-renders the view, which would
+      // otherwise wipe the result before anyone could read it.
+      UI.jobMsgOk = !!res.ok;
+      UI.jobMsg = res.ok ? (res.message||'Done.')
+                         : ('That didn\u2019t run. ' + (res.detail||res.error||''));
+      await loadBilling(); render(); break; }
+    case 'custominvoice': UI.customInvoice=true; renderModal(); break;
+    case 'sendcustominvoice': {
+      const box=$('ciMsg');
+      const inv={ name:$('ci_name').value.trim(), email:$('ci_email').value.trim(),
+        description:$('ci_desc').value.trim(), qty:+$('ci_qty').value||1,
+        rate:+$('ci_rate').value||0, currency:$('ci_cur').value };
+      if(!inv.name || inv.email.indexOf('@')<1){ box.innerHTML='<div class="msg err">Name and a valid email are needed.</div>'; break; }
+      if(!(inv.rate>0)){ box.innerHTML='<div class="msg err">Enter a rate.</div>'; break; }
+      t.disabled=true; t.textContent='Sending\u2026';
+      const res=await api({action:'admin_custom_invoice',session:SESSION,invoice:inv});
+      if(res.ok){ closeModals(); UI.jobMsgOk=true;
+        UI.jobMsg='Invoice for '+res.total+' sent to '+inv.name+'.'; render(); }
+      else { t.disabled=false; t.textContent='Send invoice';
+        box.innerHTML=`<div class="msg err">${esc(res.error==='missing_amount'?'Enter a rate above zero.':'Could not send that. '+(res.detail||''))}</div>`; }
+      break; }
     case 'savechallenge': {
       const payload={ id:CHALLENGE?CHALLENGE.id:'', name:$('ch_name').value.trim(),
         startDate:$('ch_start').value, weeks:+$('ch_weeks').value||8,

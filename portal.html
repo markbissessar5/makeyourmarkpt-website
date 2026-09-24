@@ -273,6 +273,25 @@
   .logex{margin-bottom:9px}
   .logex b{font-size:13.5px}
   .logsetline{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:2px}
+  .settab{width:100%;border-collapse:collapse;margin-top:6px;font-size:13px}
+  .settab th{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--faint);font-weight:400;text-align:right;padding:3px 8px;border-bottom:1px solid var(--line)}
+  .settab th:first-child{text-align:left;width:38px}
+  .settab td{padding:4px 8px;text-align:right;font-family:var(--mono);font-size:12.5px}
+  .settab td:first-child{text-align:left;color:var(--faint)}
+  .settab tr.best td{color:var(--red);font-weight:700}
+  .settab tfoot td{border-top:1px solid var(--line);color:var(--muted);font-size:11px}
+  .exblock{margin-bottom:14px}
+  .chartwrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:16px}
+  .chartwrap h3{font-family:var(--display);font-size:18px;text-transform:uppercase;margin-bottom:2px}
+  .chartsub{font-size:13px;color:var(--muted);margin-bottom:12px}
+  .chartwrap select{background:var(--raise);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font-size:13px;margin-bottom:12px;max-width:100%}
+  .chartsvg{width:100%;height:190px;display:block;overflow:visible}
+  .chartsvg .ln{fill:none;stroke:var(--red);stroke-width:2.5;stroke-linejoin:round}
+  .chartsvg .dt{fill:var(--red)}
+  .chartsvg .gr{stroke:var(--line2);stroke-width:1}
+  .chartsvg text{font-family:var(--mono);font-size:9px;fill:var(--faint)}
+  .chartlegend{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:8px}
   /* challenge */
   .chbar{background:var(--black);color:#fff;border-radius:14px;padding:16px 20px;margin-bottom:20px;
     display:flex;gap:16px;align-items:center;flex-wrap:wrap}
@@ -519,7 +538,7 @@ const FILTER_ORDER = ['keto','high-protein','low-carb','quick'];
 let SESSION = null;
 let S = { name:'', workoutHtml:'', days:[], schedule:{}, programmeName:'', exlib:[], recipes:[],
           week:{}, dateMeals:{}, checked:{}, habitLog:{}, onboarding:{}, events:[], dailyPlans:{},
-          targets:{}, habits:[], workoutLogs:[], checkins:[], forms:{intake:[],checkin:[]}, submissions:[], mode:'client', challenge:null, steps:[], stepsToken:'' };
+          targets:{}, habits:[], workoutLogs:[], checkins:[], forms:{intake:[],checkin:[]}, submissions:[], lifts:[], mode:'client', challenge:null, steps:[], stepsToken:'' };
 let UI = { view:'today', search:'', filter:'', openId:null, detServings:null, pickDay:null, addRecipe:null, weekOffset:0, eventEdit:null, eventDate:null, progWeek:0 };
 let COOK = null;
 let WORK = null;
@@ -589,6 +608,7 @@ async function loadData(){
   S.habits = res.habits || [];
   S.onboarding = res.onboarding || {};
   S.submissions = res.submissions || [];
+  S.lifts = res.lifts || [];
   S.mode = res.mode || 'client';
   S.challenge = res.challenge || null;
   S.steps = res.steps || [];
@@ -827,9 +847,10 @@ function startQuickLog(dayId, date){
   };
   renderQuickLog();
 }
-function closeQuickLog(){ QL=null; renderQuickLog(); render(); }
+function closeQuickLog(){ QL=null; clearActiveSession(); renderQuickLog(); render(); }
 
 function renderQuickLog(){
+  saveActiveSession();
   // Same lazily-created host as the guided runner, so only one of the two can
   // ever be on screen.
   let root=$('quickLog');
@@ -890,10 +911,89 @@ async function finishQuickLog(){
   };
   const res=await api({action:'save_workout_log',session:SESSION,log});
   if(res && res.ok) S.workoutLogs.unshift(Object.assign({id:res.id},log));
-  QL=null; renderQuickLog(); render();
+  QL=null; clearActiveSession(); renderQuickLog(); render();
 }
 
 
+
+
+/* ---- session persistence ----
+   The runner lived in memory only, so switching apps mid-set lost the whole
+   workout. State is written on every render and restored on load. Only the
+   bits that can't be recomputed are stored; the sequence is rebuilt from the
+   day so the payload stays small and can't go stale against a changed
+   programme. */
+const WORK_KEY = 'mym_active_session';
+const WORK_MAX_AGE_H = 10;
+
+function saveActiveSession(){
+  try{
+    if(WORK && !WORK.finished){
+      localStorage.setItem(WORK_KEY, JSON.stringify({ kind:'runner', savedAt:Date.now(),
+        dayId:WORK.id, date:WORK.session.date, index:WORK.index, phase:WORK.phase,
+        remaining:runnerRemaining(), endsAt:WORK.running?WORK.endsAt:null, running:!!WORK.running,
+        results:WORK.results, startedAt:WORK.startedAt }));
+    } else if(QL){
+      localStorage.setItem(WORK_KEY, JSON.stringify({ kind:'quicklog', savedAt:Date.now(),
+        dayId:QL.day.id, date:QL.date, startedAt:QL.startedAt,
+        rows:QL.rows.map(r=>({ exerciseId:r.rx.exerciseId, sets:r.sets })) }));
+    }
+    // Deliberately no else-branch: a render with nothing active must not wipe a
+    // saved session, or booting the app destroys the thing we're restoring.
+  }catch(e){}
+}
+function readActiveSession(){
+  try{
+    const raw=localStorage.getItem(WORK_KEY); if(!raw) return null;
+    const o=JSON.parse(raw);
+    if(!o || !o.dayId) return null;
+    if((Date.now()-(o.savedAt||0))/3600000 > WORK_MAX_AGE_H){ localStorage.removeItem(WORK_KEY); return null; }
+    if(!S.days.some(d=>d.id===o.dayId)){ localStorage.removeItem(WORK_KEY); return null; }
+    return o;
+  }catch(e){ return null; }
+}
+function clearActiveSession(){ try{ localStorage.removeItem(WORK_KEY); }catch(e){} }
+
+function resumeSession(){
+  const o=readActiveSession(); if(!o) return;
+  const day=S.days.find(d=>d.id===o.dayId); if(!day) return;
+  if(o.kind==='quicklog'){
+    QL={ day, date:o.date, startedAt:new Date(o.startedAt),
+      rows:(day.exercises||[]).map((e,i)=>{
+        const saved=(o.rows||[])[i];
+        const n=Math.max(1, Number(e.sets)||Number(e.rounds)||1);
+        const sets=Array.from({length:n},(_,j)=>(saved&&saved.sets&&saved.sets[j])||{reps:'',weight:'',done:false});
+        return { rx:e, sets };
+      }) };
+    UI.resume=false; renderQuickLog(); render(); return;
+  }
+  const session=Object.assign({},day,{date:o.date,title:day.title||day.label});
+  const sequence=workoutSequence(session);
+  if(!sequence.length){ clearActiveSession(); return; }
+  WORK={ session, id:o.dayId, sequence, index:Math.min(o.index||0, sequence.length-1),
+    startedAt:new Date(o.startedAt), timer:null, running:false, remaining:o.remaining||0,
+    phase:o.phase||'exercise', results:o.results||[], finished:false, endsAt:null };
+  // A rest that expired while the app was closed is simply over.
+  if(o.running && o.endsAt && o.endsAt > Date.now()){
+    WORK.running=true; WORK.endsAt=o.endsAt; WORK.remaining=Math.round((o.endsAt-Date.now())/1000);
+    WORK.timer=setInterval(runnerTick,1000);
+  } else if(WORK.phase==='rest'){
+    WORK.phase='exercise'; WORK.remaining=Number(runnerStep().item.rx.duration)||0;
+  }
+  UI.resume=false; renderWorkout();
+}
+
+function resumeBanner(){
+  const o=readActiveSession(); if(!o) return '';
+  const day=S.days.find(d=>d.id===o.dayId); if(!day) return '';
+  const mins=Math.round((Date.now()-(o.savedAt||Date.now()))/60000);
+  return `<div class="fdue">
+    <div><b>Unfinished session</b><p>${esc(day.title||day.label)} \u00b7 left ${mins<1?'just now':(mins+' min ago')}. Pick up where you stopped.</p></div>
+    <span class="sp"></span>
+    <button class="btn" data-act="resumesession">Resume</button>
+    <button class="btn ghost sm" data-act="discardsession">Discard</button>
+  </div>`;
+}
 
 /* ---- challenge ---- */
 
@@ -1018,16 +1118,116 @@ async function doUpload(kind, file){
 }
 
 /* ---- logged session detail ---- */
-function logDetailHtml(l){
-  if(!l.data) return '<div class="logsetline">Detail not kept for older sessions.</div>';
+function setTable(e){
+  const sets=(e.sets||[]).filter(st=>st && (st.reps||st.weight));
+  if(!sets.length) return `<div class="rm" style="margin-top:2px">${esc(e.rx||'Not logged')}</div>`;
+  const load=st=>(Number(st.weight)||0)*(Number(st.reps)||0);
+  const best=sets.reduce((b,st,i)=>load(st)>load(sets[b])?i:b,0);
+  const volume=sets.reduce((a,st)=>a+load(st),0);
+  const top=Math.max(...sets.map(st=>Number(st.weight)||0));
+  return `<table class="settab">
+    <thead><tr><th>Set</th><th>Reps</th><th>Weight</th><th>Volume</th></tr></thead>
+    <tbody>${sets.map((st,i)=>`<tr class="${i===best&&volume?'best':''}">
+      <td>${i+1}</td><td>${esc(st.reps||'\u2013')}</td>
+      <td>${st.weight?esc(st.weight)+' kg':'\u2013'}</td>
+      <td>${load(st)?Math.round(load(st))+' kg':'\u2013'}</td></tr>`).join('')}</tbody>
+    ${volume?`<tfoot><tr><td colspan="2">Top ${top} kg</td><td colspan="2">Total ${Math.round(volume)} kg</td></tr></tfoot>`:''}
+  </table>`;
+}
+
+function logSetsHtml(l){
+  if(!l.data) return '<div class="rm" style="font-size:12.5px">Detail not kept for older sessions.</div>';
   const entries=Object.keys(l.data).map(k=>l.data[k]).filter(Boolean);
-  if(!entries.length) return '<div class="logsetline">No sets recorded.</div>';
-  return `<div class="logsets">${entries.map(e=>{
-    const sets=(e.sets||[]);
-    return `<div class="logex"><b>${esc(e.name||'Exercise')}</b>
-      <div class="logsetline">${sets.length?sets.map((st,i)=>
-        `${i+1}: ${esc(st.reps||'\u2013')}${st.weight?' \u00d7 '+esc(st.weight):''}`).join('   '):esc(e.rx||'')}</div></div>`;
-  }).join('')}</div>`;
+  if(!entries.length) return '<div class="rm" style="font-size:12.5px">No sets recorded.</div>';
+  return `<div style="margin-top:10px">${entries.map(e=>`<div class="exblock">
+    <b>${esc(e.name||'Exercise')}</b>${setTable(e)}</div>`).join('')}</div>`;
+}
+
+function epley(w,r){ w=Number(w)||0; r=Number(r)||0; if(!w||!r) return 0; return w*(1+r/30); }
+
+function strengthSeries(logs, exName, lifts){
+  // The rollup sheet holds every session ever; raw logs only keep recent detail.
+  if(lifts && lifts.length){
+    return lifts.filter(l=>l.name===exName)
+      .map(l=>({date:l.date, e1rm:l.e1rm, top:l.top, volume:l.volume}))
+      .sort((a,b)=>a.date.localeCompare(b.date));
+  }
+  const pts=[];
+  (logs||[]).forEach(l=>{
+    if(!l.data) return;
+    const date=(l.completedAt||l.sessionDate||'').slice(0,10);
+    if(!date) return;
+    Object.keys(l.data).forEach(k=>{
+      const e=l.data[k]; if(!e || e.name!==exName) return;
+      let best=0, topW=0, vol=0;
+      (e.sets||[]).forEach(st=>{
+        best=Math.max(best, epley(st.weight, st.reps));
+        topW=Math.max(topW, Number(st.weight)||0);
+        vol+=(Number(st.weight)||0)*(Number(st.reps)||0);
+      });
+      if(best>0) pts.push({date, e1rm:Math.round(best*10)/10, top:topW, volume:Math.round(vol)});
+    });
+  });
+  return pts.sort((a,b)=>a.date.localeCompare(b.date));
+}
+
+
+function loggedExercises(logs, lifts){
+  const names={};
+  if(lifts && lifts.length){
+    lifts.forEach(l=>{ if(l.e1rm>0) names[l.name]=(names[l.name]||0)+1; });
+  } else {
+    (logs||[]).forEach(l=>{ if(!l.data) return;
+      Object.keys(l.data).forEach(k=>{ const e=l.data[k];
+        if(!e||!e.name) return;
+        if((e.sets||[]).some(st=>Number(st.weight)>0 && Number(st.reps)>0)) names[e.name]=(names[e.name]||0)+1;
+      });
+    });
+  }
+  // Two sessions minimum, or there is no trend to draw.
+  return Object.keys(names).filter(n=>names[n]>=2).sort();
+}
+
+function lineChart(pts, key, unit){
+  if(pts.length<2) return '<div class="rm">Not enough sessions yet.</div>';
+  const W=560,H=170,PL=38,PR=10,PT=12,PB=22;
+  const vals=pts.map(p=>p[key]);
+  let lo=Math.min(...vals), hi=Math.max(...vals);
+  if(hi===lo){ hi=lo+1; lo=Math.max(0,lo-1); }
+  const pad=(hi-lo)*0.15; lo=Math.max(0,lo-pad); hi=hi+pad;
+  const x=i=>PL+(i/(pts.length-1))*(W-PL-PR);
+  const y=v=>PT+(1-(v-lo)/(hi-lo))*(H-PT-PB);
+  const d=pts.map((p,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(p[key]).toFixed(1)).join(' ');
+  const ticks=[lo,(lo+hi)/2,hi];
+  return `<svg class="chartsvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
+    ${ticks.map(t=>`<line class="gr" x1="${PL}" y1="${y(t).toFixed(1)}" x2="${W-PR}" y2="${y(t).toFixed(1)}"></line>
+      <text x="0" y="${(y(t)+3).toFixed(1)}">${Math.round(t)}</text>`).join('')}
+    <path class="ln" d="${d}"></path>
+    ${pts.map((p,i)=>`<circle class="dt" cx="${x(i).toFixed(1)}" cy="${y(p[key]).toFixed(1)}" r="3.5"><title>${esc(p.date)} \u00b7 ${p[key]}${unit}</title></circle>`).join('')}
+    <text x="${PL}" y="${H-4}">${esc(pts[0].date.slice(5))}</text>
+    <text x="${W-PR}" y="${H-4}" text-anchor="end">${esc(pts[pts.length-1].date.slice(5))}</text>
+  </svg>`;
+}
+
+function logDetailHtml(l){ return logSetsHtml(l); }
+
+function strengthPanel(logs, lifts){
+  const names=loggedExercises(logs, lifts);
+  if(!names.length) return '';
+  const pick=names.includes(UI.chartEx)?UI.chartEx:names[0];
+  const pts=strengthSeries(logs,pick,lifts);
+  const first=pts[0], last=pts[pts.length-1];
+  const delta=(first&&last)?Math.round((last.e1rm-first.e1rm)*10)/10:0;
+  return `<div class="chartwrap">
+    <h3>Your strength</h3>
+    <div class="chartsub">Estimated one-rep max, so extra reps at the same weight still count as progress.</div>
+    <select data-act="chartex">${names.map(n=>`<option ${n===pick?'selected':''}>${esc(n)}</option>`).join('')}</select>
+    ${lineChart(pts,'e1rm','kg')}
+    <div class="chartlegend">
+      ${last?`<span>Now ${last.e1rm} kg</span>`:''}
+      ${delta?`<span style="color:${delta>0?'#2e6b2e':'var(--red)'}">${delta>0?'+':''}${delta} kg since ${esc(first.date)}</span>`:''}
+      ${last?`<span>Top set ${last.top} kg</span>`:''}
+    </div></div>`;
 }
 
 /* ---- weekly check-in ---- */
@@ -1416,6 +1616,8 @@ function viewWorkouts(){
   const notes = S.workoutHtml ? `<div class="proglabel">Coach notes</div><div class="workout">${S.workoutHtml}</div>` : '';
 
   return head
+    + resumeBanner()
+    + strengthPanel(S.workoutLogs, S.lifts)
     + `<div class="weeknav"><button class="btn ghost sm" data-act="progprev">←</button><strong>${esc(label)}</strong>
        <button class="btn ghost sm" data-act="progthis">This week</button><button class="btn ghost sm" data-act="prognext">→</button></div>`
     + week
@@ -1632,18 +1834,40 @@ function setRunnerTimer(){
   clearWorkoutTimer();WORK.phase='exercise';WORK.remaining=Number(st.item.rx.duration)||0;WORK.running=false;
 }
 function clearWorkoutTimer(){if(WORK&&WORK.timer){clearInterval(WORK.timer);WORK.timer=null;}}
-function runnerTick(){if(!WORK)return;WORK.remaining--;if(WORK.remaining<=0){WORK.remaining=0;WORK.running=false;clearWorkoutTimer();beep();if(navigator.vibrate)navigator.vibrate([150,80,150]);}renderWorkout();}
-function toggleWorkoutTimer(){if(!WORK||WORK.remaining<=0)return;if(WORK.running){WORK.running=false;clearWorkoutTimer();}else{WORK.running=true;WORK.timer=setInterval(runnerTick,1000);}renderWorkout();}
+/* Counting down a variable was wrong: iOS throttles or suspends timers the
+   moment the app is backgrounded, so a rest taken while glancing at a
+   notification came back short. Remaining is now derived from a wall-clock
+   deadline, which is correct however long the app was asleep. */
+function runnerRemaining(){
+  if(!WORK) return 0;
+  if(!WORK.running || !WORK.endsAt) return Math.max(0, WORK.remaining||0);
+  return Math.max(0, Math.round((WORK.endsAt - Date.now())/1000));
+}
+function runnerTick(){
+  if(!WORK) return;
+  WORK.remaining = runnerRemaining();
+  if(WORK.remaining<=0){
+    WORK.remaining=0; WORK.running=false; WORK.endsAt=null; clearWorkoutTimer();
+    beep(); if(navigator.vibrate)navigator.vibrate([150,80,150]);
+  }
+  renderWorkout();
+}
+function toggleWorkoutTimer(){
+  if(!WORK||WORK.remaining<=0)return;
+  if(WORK.running){ WORK.remaining=runnerRemaining(); WORK.running=false; WORK.endsAt=null; clearWorkoutTimer(); }
+  else { WORK.running=true; WORK.endsAt=Date.now()+WORK.remaining*1000; WORK.timer=setInterval(runnerTick,1000); }
+  renderWorkout();
+}
 function completeRunnerStep(){
   const st=runnerStep(),reps=$('wr_reps'),load=$('wr_load');
   WORK.results.push({exerciseId:st.item.rx.exerciseId,round:st.round,reps:reps?reps.value:'',load:load?load.value:'',completed:true});
   const rest=st.lastInRound?Number(st.group.restAfterRound)||0:Number(st.item.rx.rest)||0;
-  if(rest>0){WORK.phase='rest';WORK.remaining=rest;WORK.running=true;clearWorkoutTimer();WORK.timer=setInterval(runnerTick,1000);renderWorkout();return;}
+  if(rest>0){WORK.phase='rest';WORK.remaining=rest;WORK.running=true;WORK.endsAt=Date.now()+rest*1000;clearWorkoutTimer();WORK.timer=setInterval(runnerTick,1000);renderWorkout();return;}
   nextRunnerStep();
 }
 function nextRunnerStep(){
   clearWorkoutTimer();WORK.index++;
-  if(WORK.index>=WORK.sequence.length){WORK.finished=true;renderWorkout();return;}
+  if(WORK.index>=WORK.sequence.length){WORK.finished=true;clearActiveSession();renderWorkout();return;}
   setRunnerTimer();renderWorkout();preloadNextExercise();
 }
 function skipRest(){if(!WORK)return;nextRunnerStep();}
@@ -1694,6 +1918,7 @@ function preloadNextExercise(){
 }
 
 function renderWorkout(){
+  saveActiveSession();
   let root=$('workoutRunner');if(!root){root=document.createElement('div');root.id='workoutRunner';document.body.appendChild(root);}
   if(!WORK){root.innerHTML='';return;}
   if(WORK.finished){root.innerHTML=`<div class="workrunner"><div class="wrhead"><div class="wtitle">Workout complete</div></div><div class="wrbody"><div class="wrcard">
@@ -1704,7 +1929,7 @@ function renderWorkout(){
     <div class="field"><label>Note to Mark</label><input id="wf_note"></div></div>
     <button id="finishWorkoutBtn" class="btn" data-act="finishworkout">Save workout</button></div></div></div>`;return;}
   const st=runnerStep(),x=st.item.x||{},rx=st.item.rx||{},cues=splitCues(x.cues),groupName=st.group.type==='superset'?'Superset':st.group.type==='circuit'?'Circuit':'Exercise';
-  if(WORK.phase==='rest'){root.innerHTML=`<div class="workrunner"><div class="wrhead"><div class="wtitle">${esc(WORK.session.title)}</div><div class="wrprogress">Rest</div></div><div class="wrbody"><div class="wrcard"><div class="wrblock">Recover</div><div class="wrexname">Rest</div><div class="wrtimer">${clock(WORK.remaining)}</div><button class="btn ghost" data-act="skiprest">Skip rest</button></div></div></div>`;return;}
+  if(WORK.phase==='rest'){root.innerHTML=`<div class="workrunner"><div class="wrhead"><button class="wrclose" data-act="closeworkout">×</button><div class="wtitle">${esc(WORK.session.title)}</div><div class="wrprogress">Rest</div></div><div class="wrbody"><div class="wrcard"><div class="wrblock">Recover</div><div class="wrexname">Rest</div><div class="wrtimer">${clock(runnerRemaining())}</div><button class="btn ghost" data-act="skiprest">Skip rest</button></div></div></div>`;return;}
   root.innerHTML=`<div class="workrunner"><div class="wrhead"><button class="wrclose" data-act="closeworkout">×</button><div class="wtitle">${esc(WORK.session.title)}</div><div class="wrprogress">${WORK.index+1}/${WORK.sequence.length}</div></div>
     <div class="wrbody"><div class="wrcard"><div class="wrblock">${groupName}${st.group.type!=='straight'?' · Round '+st.round+' of '+st.rounds:''}</div>
       ${rx.groupId?`<div class="wrgroup">${esc(groupLabel(rx.groupType,rx.groupId))}</div>`:''}
@@ -1713,7 +1938,7 @@ function renderWorkout(){
       ${exerciseAnim(x,rx)}
       ${cues.short?`<div class="wrshort">${esc(cues.short)}</div>`:''}
       ${cues.rest?`<details class="wrcues"><summary>Full instructions</summary><p>${esc(cues.rest)}</p></details>`:''}
-      ${rx.duration?`<div class="wrtimer">${clock(WORK.remaining)}</div><button class="btn ${WORK.running?'ghost':''}" data-act="wrtimer">${WORK.running?'Pause':'Start timer'}</button>`:''}
+      ${rx.duration?`<div class="wrtimer">${clock(runnerRemaining())}</div><button class="btn ${WORK.running?'ghost':''}" data-act="wrtimer">${WORK.running?'Pause':'Start timer'}</button>`:''}
       <div class="wrfields"><input id="wr_reps" placeholder="Actual reps" value="${esc(rx.reps||'')}"><input id="wr_load" placeholder="Weight / load"></div>
     </div></div><div class="wrfoot"><button class="btn ghost" data-act="closeworkout">Exit</button><button class="btn" data-act="completeset">Complete set →</button></div></div>`;
 }
@@ -1771,6 +1996,19 @@ function beep(){ try{ audioCtx=audioCtx||new(window.AudioContext||window.webkitA
     setTimeout(ring,520); }; ring(); }catch(e){} }
 
 /* ============ EVENTS ============ */
+/* The portal had no change listener at all, so any <select> was inert. */
+/* Returning from the background: redraw so the wall-clock timer catches up and
+   an expired rest fires rather than sitting frozen at its old value. */
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState!=='visible') { saveActiveSession(); return; }
+  if(WORK){ if(WORK.running && runnerRemaining()<=0) runnerTick(); else renderWorkout(); }
+});
+window.addEventListener('pagehide', saveActiveSession);
+
+document.addEventListener('change', e=>{
+  const ce=e.target.closest('[data-act="chartex"]');
+  if(ce){ UI.chartEx=ce.value; render(); }
+});
 document.addEventListener('input', e=>{
   const ft=e.target.closest('[data-act="finput"]');
   if(ft && FORM){ FORM.values[ft.dataset.f]=ft.value; return; }
@@ -1824,6 +2062,8 @@ document.addEventListener('click', async e=>{
       renderQuickLog(); break; }
     case 'qlfinish': await finishQuickLog(); break;
     case 'startcheckin': startCheckin(); break;
+    case 'resumesession': resumeSession(); break;
+    case 'discardsession': clearActiveSession(); render(); break;
     case 'savesteps': {
       const n=$('st_count').value, box=$('stMsg');
       if(!n){ box.innerHTML='<div class="msg err">Enter your step count.</div>'; break; }
@@ -1878,7 +2118,7 @@ document.addEventListener('click', async e=>{
     case 'completeset': completeRunnerStep(); break;
     case 'skiprest': skipRest(); break;
     case 'finishworkout': finishWorkout(); break;
-    case 'closeworkout': clearWorkoutTimer(); WORK=null; renderWorkout(); break;
+    case 'closeworkout': clearWorkoutTimer(); WORK=null; clearActiveSession(); renderWorkout(); render(); break;
     case 'addrec': UI.addRecipe=t.dataset.id; UI.openId=null; renderModal(); break;
     case 'confirmadd': S.week[t.dataset.d].push(UI.addRecipe); UI.addRecipe=null; save(); render(); break;
     case 'addto': UI.pickDay=t.dataset.d; renderModal(); break;
