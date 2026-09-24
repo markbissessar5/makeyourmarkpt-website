@@ -292,6 +292,16 @@
   .chartsvg .gr{stroke:var(--line2);stroke-width:1}
   .chartsvg text{font-family:var(--mono);font-size:9px;fill:var(--faint)}
   .chartlegend{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:8px}
+  .macroout{max-width:620px;margin:0 auto}
+  .macrohero{background:var(--black);color:#fff;border-radius:16px;padding:26px 28px;text-align:center;margin-bottom:16px}
+  .macrohero .rng{font-family:var(--display);font-weight:800;font-size:clamp(38px,9vw,58px);line-height:1}
+  .macrohero .rl{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-top:6px}
+  .macrogrid2{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+  .macrobox{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+  .macrobox b{font-family:var(--display);font-size:27px;font-weight:800;display:block;line-height:1}
+  .macrobox span{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .macronote{background:var(--panel);border-left:3px solid var(--red);border-radius:10px;padding:14px 16px;margin-bottom:14px;font-size:14px}
+  .macronote b{display:block;font-family:var(--display);font-size:16px;text-transform:uppercase;margin-bottom:3px}
   /* challenge */
   .chbar{background:var(--black);color:#fff;border-radius:14px;padding:16px 20px;margin-bottom:20px;
     display:flex;gap:16px;align-items:center;flex-wrap:wrap}
@@ -995,6 +1005,99 @@ function resumeBanner(){
   </div>`;
 }
 
+
+/* ---- custom meals ----
+   Saved once, reusable after that. Someone eating the same café lunch twice a
+   week shouldn't retype it, and the repeat logging is where adherence comes
+   from. Saved meals are shaped like recipes, so everything downstream already
+   handles them. */
+function customMealModal(){
+  const saved=(S.recipes||[]).filter(r=>r.custom);
+  const date=UI.customMeal;
+  return `<div class="overlay" data-act="closemodal"><div class="sheet">
+    <div class="sh"><button class="close" data-act="closemodal">\u00d7</button><h2>Something else</h2>
+      <div class="m">${esc(dateLabel(date,{weekday:'long',day:'numeric',month:'long'}))}</div></div>
+    <div class="sb">
+      ${saved.length?`<div class="fhelp" style="margin-bottom:8px">Ones you\u2019ve added before</div>
+        <div class="fchoices" style="margin-bottom:20px">${saved.map(m=>
+          `<button class="fchoice" data-act="usecustom" data-id="${esc(m.id)}" data-date="${date}">
+            ${esc(m.title)} <span style="opacity:.6">${m.nutrition.calories} kcal</span></button>`).join('')}</div>`:''}
+      <div class="fhelp" style="margin-bottom:8px">Add a new one</div>
+      <div class="field"><label>What was it?</label>
+        <input id="cm_title" placeholder="e.g. Chicken banh mi from the place on the corner"></div>
+      <div class="fieldrow">
+        <div class="field"><label>Calories</label><input id="cm_cal" type="number" inputmode="numeric" placeholder="650"></div>
+        <div class="field"><label>Protein (g)</label><input id="cm_pro" type="number" inputmode="numeric" placeholder="35"></div>
+      </div>
+      <div class="fieldrow">
+        <div class="field"><label>Carbs (g), optional</label><input id="cm_carb" type="number" inputmode="numeric"></div>
+        <div class="field"><label>Fat (g), optional</label><input id="cm_fat" type="number" inputmode="numeric"></div>
+      </div>
+      <div class="msg">A rough estimate beats logging nothing. If you\u2019re not sure, check the packet or search the restaurant name.</div>
+      <div id="cmMsg"></div>
+    </div>
+    <div class="sheetacts"><button class="btn" data-act="savecustommeal" data-date="${date}">Add to ${esc(dateLabel(date,{weekday:'long'}))}</button></div>
+  </div></div>`;
+}
+
+
+/* ---- macro calculator ---- */
+function startMacroCalc(){
+  const steps=(S.forms&&S.forms.macro)||[];
+  if(!steps.length) return;
+  openForm('macro', steps, {}, {
+    title:'Your targets', submitLabel:'Get my numbers', cancellable:true, onDone: saveMacroCalc
+  });
+}
+
+async function saveMacroCalc(values){
+  const box=$('formMsg'); box.innerHTML='<div class="msg">Working it out\u2026</div>';
+  const res=await api({action:'calculate_macros',session:SESSION,answers:values});
+  if(!res.ok){ box.innerHTML='<div class="msg err">Could not work that out. Check your height and weight.</div>'; return; }
+  FORM=null; UI.macroResult=res; UI.view='week'; render();
+}
+
+function macroResultHtml(){
+  const r=UI.macroResult; if(!r) return '';
+  if(r.reviewRequired){
+    return `<div class="macroout"><div class="macronote">
+      <b>Let's set these together</b>${esc(r.message)}</div>
+      <button class="btn" data-act="dismissmacro">Got it</button></div>`;
+  }
+  return `<div class="macroout">
+    <div class="macrohero">
+      <div class="rng">${r.low}\u2013${r.high}</div>
+      <div class="rl">Calories a day</div>
+    </div>
+    <div class="macrogrid2">
+      <div class="macrobox"><b>${r.protein}g</b><span>Protein</span></div>
+      <div class="macrobox"><b>${r.carbs}g</b><span>Carbs</span></div>
+      <div class="macrobox"><b>${r.fat}g</b><span>Fat</span></div>
+    </div>
+    <div class="macronote"><b>${r.perMeal}g protein per meal</b>
+      Across ${r.meals} meals. This is the number that actually changes things \u2014 hitting it at every meal beats scraping 20g at breakfast and forcing 120g at dinner.</div>
+    <div class="macronote"><b>What to expect</b>
+      Around ${esc(r.rate)}. That's ${esc(r.eightWeek)}.</div>
+    ${r.floored?`<div class="macronote"><b>Held at the floor</b>
+      Your goal would have put you lower than is sensible, so we've held it here. Eating less than this costs you muscle and sleep, not fat.</div>`:''}
+    <div class="macronote"><b>Recalculate every couple of weeks</b>
+      Or after any 3kg change. Your starting number is an estimate, not a verdict \u2014 the scale tells you whether it was right.</div>
+    <button class="btn" data-act="dismissmacro">Start planning meals</button>
+  </div>`;
+}
+
+/* Recipes that fit the per-meal protein and the calorie budget for one meal. */
+function macroShortlist(){
+  const t=S.targets||{};
+  if(!t.perMeal || !t.calories) return [];
+  const meals=Math.max(3, Math.round(Number(t.protein||0)/Number(t.perMeal)) || 3);
+  const budget=Number(t.calories)/meals*1.3;
+  return (S.recipes||[])
+    .filter(r=>!r.custom && r.nutrition && r.nutrition.protein>=Number(t.perMeal)-8 && r.nutrition.calories<=budget)
+    .sort((a,b)=>b.nutrition.protein-a.nutrition.protein)
+    .slice(0,6);
+}
+
 /* ---- challenge ---- */
 
 async function loadLeaderboard(){
@@ -1637,9 +1740,26 @@ function viewWeek(){
       <div class="dcal">${Math.round(a.calories)||0}${tg.calories?' / '+tg.calories:''} kcal · ${Math.round(a.protein)||0}${tg.protein?' / '+tg.protein:''}g P</div>
       ${compareNutritionHtml(date,true)}${meals}
       <button class="addmeal" data-act="adddatedmeal" data-date="${date}">+ add meal</button>
+      <button class="addmeal" data-act="customeal" data-date="${date}">+ something else</button>
     </div>`;}).join('');
   return `<div class="head"><div class="eyebrow">Nutrition</div><h1>Meals and targets</h1>
-    <p class="sub">Plan meals against your calorie and protein targets. Pull anything you like from the recipe bank.</p></div>
+    <p class="sub">Plan meals against your calorie and protein targets. Pull from the recipe bank, or add anything you ate that isn’t in it.</p></div>
+    ${UI.macroResult?macroResultHtml():''}
+    ${!UI.macroResult&&!(S.targets&&S.targets.calories)?`<div class="fdue">
+      <div><b>Set your targets</b><p>Answer eight questions and we'll work out your calories and protein.</p></div>
+      <span class="sp"></span>
+      <button class="btn" data-act="startmacro">Work out my targets</button></div>`:''}
+    ${!UI.macroResult&&S.targets&&S.targets.calories?`<div class="planblock" style="margin-bottom:18px">
+      <h3>Your targets</h3>
+      <div class="macrogrid2">
+        <div class="macrobox"><b>${esc(S.targets.calories)}</b><span>Calories</span></div>
+        <div class="macrobox"><b>${esc(S.targets.protein)}g</b><span>Protein</span></div>
+        <div class="macrobox"><b>${esc(S.targets.perMeal||'\u2014')}${S.targets.perMeal?'g':''}</b><span>Per meal</span></div>
+      </div>
+      ${macroShortlist().length?`<div class="fhelp" style="margin-top:12px">Meals that fit your per-meal protein</div>
+        <div class="fchoices">${macroShortlist().map(r=>`<button class="fchoice" data-act="open" data-id="${esc(r.id)}">${esc(r.title)}</button>`).join('')}</div>`:''}
+      <button class="btn ghost sm" data-act="startmacro" style="margin-top:12px">Recalculate</button>
+    </div>`:''}
     <div class="calhead"><button class="btn ghost sm" data-act="prevweek">←</button><strong>${dateLabel(dates[0])} – ${dateLabel(dates[6])}</strong><button class="btn ghost sm" data-act="nextweek">→</button></div>
     <div class="weekgrid">${grid}</div>`;
 }
@@ -1727,6 +1847,7 @@ function viewShopping(){
 function renderModal(){
   const m = $('modal');
   if(UI.stepAuto){ m.innerHTML = stepAutoModal(); return; }
+  if(UI.customMeal){ m.innerHTML = customMealModal(); return; }
   if(UI.eventEdit || UI.eventDate){ m.innerHTML = eventModal(); return; }
   if(UI.openWx){ m.innerHTML = wxModal(); return; }
   if(UI.pickDay){ m.innerHTML = pickModal(); return; }
@@ -2022,7 +2143,7 @@ document.addEventListener('input', e=>{
 document.addEventListener('click', async e=>{
   if(e.target.classList.contains('overlay')||e.target.classList.contains('close')){
     UI.openId=null; UI.pickDay=null; UI.addRecipe=null; UI.openWx=null; UI.eventEdit=null; UI.eventDate=null;
-    UI.stepAuto=false; renderModal(); return; }
+    UI.stepAuto=false; UI.customMeal=null; renderModal(); return; }
   const t = e.target.closest('[data-act]');
   if(!t) return;
   const act = t.dataset.act;
@@ -2062,6 +2183,36 @@ document.addEventListener('click', async e=>{
       renderQuickLog(); break; }
     case 'qlfinish': await finishQuickLog(); break;
     case 'startcheckin': startCheckin(); break;
+    case 'startmacro': UI.macroResult=null; startMacroCalc(); break;
+    case 'dismissmacro': {
+      UI.macroResult=null;
+      // Pull the saved targets back so the panel reflects what was stored.
+      const res=await api({action:'data',session:SESSION});
+      if(res && res.ok) S.targets=res.targets||{};
+      render(); break; }
+    case 'customeal': UI.customMeal=t.dataset.date; renderModal(); break;
+    case 'usecustom': {
+      const date=t.dataset.date;
+      S.dateMeals[date]=(S.dateMeals[date]||[]).concat([t.dataset.id]);
+      UI.customMeal=null; save(); render(); break; }
+    case 'savecustommeal': {
+      const box=$('cmMsg');
+      const meal={ title:$('cm_title').value.trim(), calories:+$('cm_cal').value||0,
+        protein:+$('cm_pro').value||0, carbs:+$('cm_carb').value||0, fat:+$('cm_fat').value||0 };
+      if(!meal.title){ box.innerHTML='<div class="msg err">Give it a name.</div>'; break; }
+      if(!(meal.calories>0)){ box.innerHTML='<div class="msg err">Add a rough calorie figure.</div>'; break; }
+      t.disabled=true; t.textContent='Adding\u2026';
+      const res=await api({action:'save_custom_meal',session:SESSION,meal});
+      if(res.ok){
+        S.recipes.push(res.meal);
+        const date=t.dataset.date;
+        S.dateMeals[date]=(S.dateMeals[date]||[]).concat([res.meal.id]);
+        UI.customMeal=null; save(); render();
+      } else {
+        t.disabled=false; t.textContent='Add';
+        box.innerHTML='<div class="msg err">Could not save that.</div>';
+      }
+      break; }
     case 'resumesession': resumeSession(); break;
     case 'discardsession': clearActiveSession(); render(); break;
     case 'savesteps': {
