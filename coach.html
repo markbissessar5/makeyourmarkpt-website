@@ -151,6 +151,16 @@
   .card h3{font-size:17px;text-transform:uppercase;margin-bottom:10px}
   .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px}
   .kpibox{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .gtabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .gtab{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 14px;
+        font:inherit;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;
+        display:inline-flex;align-items:center;gap:8px}
+  .gtab span{background:var(--line);border-radius:999px;padding:1px 7px;font-size:11.5px;font-weight:700}
+  .gtab.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  .gtab.on span{background:rgba(255,255,255,.22);color:#fff}
+  .gtab.add{border-style:dashed}
+  .chk{display:flex;align-items:center;gap:9px;font-size:14px;margin:4px 0 2px;cursor:pointer}
+  .chk input{width:16px;height:16px;accent-color:var(--ink)}
   .kpibox b{font-family:var(--display);font-size:29px;font-weight:800;line-height:1;display:block}
   .kpibox span{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
   .rowlist{display:flex;flex-direction:column;gap:7px}
@@ -258,12 +268,13 @@ const WEEKDAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday',
 
 /* ============ STATE ============ */
 let SESSION = null;
-let S = { name:'', clients:[], templates:[], exercises:[], recipes:[], forms:{intake:[],checkin:[]} };
+let S = { name:'', clients:[], groups:[], templates:[], exercises:[], recipes:[], forms:{intake:[],checkin:[]} };
 let DETAIL = {};
 let ACTIVITY = null;
 let CHALLENGE = null;
 let CHLB = null;
-let BILLING = null;           // email -> admin_client_detail payload
+let BILLING = null;
+let MISSING = null;           // email -> admin_client_detail payload
 let VIDEO_EDITS = {};      // exerciseId -> pending video url (bulk mode)
 let UI = {
   view:'activity', ctab:'programme', q:'', muscle:'', equip:'', shown:PAGE, bulk:false,
@@ -272,6 +283,7 @@ let UI = {
   openEx:null, editEx:false, addEx:false,
   addDay:null, pickFor:null, pickQ:'', rxFor:null,
   newTpl:false, assign:false, addHabit:false, confirmRemove:false,
+  group:null, groupEdit:null, groupInvite:false, groupAssign:false, groupMsg:'',
   saving:''
 };
 let saveTimer = null;
@@ -317,6 +329,7 @@ async function loadData(){
   const res = await api({ action:'admin_data', session: SESSION });
   if(!res || !res.ok) return false;
   S.name = res.name||''; S.clients = res.clients||[]; S.templates = res.templates||[];
+  S.groups = res.groups||[];
   S.exercises = res.exercises||[]; S.recipes = res.recipes||[]; S.forms = res.forms||{intake:[],checkin:[]};
   S.clients.forEach(c=>{
     if(!Array.isArray(c.days)) c.days=[];
@@ -333,15 +346,24 @@ async function loadBilling(){
   try{
     const res=await api({action:'admin_billing',session:SESSION});
     BILLING = (res && res.ok) ? res.rows : [];
+    MISSING = (res && res.ok) ? (res.missing||[]) : [];
   }catch(e){ BILLING=[]; }
 }
 
+/* Groups come down with admin_data. This only fetches the leaderboard, which is
+   per group and too expensive to compute for every group on every load. */
+function groups(){ return (S.groups||[]).filter(g=>g.status!=='archived'); }
+function activeGroup(){
+  const all=groups(); if(!all.length) return null;
+  return all.find(g=>g.id===UI.group) || all[0];
+}
 async function loadChallenge(){
   try{
-    const info=await api({action:'challenge_info'});
-    if(info && info.ok) CHALLENGE=info.challenge;
-    const lb=await api({action:'leaderboard',session:SESSION});
-    if(lb && lb.ok) CHLB=lb.board||[];
+    const g=activeGroup();
+    if(!g){ CHALLENGE=null; CHLB=[]; if(UI.view==='challenge') render(); return; }
+    CHALLENGE=g;
+    const lb=await api({action:'leaderboard',session:SESSION,groupId:g.id});
+    CHLB=(lb&&lb.ok)?(lb.board||[]):[];
     if(UI.view==='challenge') render();
   }catch(e){}
 }
@@ -466,7 +488,7 @@ async function saveClientFields(patch){
 
 /* ============ RENDER ============ */
 function render(){
-  $('nav').innerHTML = [['activity','Activity'],['clients','Clients'],['challenge','Challenge'],['templates','Programmes'],['nutrition','Nutrition'],['calendar','Calendar'],['library','Library'],['billing','Invoicing']].map(([k,l])=>
+  $('nav').innerHTML = [['activity','Activity'],['clients','Clients'],['challenge','Groups'],['templates','Programmes'],['nutrition','Nutrition'],['calendar','Calendar'],['library','Library'],['billing','Invoicing']].map(([k,l])=>
     `<button class="tab ${UI.view===k?'on':''}" data-act="nav" data-k="${k}">${l}</button>`).join('');
   const v=$('view');
   if(UI.view==='library') v.innerHTML=viewLibrary();
@@ -583,8 +605,10 @@ function relabelDays(days){ days.forEach((d,i)=>{ d.label='Day '+(i+1); }); }
 
 /* ---- clients ---- */
 function viewClients(){
-  const active=S.clients.filter(c=>c.status.toLowerCase()!=='archived');
-  const archived=S.clients.filter(c=>c.status.toLowerCase()==='archived');
+  // Group members live under Groups, not here, or the roster drowns in students.
+  const roster=S.clients.filter(c=>c.role!=='challenge' || c.email===UI.client);
+  const active=roster.filter(c=>c.status.toLowerCase()!=='archived');
+  const archived=roster.filter(c=>c.status.toLowerCase()==='archived');
   const row=c=>`<button class="crow ${UI.client===c.email?'on':''} ${c.status.toLowerCase()==='archived'?'archived':''}" data-act="pickclient" data-e="${esc(c.email)}">
       <span><span class="cn">${esc(c.name||c.email)}</span><br><span class="cs">${esc(c.status)}${c.templateName?' \u00b7 '+esc(c.templateName):''}</span></span>
       <span class="num">${(c.days||[]).length}d</span>
@@ -932,20 +956,40 @@ function paneSubmissions(c){
 }
 
 
-/* ---- challenge ---- */
+/* ---- groups ----
+   A group is a cohort: shared programme, shared leaderboard, its own member
+   list. The 8 week challenge is one; a school squad is another. */
+function groupMembers(id){ return S.clients.filter(c=>c.role==='challenge' && c.challengeId===id); }
+
 function viewChallenge(){
-  const ch=CHALLENGE, lb=CHLB;
-  const members=S.clients.filter(c=>c.role==='challenge');
+  const all=groups(), g=activeGroup(), lb=CHLB;
+  const head=`<div class="head"><div class="eyebrow">Coach</div><h1>Groups</h1>
+    <p class="sub">A group shares one programme and one leaderboard. Invite everyone at once, assign the template to the whole group, then adjust each person's plan individually.</p></div>`;
+
+  if(!all.length) return head+`<div class="empty">No groups yet.</div>
+    <div class="toolbar"><button class="btn" data-act="newgroup">+ Create group</button></div>`;
+
+  const tabs=`<div class="gtabs">${all.map(x=>`<button class="gtab ${g&&x.id===g.id?'on':''}" data-act="pickgroup" data-id="${esc(x.id)}">${esc(x.name)}<span>${groupMembers(x.id).length}</span></button>`).join('')}
+    <button class="gtab add" data-act="newgroup">+ Create group</button></div>`;
+
+  if(!g) return head+tabs;
+
+  const members=groupMembers(g.id);
   const pending=members.filter(c=>String(c.status).toLowerCase()!=='active');
-  const head=`<div class="head"><div class="eyebrow">Coach</div><h1>8 Week Challenge</h1>
-    <p class="sub">One cohort at a time. Signups arrive as Pending; take payment, then set them Active to let them in.</p></div>`;
-  if(!ch) return head+`<div class="empty">No cohort set up yet.</div>
-    <div class="toolbar"><button class="btn" data-act="editchallenge">Create a cohort</button></div>`;
-  return head
+  const active=members.filter(c=>String(c.status).toLowerCase()==='active');
+  const unassigned=active.filter(c=>!(c.days||[]).length);
+
+  const when = g.week ? ('week '+g.week+' of '+g.weeks)
+             : (g.startDate ? ('starts '+esc(g.startDate)) : 'no start date');
+
+  return head + tabs
     + `<div class="toolbar">
-        <button class="btn ghost" data-act="editchallenge">Edit cohort</button>
-        <span class="count">${esc(ch.name)} \u00b7 ${ch.week?('week '+ch.week+' of '+ch.weeks):('starts '+esc(ch.startDate))} \u00b7 ${esc(ch.status)}</span>
+        <button class="btn" data-act="invitegroup">+ Invite members</button>
+        <button class="btn ghost" data-act="assigngroup">Assign programme</button>
+        <button class="btn ghost" data-act="editgroup">Edit group</button>
+        <span class="count">${when} · ${esc(g.status)}${g.publicSignup===false?'':' · public signups on'}</span>
       </div>`
+    + (UI.groupMsg?`<div class="card" style="margin-bottom:18px"><div class="rm">${UI.groupMsg}</div></div>`:'')
     + (pending.length?`<div class="card dangerzone" style="margin-bottom:18px">
         <h3>${pending.length} waiting to be activated</h3>
         <p style="font-size:13.5px;color:var(--muted);margin-bottom:12px">They've signed up but can't log in yet. Take payment, then activate.</p>
@@ -954,60 +998,125 @@ function viewChallenge(){
           <button class="btn sm" data-act="activatemember" data-e="${esc(c.email)}">Activate</button>
         </div>`).join('')}</div></div>`:'')
     + `<div class="kpi">
-        <div class="kpibox"><b>${members.filter(c=>String(c.status).toLowerCase()==='active').length}</b><span>Active members</span></div>
-        <div class="kpibox"><b>${pending.length}</b><span>Awaiting payment</span></div>
-        <div class="kpibox"><b>${ch.week||0}</b><span>Current week</span></div>
-        <div class="kpibox"><b>$${(members.filter(c=>String(c.status).toLowerCase()==='active').length*20)}</b><span>Per week</span></div>
+        <div class="kpibox"><b>${active.length}</b><span>Active members</span></div>
+        <div class="kpibox"><b>${pending.length}</b><span>Not activated</span></div>
+        <div class="kpibox"><b>${unassigned.length}</b><span>No programme yet</span></div>
+        <div class="kpibox"><b>${g.week||0}</b><span>Current week</span></div>
+      </div>`
+    + `<div class="card" style="margin-bottom:18px"><h3>Members</h3>
+        ${members.length?`<div class="rowlist">${members.map(c=>`<div class="rowitem">
+          <span class="rt">${esc(c.name||c.email)}</span>
+          <span class="rm">${esc(c.email)}</span>
+          <span class="rm">${(c.days||[]).length?esc(c.templateName||'Custom')+' · '+(c.days||[]).length+' days':'<em>no programme</em>'}</span>
+          <button class="btn ghost sm" data-act="openmember" data-e="${esc(c.email)}">Edit plan</button>
+        </div>`).join('')}</div>`:'<div class="rm">Nobody in this group yet. Use Invite members.</div>'}
       </div>`
     + `<div class="card" style="margin-bottom:18px"><h3>Leaderboard</h3>
         ${lb&&lb.length?`<div class="rowlist">${lb.map(m=>`<div class="rowitem">
           <span class="rm" style="width:26px">${m.rank}</span>
           <span class="rt">${esc(m.name)}</span>
-          <span class="rm">${m.workouts} workouts \u00b7 ${Number(m.steps).toLocaleString()} steps${m.verified&&m.steps?' \u2713':''}</span>
+          <span class="rm">${m.workouts} workouts · ${Number(m.steps).toLocaleString()} steps${m.verified&&m.steps?' ✓':''}</span>
           <span class="rm" style="font-weight:700;color:var(--ink)">${m.points}</span>
         </div>`).join('')}</div>`:'<div class="rm">Nothing logged yet.</div>'}
       </div>`
-    + `<div class="card"><h3>Weekly meetups</h3>
-        <div class="rowlist">${(ch.meetups||[]).length?(ch.meetups||[]).sort((a,b)=>a.week-b.week).map(m=>`<div class="rowitem">
+    + `<div class="card"><h3>Meetups</h3>
+        <div class="rowlist">${(g.meetups||[]).length?(g.meetups||[]).slice().sort((a,b)=>a.week-b.week).map(m=>`<div class="rowitem">
           <span class="rm" style="width:60px">Week ${esc(m.week)}</span>
           <span class="rt">${esc(m.title||'')}</span>
-          <span class="rm">${esc(m.when||'')}${m.where?' \u00b7 '+esc(m.where):''}</span>
-          <button class="del" data-act="delmeetup" data-w="${esc(m.week)}">\u00d7</button>
+          <span class="rm">${esc(m.when||'')}${m.where?' · '+esc(m.where):''}</span>
+          <button class="del" data-act="delmeetup" data-w="${esc(m.week)}">×</button>
         </div>`).join(''):'<div class="rm">None planned yet.</div>'}</div>
         <button class="btn ghost sm" data-act="addmeetup" style="margin-top:10px">+ Add meetup</button>
       </div>`;
 }
 
 function challengeModal(){
-  const ch=CHALLENGE||{name:'8 Week Challenge',weeks:8,status:'open',startDate:'',templateId:'',meetups:[]};
+  const editing = UI.groupEdit && UI.groupEdit !== 'new';
+  const ch = editing ? (groups().find(g=>g.id===UI.groupEdit)||{}) 
+                     : {name:'',weeks:8,status:'open',startDate:'',templateId:'',meetups:[],publicSignup:false};
   return `<div class="overlay"><div class="sheet" style="max-width:520px">
-    <div class="sh"><button class="close">\u00d7</button><h2>${CHALLENGE?'Edit cohort':'Create cohort'}</h2></div>
+    <div class="sh"><button class="close">×</button><h2>${editing?'Edit group':'Create group'}</h2></div>
     <div class="sb">
-      <div class="field"><label>Name</label><input id="ch_name" value="${esc(ch.name||'')}" placeholder="Spring 8 Week Challenge"></div>
+      <div class="field"><label>Group name</label><input id="ch_name" value="${esc(ch.name||'')}" placeholder="KCC Lifting Club"></div>
       <div class="fieldrow">
         <div class="field"><label>Start date</label><input id="ch_start" type="date" value="${esc(ch.startDate||'')}"></div>
         <div class="field"><label>Weeks</label><input id="ch_weeks" type="number" min="1" value="${esc(ch.weeks||8)}"></div>
       </div>
-      <div class="field"><label>Programme template</label><select id="ch_tpl">
-        <option value="">\u2014 none yet \u2014</option>
+      <div class="field"><label>Default programme template</label><select id="ch_tpl">
+        <option value="">— none yet —</option>
         ${S.templates.map(t=>`<option value="${esc(t.id)}" ${ch.templateId===t.id?'selected':''}>${esc(t.name)}</option>`).join('')}
       </select></div>
       <div class="field"><label>Status</label><select id="ch_status">
         ${['open','running','closed','archived'].map(x=>`<option ${ch.status===x?'selected':''}>${x}</option>`).join('')}
       </select></div>
-      <div class="msg">Open means the signup page accepts people. Assign the template to each member from their Programme tab once they're active.</div>
+      <label class="chk"><input type="checkbox" id="ch_public" ${ch.publicSignup?'checked':''}> Accept signups from the public challenge page</label>
+      <div class="msg">Leave that unticked for a private group like a school squad, so strangers signing up on the website don't land in it.</div>
     </div>
-    <div class="sheetacts"><button class="btn" data-act="savechallenge">Save cohort</button></div>
+    <div class="sheetacts">
+      ${editing?`<button class="btn ghost" data-act="deletegroup" data-id="${esc(ch.id)}">Archive group</button>`:''}
+      <button class="btn" data-act="savechallenge">${editing?'Save group':'Create group'}</button></div>
+  </div></div>`;
+}
+
+/* Paste a register straight out of a spreadsheet or an email. One member per
+   line; name and email in either order, separated by a comma, tab or spaces. */
+function parseMemberLines(text){
+  const out=[], bad=[];
+  String(text||'').split(/\r?\n/).forEach(line=>{
+    const raw=line.trim(); if(!raw) return;
+    const parts=raw.split(/[,;\t]+|\s{2,}/).map(x=>x.trim()).filter(Boolean);
+    const flat=parts.length>1?parts:raw.split(/\s+/);
+    const email=(flat.find(x=>x.indexOf('@')>0)||'').replace(/[<>]/g,'');
+    const name=flat.filter(x=>x!==email && x.indexOf('@')<0).join(' ').replace(/[<>]/g,'').trim();
+    if(!email){ bad.push(raw); return; }
+    // An email on its own is still usable: make a name out of the local part so
+    // a pasted column of addresses works, and Mark can correct it after.
+    const guess=email.split('@')[0].replace(/[._-]+/g,' ').replace(/\d+/g,'').trim()
+      .replace(/\b[a-z]/g,ch=>ch.toUpperCase());
+    out.push({name:name||guess||email,email:email.toLowerCase()});
+  });
+  return {members:out, bad};
+}
+
+function groupInviteModal(){
+  const g=activeGroup()||{name:''};
+  const parsed=parseMemberLines(UI.groupPaste||'');
+  return `<div class="overlay"><div class="sheet" style="max-width:560px">
+    <div class="sh"><button class="close">×</button><h2>Invite members to ${esc(g.name)}</h2></div>
+    <div class="sb">
+      <div class="field"><label>One per line: name and email (an email on its own is fine)</label>
+        <textarea id="gi_list" rows="10" data-act="gipaste" placeholder="Jess Nguyen, jess@example.com&#10;Tom Reilly tom.reilly@example.com&#10;Aisha Khan,aisha@example.com">${esc(UI.groupPaste||'')}</textarea></div>
+      <div class="msg" id="gi_count">${parsed.members.length} ready to invite${parsed.bad.length?` · ${parsed.bad.length} line${parsed.bad.length>1?'s':''} with no email address`:''}</div>
+      <div class="rowlist" id="gi_prev" style="margin-top:10px">${parsed.members.slice(0,40).map(m=>`<div class="rowitem"><span class="rt">${esc(m.name)}</span><span class="rm">${esc(m.email)}</span></div>`).join('')}</div>
+      <div class="msg" style="margin-top:10px">Everyone is added Active and gets their login email straight away. They appear in this group, not in Clients.</div>
+    </div>
+    <div class="sheetacts"><button class="btn" data-act="sendgroupinvites" ${parsed.members.length?'':'disabled'}>Invite ${parsed.members.length||''}</button></div>
+  </div></div>`;
+}
+
+function groupAssignModal(){
+  const g=activeGroup()||{name:'',id:''};
+  const n=groupMembers(g.id).filter(c=>String(c.status).toLowerCase()==='active').length;
+  return `<div class="overlay"><div class="sheet" style="max-width:520px">
+    <div class="sh"><button class="close">×</button><h2>Assign a programme to ${esc(g.name)}</h2></div>
+    <div class="sb">
+      <div class="field"><label>Template</label><select id="ga_tpl">
+        <option value="">— choose —</option>
+        ${S.templates.map(t=>`<option value="${esc(t.id)}" ${g.templateId===t.id?'selected':''}>${esc(t.name)} (${(t.days||[]).length} days)</option>`).join('')}
+      </select></div>
+      <div class="msg">Every active member (${n}) gets their own copy. Edit any individual's plan afterwards from Edit plan and the rest are untouched. Running this again replaces everyone's programme, including edits.</div>
+    </div>
+    <div class="sheetacts"><button class="btn" data-act="doassigngroup" ${n?'':'disabled'}>Assign to ${n} member${n===1?'':'s'}</button></div>
   </div></div>`;
 }
 
 function meetupModal(){
-  const ch=CHALLENGE||{weeks:8};
+  const ch=activeGroup()||{weeks:8};
   return `<div class="overlay"><div class="sheet" style="max-width:480px">
     <div class="sh"><button class="close">\u00d7</button><h2>Add meetup</h2></div>
     <div class="sb">
       <div class="fieldrow">
-        <div class="field"><label>Week</label><input id="mu_week" type="number" min="1" max="${esc(ch.weeks||8)}" value="${esc((CHALLENGE&&CHALLENGE.week)||1)}"></div>
+        <div class="field"><label>Week</label><input id="mu_week" type="number" min="1" max="${esc(ch.weeks||8)}" value="${esc(ch.week||1)}"></div>
         <div class="field"><label>When</label><input id="mu_when" placeholder="Saturday 9am"></div>
       </div>
       <div class="field"><label>What</label><input id="mu_title" placeholder="Beach volleyball"></div>
@@ -1040,14 +1149,51 @@ function viewBilling(){
         <div class="kpibox"><b>${overdue.length}</b><span>Overdue 7+ days</span></div>
         <div class="kpibox"><b>${rows.filter(r=>r.paid).length}</b><span>Paid this cycle</span></div>
       </div>`:'')
+    + (MISSING&&MISSING.length?`<div class="card dangerzone" style="margin-bottom:18px">
+        <h3>${MISSING.length} active client${MISSING.length===1?'':'s'} not on billing</h3>
+        <p style="font-size:13.5px;color:var(--muted);margin-bottom:12px">They can log in and train but will never be invoiced. Nothing else flags this.</p>
+        <div class="rowlist">${MISSING.map(m=>`<div class="rowitem">
+          <span class="rt">${esc(m.name)}</span><span class="rm">${esc(m.email)}</span>
+          <button class="btn sm" data-act="addbilling" data-e="${esc(m.email)}" data-n="${esc(m.name)}">Add to billing</button>
+        </div>`).join('')}</div></div>`:'')
     + (rows?`<div class="card"><h3>Billing schedule</h3>
         <div class="rowlist">${rows.map(r=>`<div class="rowitem" style="flex-wrap:wrap">
           <span class="rt">${esc(r.client)}</span>
           <span class="rm">${esc(r.amount)}${r.service?' \u00b7 '+esc(r.service):''}</span>
           <span class="rm">${r.nextInvoice?('next '+esc(r.nextInvoice)+(r.dueInDays!==null&&r.dueInDays<=7?' \u00b7 due soon':'')):'no schedule'}</span>
           <span class="pill ${r.paid?'good':(r.daysOutstanding>=7?'warn':'')}">${r.paid?'Paid':(r.lastInvoice?(r.daysOutstanding+'d unpaid'):'\u2014')}</span>
+          <button class="btn ${r.paid?'ghost':''} sm" data-act="togglepaid" data-e="${esc(r.email)}" data-paid="${r.paid?'1':'0'}">${r.paid?'Unpaid':'Mark paid'}</button>
+          <button class="btn ghost sm" data-act="editbilling" data-e="${esc(r.email)}">Edit</button>
         </div>`).join('')}</div></div>`
       :'<div class="empty">Loading billing\u2026</div>');
+}
+
+
+function billingEditModal(){
+  const r=(BILLING||[]).find(x=>x.email===UI.billingEdit);
+  const add=UI.billingAdd;
+  const name=r?r.client:(add?add.name:'');
+  return `<div class="overlay"><div class="sheet" style="max-width:500px">
+    <div class="sh"><button class="close">\u00d7</button><h2>${add?'Add to billing':'Edit billing'}</h2>
+      <div class="m">${esc(name)}</div></div>
+    <div class="sb">
+      <div class="field"><label>Service description</label>
+        <input id="bl_service" value="${esc(r?r.service:'4-Week PT Retainer')}"></div>
+      <div class="rxgrid">
+        <div class="field"><label>Qty</label><input id="bl_qty" type="number" min="1" value="1"></div>
+        <div class="field"><label>Rate</label><input id="bl_rate" type="number" min="0" step="0.01" placeholder="320"></div>
+        <div class="field"><label>Currency</label><select id="bl_cur">
+          ${['AUD','USD','GBP','EUR','NZD'].map(c=>`<option>${c}</option>`).join('')}</select></div>
+      </div>
+      <div class="field"><label>Next invoice date</label>
+        <input id="bl_next" type="date" value="${esc(r?r.nextInvoice:'')}"></div>
+      <div class="msg err">This is the date money gets taken. Changing it moves their whole four-week cycle.</div>
+      <div id="blMsg"></div>
+    </div>
+    <div class="sheetacts">
+      <button class="btn" data-act="${add?'confirmaddbilling':'savebilling'}" data-e="${esc(add?add.email:UI.billingEdit)}" data-n="${esc(name)}">${add?'Add to billing':'Save'}</button>
+      <button class="btn ghost close">Cancel</button>
+    </div></div></div>`;
 }
 
 function customInvoiceModal(){
@@ -1304,8 +1450,11 @@ function viewCoachCalendar(){
 /* ---- modals ---- */
 function renderModal(){
   const m=$('modal');
-  if(UI.customInvoice) m.innerHTML=customInvoiceModal();
-  else if(UI.challengeEdit) m.innerHTML=challengeModal();
+  if(UI.billingEdit||UI.billingAdd) m.innerHTML=billingEditModal();
+  else if(UI.customInvoice) m.innerHTML=customInvoiceModal();
+  else if(UI.groupEdit) m.innerHTML=challengeModal();
+  else if(UI.groupInvite) m.innerHTML=groupInviteModal();
+  else if(UI.groupAssign) m.innerHTML=groupAssignModal();
   else if(UI.meetupAdd) m.innerHTML=meetupModal();
   else if(UI.openRecipe) m.innerHTML=recipeModal();
   else if(UI.checkinOpen) m.innerHTML=checkinModal();
@@ -1330,7 +1479,7 @@ function renderModal(){
 function closeModals(){
   UI.openEx=null;UI.editEx=false;UI.addEx=false;UI.addDay=null;UI.invite=false;UI.pickFor=null;UI.pickQ='';
   UI.rxFor=null;UI.calEvent=null;UI.calDate=null;UI.dayPlanDate=null;UI.newTpl=false;UI.assign=false;
-  UI.addHabit=false;UI.confirmRemove=false;UI.openRecipe=null;UI.checkinOpen=null;UI.pasteOpen=false;UI.challengeEdit=false;UI.meetupAdd=false;UI.customInvoice=false;
+  UI.addHabit=false;UI.confirmRemove=false;UI.openRecipe=null;UI.checkinOpen=null;UI.pasteOpen=false;UI.groupEdit=null;UI.groupInvite=false;UI.groupAssign=false;UI.meetupAdd=false;UI.customInvoice=false;UI.billingEdit=null;UI.billingAdd=null;
 }
 function exDetailModal(){
   const x=exById(UI.openEx); if(!x)return'';
@@ -1541,6 +1690,16 @@ document.addEventListener('input', e=>{
   const t=e.target.closest('[data-act]'); if(!t)return;
   const act=t.dataset.act;
   if(act==='daytitle'){ const days=ctxDays(t.dataset.ctx); days[+t.dataset.i].title=t.value; ctxSave(t.dataset.ctx); }
+  if(act==='gipaste'){
+    UI.groupPaste=t.value;
+    const p=parseMemberLines(t.value);
+    const n=$('gi_count');
+    if(n) n.textContent=`${p.members.length} ready to invite`+(p.bad.length?` · ${p.bad.length} line${p.bad.length>1?'s':''} with no email address`:'');
+    const btn=document.querySelector('[data-act="sendgroupinvites"]');
+    if(btn){ btn.disabled=!p.members.length; btn.textContent='Invite '+(p.members.length||''); }
+    const prev=$('gi_prev');
+    if(prev) prev.innerHTML=p.members.slice(0,40).map(m=>`<div class="rowitem"><span class="rt">${esc(m.name)}</span><span class="rm">${esc(m.email)}</span></div>`).join('');
+  }
   if(act==='vidinput'){
     const id=t.dataset.id, ex=exById(id);
     const val=t.value.trim();
@@ -1646,7 +1805,14 @@ document.addEventListener('click', async e=>{
       else { t.disabled=false; t.textContent='Create template'; $('pzMsg').innerHTML='<div class="msg err">Could not save that.</div>'; }
       break; }
     case 'openrecipe': UI.openRecipe=t.dataset.id; renderModal(); break;
-    case 'editchallenge': UI.challengeEdit=true; renderModal(); break;
+    case 'editgroup': { const g=activeGroup(); UI.groupEdit=g?g.id:'new'; renderModal(); break; }
+    case 'newgroup': UI.groupEdit='new'; renderModal(); break;
+    case 'pickgroup': UI.group=t.dataset.id; UI.groupMsg=''; CHLB=null; render(); loadChallenge(); break;
+    case 'invitegroup': UI.groupInvite=true; UI.groupPaste=''; renderModal(); break;
+    case 'assigngroup': UI.groupAssign=true; renderModal(); break;
+    case 'openmember': {
+      UI.view='clients'; UI.client=t.dataset.e; UI.ctab='programme'; render();
+      const d=await loadDetail(UI.client); if(d) render(); break; }
     case 'runjob': {
       const box=$('jobMsg'); const label=t.textContent;
       t.disabled=true; t.textContent='Running\u2026';
@@ -1659,6 +1825,32 @@ document.addEventListener('click', async e=>{
                          : ('That didn\u2019t run. ' + (res.detail||res.error||''));
       await loadBilling(); render(); break; }
     case 'custominvoice': UI.customInvoice=true; renderModal(); break;
+    case 'togglepaid': {
+      const wasPaid = t.dataset.paid==='1';
+      t.disabled=true; t.textContent='\u2026';
+      const res=await api({action:'admin_billing_paid',session:SESSION,email:t.dataset.e,paid:!wasPaid});
+      UI.jobMsgOk=!!res.ok;
+      UI.jobMsg = res.ok ? (wasPaid?'Marked unpaid.':'Marked paid. No reminder will go out.')
+                         : 'Could not update that.';
+      await loadBilling(); render(); break; }
+    case 'editbilling': UI.billingEdit=t.dataset.e; UI.billingAdd=null; renderModal(); break;
+    case 'addbilling': UI.billingAdd={email:t.dataset.e,name:t.dataset.n}; UI.billingEdit=null; renderModal(); break;
+    case 'savebilling': case 'confirmaddbilling': {
+      const box=$('blMsg');
+      const patch={ service:$('bl_service').value.trim(), qty:+$('bl_qty').value||1,
+        rate:+$('bl_rate').value||0, currency:$('bl_cur').value, nextInvoice:$('bl_next').value };
+      if(!(patch.rate>0)){ box.innerHTML='<div class="msg err">Enter a rate.</div>'; break; }
+      t.disabled=true; t.textContent='Saving\u2026';
+      const res = act==='confirmaddbilling'
+        ? await api({action:'admin_billing_add',session:SESSION,
+            client:Object.assign({email:t.dataset.e,name:t.dataset.n},patch)})
+        : await api({action:'admin_billing_update',session:SESSION,email:t.dataset.e,patch});
+      if(res.ok){ closeModals(); UI.jobMsgOk=true;
+        UI.jobMsg = act==='confirmaddbilling' ? (t.dataset.n+' added to billing.') : 'Billing updated.';
+        await loadBilling(); render(); }
+      else { t.disabled=false; t.textContent='Save';
+        box.innerHTML='<div class="msg err">'+esc(res.error==='already_on_billing'?'They are already on billing.':'Could not save that.')+'</div>'; }
+      break; }
     case 'sendcustominvoice': {
       const box=$('ciMsg');
       const inv={ name:$('ci_name').value.trim(), email:$('ci_email').value.trim(),
@@ -1674,31 +1866,81 @@ document.addEventListener('click', async e=>{
         box.innerHTML=`<div class="msg err">${esc(res.error==='missing_amount'?'Enter a rate above zero.':'Could not send that. '+(res.detail||''))}</div>`; }
       break; }
     case 'savechallenge': {
-      const payload={ id:CHALLENGE?CHALLENGE.id:'', name:$('ch_name').value.trim(),
+      const editing = UI.groupEdit && UI.groupEdit!=='new';
+      const existing = editing ? (groups().find(g=>g.id===UI.groupEdit)||null) : null;
+      const label = t.textContent;
+      const payload={ id: existing?existing.id:'', name:$('ch_name').value.trim(),
         startDate:$('ch_start').value, weeks:+$('ch_weeks').value||8,
         templateId:$('ch_tpl').value, status:$('ch_status').value,
-        meetups:CHALLENGE?CHALLENGE.meetups:[] };
+        publicSignup: !!($('ch_public')&&$('ch_public').checked),
+        meetups: existing?existing.meetups:[] };
       if(!payload.name) break;
       t.disabled=true; t.textContent='Saving\u2026';
-      const res=await api({action:'admin_save_challenge',session:SESSION,challenge:payload});
-      if(res.ok){ CHALLENGE=res.challenge; closeModals(); await loadChallenge(); render(); }
-      else { t.disabled=false; t.textContent='Save cohort'; }
+      const res=await api({action:'admin_save_group',session:SESSION,challenge:payload});
+      if(res.ok){
+        S.groups=res.challenges||S.groups;
+        UI.group=res.challenge?res.challenge.id:UI.group;
+        closeModals(); render(); await loadChallenge();
+      } else { t.disabled=false; t.textContent=label; }
+      break; }
+    case 'deletegroup': {
+      t.disabled=true; t.textContent='Archiving\u2026';
+      const res=await api({action:'admin_delete_group',session:SESSION,id:t.dataset.id});
+      if(res.ok){ S.groups=res.challenges||S.groups; UI.group=null; closeModals(); render(); await loadChallenge(); }
+      else { t.disabled=false; t.textContent='Archive group'; }
+      break; }
+    case 'sendgroupinvites': {
+      const g=activeGroup(); if(!g) break;
+      const parsed=parseMemberLines(UI.groupPaste||'');
+      if(!parsed.members.length) break;
+      t.disabled=true; t.textContent='Inviting\u2026';
+      const res=await api({action:'admin_invite_group',session:SESSION,groupId:g.id,members:parsed.members});
+      if(res && res.ok){
+        S.clients=res.clients||S.clients;
+        const skipped=res.skipped||[];
+        UI.groupMsg=`Invited ${(res.added||[]).length} to ${esc(g.name)}.`
+          + (skipped.length?` Skipped ${skipped.length}: `+skipped.map(x=>esc(x.email)+' ('+esc(x.reason)+')').join('; '):'');
+        UI.groupPaste=''; closeModals(); render();
+      } else {
+        const err=(res&&res.error)||'unknown error';
+        t.disabled=false; t.textContent='Invite '+parsed.members.length;
+        UI.groupMsg = err==='too_many'
+          ? 'That is more than 50 at once, which times out. Paste the register in two halves.'
+          : 'Could not invite: '+esc(err);
+        render();
+      }
+      break; }
+    case 'doassigngroup': {
+      const g=activeGroup(); if(!g) break;
+      const tpl=$('ga_tpl').value; if(!tpl) break;
+      t.disabled=true; t.textContent='Assigning\u2026';
+      const res=await api({action:'admin_assign_group',session:SESSION,groupId:g.id,templateId:tpl});
+      if(res && res.ok){
+        S.clients=res.clients||S.clients;
+        const failed=res.failed||[];
+        UI.groupMsg=`Assigned to ${(res.assigned||[]).length} member${(res.assigned||[]).length===1?'':'s'}.`
+          + (failed.length?` ${failed.length} failed: `+failed.map(x=>esc(x.email)).join(', '):'')
+          + ' Open any member and use Edit plan to change their exercises.';
+        closeModals(); render();
+      } else { t.disabled=false; t.textContent='Assign'; UI.groupMsg='Could not assign: '+esc((res&&res.error)||'unknown error'); render(); }
       break; }
     case 'addmeetup': UI.meetupAdd=true; renderModal(); break;
     case 'savemeetup': {
       const m={ week:+$('mu_week').value||1, title:$('mu_title').value.trim(),
         when:$('mu_when').value.trim(), where:$('mu_where').value.trim(), note:$('mu_note').value.trim() };
       if(!m.title) break;
-      const meetups=(CHALLENGE.meetups||[]).filter(x=>Number(x.week)!==m.week).concat([m]);
-      const res=await api({action:'admin_save_challenge',session:SESSION,
-        challenge:Object.assign({},CHALLENGE,{meetups})});
-      if(res.ok){ CHALLENGE=res.challenge; closeModals(); render(); }
+      const g=activeGroup(); if(!g) break;
+      const meetups=(g.meetups||[]).filter(x=>Number(x.week)!==m.week).concat([m]);
+      const res=await api({action:'admin_save_group',session:SESSION,
+        challenge:Object.assign({},g,{meetups})});
+      if(res.ok){ S.groups=res.challenges||S.groups; CHALLENGE=res.challenge; closeModals(); render(); }
       break; }
     case 'delmeetup': {
-      const meetups=(CHALLENGE.meetups||[]).filter(x=>Number(x.week)!==Number(t.dataset.w));
-      const res=await api({action:'admin_save_challenge',session:SESSION,
-        challenge:Object.assign({},CHALLENGE,{meetups})});
-      if(res.ok){ CHALLENGE=res.challenge; render(); }
+      const g=activeGroup(); if(!g) break;
+      const meetups=(g.meetups||[]).filter(x=>Number(x.week)!==Number(t.dataset.w));
+      const res=await api({action:'admin_save_group',session:SESSION,
+        challenge:Object.assign({},g,{meetups})});
+      if(res.ok){ S.groups=res.challenges||S.groups; CHALLENGE=res.challenge; render(); }
       break; }
     case 'activatemember': {
       t.disabled=true; t.textContent='\u2026';

@@ -1111,7 +1111,7 @@ function isChallengeMode(){ return S.mode==='challenge'; }
 
 function viewLeaderboard(){
   const ch=S.challenge, lb=LB;
-  const head=`<div class="head"><div class="eyebrow">Challenge</div><h1>Leaderboard</h1>
+  const head=`<div class="head"><div class="eyebrow">${esc((ch&&ch.name)||'Leaderboard')}</div><h1>Leaderboard</h1>
     <p class="sub">Points come from completed workouts and daily steps. Workouts are worth more, because turning up is the bit that counts.</p></div>`;
   if(!lb) return head+'<div class="empty">Loading\u2026</div>';
   const me=lb.find(x=>x.you);
